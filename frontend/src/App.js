@@ -4,7 +4,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 
 import Login from "./pages/Login";
-import DeveloperLogin from "./pages/DeveloperLogin";
 import DeveloperDashboard from "./pages/DeveloperDashboard";
 import CreateSuperAdmin from "./pages/CreateSuperAdmin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
@@ -58,7 +57,6 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/developer/login" element={<DeveloperLogin />} />
 
           {/* Developer Routes */}
           <Route
