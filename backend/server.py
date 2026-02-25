@@ -9,6 +9,7 @@ load_dotenv(ROOT_DIR / '.env')
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, File, UploadFile, Request
 from fastapi.responses import StreamingResponse, FileResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import logging
@@ -21,12 +22,11 @@ from auth import create_access_token, verify_token, hash_password, verify_passwo
 from qr_generator import generate_qr_token, create_qr_image, verify_qr_token
 from report_generator import generate_excel_report, generate_pdf_report
 
+# Shared database connection (also used by route modules via database.py)
+from database import db, client
+
 # IST Timezone
 IST = pytz.timezone('Asia/Kolkata')
-
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -4097,6 +4097,16 @@ async def superadmin_chapters_overview(user=Depends(get_current_user)):
 
 app.include_router(api_router)
 
+# ===== MOUNT PAYMENT SYSTEM ROUTE MODULES =====
+from routes.member_auth import router as member_auth_router
+app.include_router(member_auth_router)
+
+# Serve uploaded files (payment proofs, etc.)
+import os as _os
+_uploads_dir = _os.path.join(_os.path.dirname(__file__), "uploads")
+_os.makedirs(_uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=_uploads_dir), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -4154,6 +4164,17 @@ async def startup():
     await db.members.create_index([("chapter_id", 1), ("status", 1)])
     await db.members.create_index([("membership_status", 1)])
     logger.info("Member indexes ensured")
+
+    # ===== Payment System Indexes =====
+    await db.member_credentials.create_index("mobile", unique=True)
+    await db.member_credentials.create_index("member_id", unique=True)
+    await db.payment_config.create_index("superadmin_id", unique=True)
+    await db.chapter_fee_config.create_index("chapter_id", unique=True)
+    await db.fee_ledger.create_index([("chapter_id", 1), ("member_id", 1), ("status", 1)])
+    await db.fee_ledger.create_index([("chapter_id", 1), ("status", 1), ("fee_type", 1)])
+    await db.fee_ledger.create_index([("member_id", 1), ("status", 1)])
+    await db.accountant_credentials.create_index("mobile", unique=True)
+    logger.info("Payment system indexes ensured")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

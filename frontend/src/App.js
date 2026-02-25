@@ -25,6 +25,14 @@ import MemberPendingApprovals from "./pages/MemberPendingApprovals";
 import SuperAdminMembers from "./pages/SuperAdminMembers";
 import InstallPWA from "./components/InstallPWA";
 
+// Member Portal Pages
+import MemberLayout from "./pages/MemberLayout";
+import MemberDashboard from "./pages/MemberDashboard";
+import MemberPayments from "./pages/MemberPayments";
+import MemberPaymentDetail from "./pages/MemberPaymentDetail";
+import MemberPaymentHistory from "./pages/MemberPaymentHistory";
+import MemberMyProfile from "./pages/MemberMyProfile";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -231,6 +239,23 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Member Portal Routes — nested inside MemberLayout */}
+          <Route
+            path="/member"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <MemberLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<MemberDashboard />} />
+            <Route path="payments" element={<MemberPayments />} />
+            <Route path="payments/:ledgerId" element={<MemberPaymentDetail />} />
+            <Route path="history" element={<MemberPaymentHistory />} />
+            <Route path="profile" element={<MemberMyProfile />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           {/* Public Routes */}
           <Route path="/attendance" element={<AttendanceForm />} />

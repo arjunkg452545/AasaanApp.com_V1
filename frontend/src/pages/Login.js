@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Settings, Mail, Lock } from 'lucide-react';
+import { Settings, Mail, Lock, Phone, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
   const [mobile, setMobile] = useState('');
@@ -13,6 +13,12 @@ export default function Login() {
   const [role, setRole] = useState('admin');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Member login state
+  const [memberMode, setMemberMode] = useState(false);
+  const [memberMobile, setMemberMobile] = useState('');
+  const [memberPassword, setMemberPassword] = useState('');
+  const [memberLoading, setMemberLoading] = useState(false);
 
   // Developer login modal state
   const [devModalOpen, setDevModalOpen] = useState(false);
@@ -49,6 +55,32 @@ export default function Login() {
       toast.error(error.response?.data?.detail || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMemberLogin = async (e) => {
+    e.preventDefault();
+    setMemberLoading(true);
+
+    try {
+      const response = await api.post('/member/login', {
+        mobile: memberMobile,
+        password: memberPassword,
+      });
+
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('role', 'member');
+      localStorage.setItem('member_id', response.data.member_id);
+      localStorage.setItem('member_name', response.data.member_name);
+      localStorage.setItem('chapter_id', response.data.chapter_id);
+      localStorage.setItem('chapter_name', response.data.chapter_name);
+
+      toast.success('Welcome back!');
+      navigate('/member/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Login failed');
+    } finally {
+      setMemberLoading(false);
     }
   };
 
@@ -188,6 +220,71 @@ export default function Login() {
               </Button>
             </form>
           </div>
+
+          {/* Member Login Link */}
+          {!memberMode ? (
+            <button
+              onClick={() => setMemberMode(true)}
+              className="block w-full text-center text-sm text-[#CF2030] hover:text-[#A61926] font-medium mt-4 py-2 transition-colors"
+            >
+              Are you a Member? Login here
+            </button>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100 mt-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-slate-900">Member Login</h3>
+                <button
+                  onClick={() => { setMemberMode(false); setMemberMobile(''); setMemberPassword(''); }}
+                  className="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-sm"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Admin Login
+                </button>
+              </div>
+              <form onSubmit={handleMemberLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="member-mobile" className="text-slate-700 text-sm font-medium">
+                    Mobile Number
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="member-mobile"
+                      type="text"
+                      value={memberMobile}
+                      onChange={(e) => setMemberMobile(e.target.value)}
+                      placeholder="Enter your mobile number"
+                      required
+                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="member-password" className="text-slate-700 text-sm font-medium">
+                    Password
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="member-password"
+                      type="password"
+                      value={memberPassword}
+                      onChange={(e) => setMemberPassword(e.target.value)}
+                      placeholder="Enter password"
+                      required
+                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={memberLoading}
+                  className="w-full h-11 bg-[#CF2030] hover:bg-[#A61926] text-white font-medium"
+                >
+                  {memberLoading ? 'Signing in...' : 'Sign In as Member'}
+                </Button>
+              </form>
+            </div>
+          )}
 
           <p className="text-center text-sm text-slate-500 mt-4">An SIPL Product</p>
         </div>
