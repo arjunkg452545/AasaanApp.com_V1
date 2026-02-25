@@ -68,7 +68,10 @@ export default function Login() {
       setDevModalOpen(false);
       navigate('/developer/dashboard');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Access denied');
+      console.error('Dev login error:', error);
+      const detail = error.response?.data?.detail;
+      const msg = typeof detail === 'string' ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
+      toast.error(msg || error.message || 'Access denied');
     } finally {
       setDevLoading(false);
     }
