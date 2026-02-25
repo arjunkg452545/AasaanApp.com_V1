@@ -9,8 +9,8 @@ import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
 import { CheckCircle2 } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+// Use REACT_APP_API_URL (full URL with /api) or fall back to REACT_APP_BACKEND_URL + /api
+const API = process.env.REACT_APP_API_URL || (process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '');
 
 export default function AttendanceForm() {
   const [searchParams] = useSearchParams();

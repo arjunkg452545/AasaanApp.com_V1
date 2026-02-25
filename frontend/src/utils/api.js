@@ -1,12 +1,16 @@
 import axios from 'axios';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+// REACT_APP_API_URL = full API URL including /api (e.g. https://backend.railway.app/api)
+// REACT_APP_BACKEND_URL = backend root only (e.g. https://backend.railway.app)
+// Priority: REACT_APP_API_URL > REACT_APP_BACKEND_URL + /api > empty
+const API_URL = process.env.REACT_APP_API_URL;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
-if (!BACKEND_URL) {
-  console.error('[API] REACT_APP_BACKEND_URL is not set! API calls will fail.');
+export const API = API_URL || (BACKEND_URL ? `${BACKEND_URL}/api` : '');
+
+if (!API) {
+  console.error('[API] Neither REACT_APP_API_URL nor REACT_APP_BACKEND_URL is set! API calls will fail.');
 }
-
-export const API = BACKEND_URL ? `${BACKEND_URL}/api` : '/api';
 
 const api = axios.create({
   baseURL: API,
