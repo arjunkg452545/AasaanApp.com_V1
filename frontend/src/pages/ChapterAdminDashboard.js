@@ -3,27 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { LogOut, Users, ClipboardList, Wallet, AlertTriangle } from 'lucide-react';
+import { LogOut, Users, ClipboardList, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ChapterAdminDashboard() {
-  const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0, expiringSoon: 0 });
+  const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0, expiringSoon: 0, pendingVerifications: 0 });
   const [chapterName, setChapterName] = useState('');
   const navigate = useNavigate();
 
   const loadStats = async () => {
     try {
-      const [membersRes, meetingsRes, fundRes, memberStatsRes] = await Promise.all([
+      const [membersRes, meetingsRes, fundRes, memberStatsRes, verifyRes] = await Promise.all([
         api.get('/admin/members'),
         api.get('/admin/meetings'),
         api.get('/admin/fund/reports/summary').catch(() => ({ data: { grand_total: 0 } })),
         api.get('/admin/members/stats').catch(() => ({ data: { expiring_soon: 0 } })),
+        api.get('/admin/payments/summary').catch(() => ({ data: { submitted_count: 0 } })),
       ]);
       setStats({
         members: membersRes.data.length,
         meetings: meetingsRes.data.length,
         fundTotal: fundRes.data.grand_total || 0,
         expiringSoon: memberStatsRes.data.expiring_soon || 0,
+        pendingVerifications: verifyRes.data.submitted_count || 0,
       });
     } catch (error) {
       toast.error('Failed to load dashboard');
@@ -70,6 +72,27 @@ export default function ChapterAdminDashboard() {
         <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold text-slate-900 mb-5 md:mb-7 lg:mb-9">Welcome Back</h2>
 
         {/* Main Cards - Responsive Grid */}
+        {/* Verification Banner */}
+        {stats.pendingVerifications > 0 && (
+          <Card
+            className="mb-4 md:mb-5 p-3 md:p-4 bg-indigo-50 border-indigo-200 cursor-pointer hover:shadow-md transition-all"
+            onClick={() => navigate('/admin/verify-payments')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                <ShieldCheck className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-indigo-900">
+                  {stats.pendingVerifications} payment{stats.pendingVerifications > 1 ? 's' : ''} awaiting verification
+                </p>
+                <p className="text-xs text-indigo-600">Tap to review and confirm</p>
+              </div>
+              <span className="text-indigo-600 text-sm font-medium">Review &rarr;</span>
+            </div>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
           {/* Members Card */}
           <Card 

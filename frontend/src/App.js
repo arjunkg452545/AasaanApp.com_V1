@@ -37,6 +37,10 @@ import MemberMyProfile from "./pages/MemberMyProfile";
 import PaymentConfig from "./pages/PaymentConfig";
 import ChapterFeeConfig from "./pages/ChapterFeeConfig";
 
+// Admin Verification Pages
+import AdminVerifyPayments from "./pages/AdminVerifyPayments";
+import AdminManualEntry from "./pages/AdminManualEntry";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -209,6 +213,24 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <ChapterFeeConfig />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Admin Verification Routes */}
+          <Route
+            path="/admin/verify-payments"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminVerifyPayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/manual-entry"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminManualEntry />
               </ProtectedRoute>
             }
           />
