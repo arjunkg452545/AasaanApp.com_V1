@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { ArrowLeft, Wallet, Calendar, PartyPopper, FileText, Users, Check, X, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Wallet, Calendar, PartyPopper, FileText, Users, Check, X, Eye, ChevronLeft, ChevronRight, Settings, IndianRupee } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FundManagementHub() {
@@ -300,8 +300,25 @@ export default function FundManagementHub() {
           </Card>
         </div>
 
+        {/* Fee Config Card */}
+        <Card className="mt-4 md:mt-6 p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-orange-500"
+              onClick={() => navigate('/admin/fee-config')}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <IndianRupee className="h-6 w-6 text-orange-600" />
+              </div>
+              <div>
+                <h3 className="text-base md:text-lg font-semibold text-slate-900">Fee Config & Generate</h3>
+                <p className="text-xs text-slate-600">View fee amounts, generate monthly fees</p>
+              </div>
+            </div>
+            <span className="text-orange-600 text-sm">Setup &rarr;</span>
+          </div>
+        </Card>
+
         {/* Reports Card */}
-        <Card className="mt-4 md:mt-6 p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500" 
+        <Card className="mt-4 md:mt-6 p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500"
               onClick={() => navigate('/admin/fund/reports')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

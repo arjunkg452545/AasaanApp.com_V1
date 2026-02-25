@@ -461,6 +461,10 @@ export default function SuperAdminDashboard() {
             <Users className="h-4 w-4 mr-2" />
             All Members
           </Button>
+          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/payment-config')}>
+            <CreditCard className="h-4 w-4 mr-2" />
+            Payment Config
+          </Button>
           <Button variant="outline" className="text-slate-600">
             <Settings className="h-4 w-4 mr-2" />
             Manage Admins

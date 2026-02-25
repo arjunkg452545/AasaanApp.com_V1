@@ -33,6 +33,10 @@ import MemberPaymentDetail from "./pages/MemberPaymentDetail";
 import MemberPaymentHistory from "./pages/MemberPaymentHistory";
 import MemberMyProfile from "./pages/MemberMyProfile";
 
+// Payment Config Pages
+import PaymentConfig from "./pages/PaymentConfig";
+import ChapterFeeConfig from "./pages/ChapterFeeConfig";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -116,6 +120,15 @@ function App() {
             }
           />
 
+          <Route
+            path="/superadmin/payment-config"
+            element={
+              <ProtectedRoute requiredRole="superadmin">
+                <PaymentConfig />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Chapter Admin Routes */}
           <Route
             path="/admin/dashboard"
@@ -186,6 +199,16 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <LiveAttendance />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Fee Config */}
+          <Route
+            path="/admin/fee-config"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ChapterFeeConfig />
               </ProtectedRoute>
             }
           />
