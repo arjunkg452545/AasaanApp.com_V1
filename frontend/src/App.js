@@ -4,7 +4,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 
 import Login from "./pages/Login";
+import DeveloperLayout from "./pages/DeveloperLayout";
 import DeveloperDashboard from "./pages/DeveloperDashboard";
+import DeveloperEDs from "./pages/DeveloperEDs";
+import DeveloperSubscriptions from "./pages/DeveloperSubscriptions";
+import DeveloperSettings from "./pages/DeveloperSettings";
 import CreateSuperAdmin from "./pages/CreateSuperAdmin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import ChapterAdminDashboard from "./pages/ChapterAdminDashboard";
@@ -58,23 +62,22 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
 
-          {/* Developer Routes */}
+          {/* Developer Routes — nested inside DeveloperLayout */}
           <Route
-            path="/developer/dashboard"
+            path="/developer"
             element={
               <ProtectedRoute requiredRole="developer">
-                <DeveloperDashboard />
+                <DeveloperLayout />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/developer/superadmin/create"
-            element={
-              <ProtectedRoute requiredRole="developer">
-                <CreateSuperAdmin />
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route path="dashboard" element={<DeveloperDashboard />} />
+            <Route path="eds" element={<DeveloperEDs />} />
+            <Route path="subscriptions" element={<DeveloperSubscriptions />} />
+            <Route path="settings" element={<DeveloperSettings />} />
+            <Route path="superadmin/create" element={<CreateSuperAdmin />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           {/* Super Admin Routes */}
           <Route

@@ -68,24 +68,53 @@ async def superadmin_login(data: LoginRequest):
     token = create_access_token({"mobile": data.mobile, "role": "superadmin"})
     return LoginResponse(token=token, role="superadmin", mobile=data.mobile)
 
-@api_router.post("/superadmin/chapters", response_model=ChapterResponse)
-async def create_chapter(chapter: ChapterCreate, user=Depends(get_current_user)):
+@api_router.post("/superadmin/chapters")
+async def create_chapter(chapter: ChapterCreateEnhanced, user=Depends(get_current_user)):
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
+
+    # --- Subscription enforcement (skip for developer role) ---
+    if user["role"] == "superadmin":
+        mobile = user.get("mobile", "")
+        sa = await db.superadmins.find_one({"mobile": mobile}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", mobile) if sa else mobile
+
+        sub = await db.subscriptions.find_one(
+            {"superadmin_id": sa_id, "status": "active"},
+            {"_id": 0},
+            sort=[("end_date", -1)]
+        )
+        if not sub:
+            raise HTTPException(status_code=403, detail="Please recharge to create chapters. No active subscription found.")
+
+        # Check expiry
+        end_dt = datetime.fromisoformat(sub["end_date"]) if isinstance(sub["end_date"], str) else sub["end_date"]
+        if end_dt < datetime.now(timezone.utc):
+            await db.subscriptions.update_one({"subscription_id": sub["subscription_id"]}, {"$set": {"status": "expired"}})
+            raise HTTPException(status_code=403, detail="Your subscription has expired. Please recharge to create chapters.")
+
+        # Check chapter limit
+        chapters_used = await db.chapters.count_documents({"created_by": mobile})
+        if chapters_used >= sub.get("chapters_allowed", 0):
+            raise HTTPException(status_code=403, detail="Chapter limit reached. Please upgrade your subscription.")
+
     admin_password_hash = hash_password(chapter.admin_password)
     chapter_data = {
         "chapter_id": f"CH{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
         "name": chapter.name,
-        "created_by": user["mobile"],
+        "created_by": user.get("mobile", user.get("email", "")),
         "admin_mobile": chapter.admin_mobile,
         "admin_password_hash": admin_password_hash,
+        "region": chapter.region,
+        "state": chapter.state,
+        "city": chapter.city,
+        "status": "active",
         "audit_logs": [],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    
+
     await db.chapters.insert_one(chapter_data)
-    return ChapterResponse(**{k:v for k,v in chapter_data.items() if k != "admin_password_hash"})
+    return {k: v for k, v in chapter_data.items() if k not in ("admin_password_hash", "_id")}
 
 @api_router.get("/superadmin/chapters", response_model=List[ChapterResponse])
 async def get_all_chapters(user=Depends(get_current_user)):
@@ -3025,6 +3054,32 @@ async def create_superadmin(data: SuperAdminCreate, user=Depends(require_role("d
     }
     await db.superadmins.insert_one(superadmin_data)
 
+    # Auto-assign FREE TRIAL subscription
+    settings = await db.subscription_settings.find_one({"setting_id": "default"}, {"_id": 0})
+    if settings and settings.get("free_trial", {}).get("enabled", True):
+        trial_days = settings.get("free_trial", {}).get("duration_days", 30)
+        trial_chapters = settings.get("free_trial", {}).get("max_chapters", 1)
+    else:
+        trial_days = 30
+        trial_chapters = 1
+
+    trial_sub = {
+        "subscription_id": str(_uuid4()),
+        "superadmin_id": superadmin_id,
+        "plan_type": "trial",
+        "billing_cycle": "monthly",
+        "chapters_allowed": trial_chapters,
+        "start_date": datetime.now(timezone.utc).isoformat(),
+        "end_date": (datetime.now(timezone.utc) + timedelta(days=trial_days)).isoformat(),
+        "amount_paid": 0,
+        "payment_method": "manual",
+        "payment_ref": "free_trial",
+        "status": "active",
+        "auto_renew": False,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.subscriptions.insert_one(trial_sub)
+
     # Count chapters for this superadmin
     chapter_count = await db.chapters.count_documents({"created_by": data.mobile})
 
@@ -3129,6 +3184,343 @@ async def developer_dashboard_stats(user=Depends(require_role("developer"))):
         "total_revenue": total_revenue
     }
 
+# ===== SUBSCRIPTION SETTINGS ENDPOINTS =====
+
+DEFAULT_SUBSCRIPTION_SETTINGS = {
+    "setting_id": "default",
+    "pricing_model": "per_chapter",
+    "billing_cycles": [
+        {"cycle": "monthly", "months": 1, "discount_percent": 0, "enabled": True},
+        {"cycle": "quarterly", "months": 3, "discount_percent": 0, "enabled": True},
+        {"cycle": "half_yearly", "months": 6, "discount_percent": 0, "enabled": True},
+        {"cycle": "yearly", "months": 12, "discount_percent": 0, "enabled": True}
+    ],
+    "per_chapter_rate": 0,
+    "slab_rates": [
+        {"min_chapters": 1, "max_chapters": 3, "rate": 0},
+        {"min_chapters": 4, "max_chapters": 10, "rate": 0},
+        {"min_chapters": 11, "max_chapters": 25, "rate": 0},
+        {"min_chapters": 26, "max_chapters": 9999, "rate": 0}
+    ],
+    "per_member_rate": 0,
+    "free_trial": {
+        "enabled": True,
+        "duration_days": 30,
+        "max_chapters": 1
+    },
+    "gst_percent": 18,
+    "updated_at": datetime.now(timezone.utc).isoformat()
+}
+
+BILLING_CYCLE_MONTHS = {
+    "monthly": 1,
+    "quarterly": 3,
+    "half_yearly": 6,
+    "yearly": 12
+}
+
+@api_router.get("/developer/subscription-settings")
+async def get_subscription_settings(user=Depends(require_role("developer"))):
+    """Get current subscription settings, create defaults if not exist"""
+    settings = await db.subscription_settings.find_one({"setting_id": "default"}, {"_id": 0})
+    if not settings:
+        await db.subscription_settings.insert_one({**DEFAULT_SUBSCRIPTION_SETTINGS})
+        settings = {k: v for k, v in DEFAULT_SUBSCRIPTION_SETTINGS.items()}
+    return settings
+
+@api_router.put("/developer/subscription-settings")
+async def update_subscription_settings(data: SubscriptionSettingsUpdate, user=Depends(require_role("developer"))):
+    """Update pricing, billing cycles, discounts, free trial config"""
+    update_data = {}
+    for k, v in data.dict(exclude_unset=True).items():
+        if v is not None:
+            update_data[k] = v if not isinstance(v, list) else [item.dict() if hasattr(item, 'dict') else item for item in v]
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+
+    # Upsert settings
+    await db.subscription_settings.update_one(
+        {"setting_id": "default"},
+        {"$set": update_data},
+        upsert=True
+    )
+    settings = await db.subscription_settings.find_one({"setting_id": "default"}, {"_id": 0})
+    return settings
+
+@api_router.get("/developer/subscriptions")
+async def list_subscriptions(user=Depends(require_role("developer"))):
+    """List all ED subscriptions with ED details"""
+    subs = await db.subscriptions.find({}, {"_id": 0}).sort("created_at", -1).to_list(5000)
+
+    result = []
+    for sub in subs:
+        sa = await db.superadmins.find_one(
+            {"$or": [{"superadmin_id": sub["superadmin_id"]}, {"mobile": sub["superadmin_id"]}]},
+            {"_id": 0, "password_hash": 0}
+        )
+        sa_name = sa.get("name", "Unknown") if sa else "Unknown"
+        sa_mobile = sa.get("mobile", "") if sa else ""
+
+        # Count chapters used
+        chapters_used = await db.chapters.count_documents({"created_by": sa_mobile}) if sa_mobile else 0
+
+        result.append({
+            **sub,
+            "ed_name": sa_name,
+            "ed_mobile": sa_mobile,
+            "chapters_used": chapters_used
+        })
+
+    return result
+
+@api_router.post("/developer/subscriptions/activate")
+async def activate_subscription(data: SubscriptionActivate, user=Depends(require_role("developer"))):
+    """Manually activate a subscription for an ED"""
+    # Verify ED exists
+    sa = await db.superadmins.find_one(
+        {"$or": [{"superadmin_id": data.superadmin_id}, {"mobile": data.superadmin_id}]},
+        {"_id": 0}
+    )
+    if not sa:
+        raise HTTPException(status_code=404, detail="Super Admin not found")
+
+    # Deactivate any existing active subscription
+    await db.subscriptions.update_many(
+        {"superadmin_id": data.superadmin_id, "status": "active"},
+        {"$set": {"status": "expired"}}
+    )
+
+    # Calculate end date
+    months = BILLING_CYCLE_MONTHS.get(data.billing_cycle, 1)
+    start = datetime.now(timezone.utc)
+    end = start + timedelta(days=months * 30)
+
+    sub_id = str(_uuid4())
+    sub_data = {
+        "subscription_id": sub_id,
+        "superadmin_id": data.superadmin_id,
+        "plan_type": "paid",
+        "billing_cycle": data.billing_cycle,
+        "chapters_allowed": data.chapters_allowed,
+        "start_date": start.isoformat(),
+        "end_date": end.isoformat(),
+        "amount_paid": data.amount_paid,
+        "payment_method": data.payment_method,
+        "payment_ref": data.payment_ref,
+        "status": "active",
+        "auto_renew": False,
+        "created_at": start.isoformat()
+    }
+    await db.subscriptions.insert_one(sub_data)
+
+    # Create recharge history entry
+    settings = await db.subscription_settings.find_one({"setting_id": "default"}, {"_id": 0})
+    gst_pct = settings.get("gst_percent", 18) if settings else 18
+    gst_amount = round(data.amount_paid * gst_pct / (100 + gst_pct), 2)
+
+    recharge = {
+        "recharge_id": str(_uuid4()),
+        "superadmin_id": data.superadmin_id,
+        "subscription_id": sub_id,
+        "amount": round(data.amount_paid - gst_amount, 2),
+        "gst_amount": gst_amount,
+        "total_amount": data.amount_paid,
+        "chapters_count": data.chapters_allowed,
+        "billing_cycle": data.billing_cycle,
+        "payment_method": data.payment_method,
+        "payment_ref": data.payment_ref,
+        "status": "success",
+        "created_at": start.isoformat()
+    }
+    await db.recharge_history.insert_one(recharge)
+
+    return {"message": "Subscription activated", "subscription_id": sub_id}
+
+@api_router.post("/developer/subscriptions/extend")
+async def extend_subscription(data: SubscriptionExtend, user=Depends(require_role("developer"))):
+    """Extend an existing subscription"""
+    sub = await db.subscriptions.find_one({"subscription_id": data.subscription_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    # Calculate new end date from current end_date
+    current_end = datetime.fromisoformat(sub["end_date"]) if isinstance(sub["end_date"], str) else sub["end_date"]
+    if current_end < datetime.now(timezone.utc):
+        current_end = datetime.now(timezone.utc)
+
+    new_end = current_end + timedelta(days=data.additional_months * 30)
+
+    await db.subscriptions.update_one(
+        {"subscription_id": data.subscription_id},
+        {"$set": {"end_date": new_end.isoformat(), "status": "active"}}
+    )
+
+    # Recharge history
+    recharge = {
+        "recharge_id": str(_uuid4()),
+        "superadmin_id": sub["superadmin_id"],
+        "subscription_id": data.subscription_id,
+        "amount": data.amount_paid,
+        "gst_amount": 0,
+        "total_amount": data.amount_paid,
+        "chapters_count": sub.get("chapters_allowed", 0),
+        "billing_cycle": sub.get("billing_cycle", ""),
+        "payment_method": "manual",
+        "payment_ref": data.payment_ref,
+        "status": "success",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.recharge_history.insert_one(recharge)
+
+    return {"message": "Subscription extended", "new_end_date": new_end.isoformat()}
+
+@api_router.post("/developer/subscriptions/cancel")
+async def cancel_subscription(data: SubscriptionCancel, user=Depends(require_role("developer"))):
+    """Cancel/deactivate a subscription"""
+    result = await db.subscriptions.update_one(
+        {"subscription_id": data.subscription_id},
+        {"$set": {"status": "cancelled"}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+
+    return {"message": "Subscription cancelled"}
+
+# ===== SUPERADMIN SUBSCRIPTION + DASHBOARD ENDPOINTS =====
+
+@api_router.get("/superadmin/my-subscription")
+async def get_my_subscription(user=Depends(get_current_user)):
+    """Returns current subscription for the logged-in ED"""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    mobile = user.get("mobile", "")
+    sa = await db.superadmins.find_one({"mobile": mobile}, {"_id": 0})
+    if not sa:
+        return {"subscription": None, "days_remaining": 0, "chapters_used": 0, "chapters_allowed": 0}
+
+    sa_id = sa.get("superadmin_id", mobile)
+
+    sub = await db.subscriptions.find_one(
+        {"superadmin_id": sa_id, "status": "active"},
+        {"_id": 0},
+        sort=[("end_date", -1)]
+    )
+
+    if not sub:
+        # Check for any subscription (expired/cancelled)
+        sub = await db.subscriptions.find_one(
+            {"superadmin_id": sa_id},
+            {"_id": 0},
+            sort=[("end_date", -1)]
+        )
+
+    chapters_used = await db.chapters.count_documents({"created_by": mobile})
+    chapters_allowed = sub.get("chapters_allowed", 0) if sub else 0
+
+    if sub:
+        end_dt = datetime.fromisoformat(sub["end_date"]) if isinstance(sub["end_date"], str) else sub["end_date"]
+        days_remaining = max(0, (end_dt - datetime.now(timezone.utc)).days)
+
+        # Auto-expire if past end date
+        if days_remaining == 0 and sub.get("status") == "active":
+            await db.subscriptions.update_one(
+                {"subscription_id": sub["subscription_id"]},
+                {"$set": {"status": "expired"}}
+            )
+            sub["status"] = "expired"
+    else:
+        days_remaining = 0
+
+    return {
+        "subscription": sub,
+        "days_remaining": days_remaining,
+        "chapters_used": chapters_used,
+        "chapters_allowed": chapters_allowed
+    }
+
+@api_router.get("/superadmin/dashboard/stats")
+async def superadmin_dashboard_stats(user=Depends(get_current_user)):
+    """Dashboard stats for SuperAdmin: my chapters, members, active/inactive, collection"""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    mobile = user.get("mobile", "")
+    my_chapters = await db.chapters.find({"created_by": mobile}, {"_id": 0}).to_list(1000)
+    chapter_ids = [ch["chapter_id"] for ch in my_chapters]
+
+    total_chapters = len(my_chapters)
+    active_chapters = sum(1 for ch in my_chapters if ch.get("status", "active") == "active")
+    inactive_chapters = total_chapters - active_chapters
+
+    total_members = await db.members.count_documents({"chapter_id": {"$in": chapter_ids}}) if chapter_ids else 0
+
+    # Fund collection summary (this month)
+    now = datetime.now(IST)
+    current_month = now.month
+    current_year = now.year
+
+    kitty_pipeline = [
+        {"$match": {"chapter_id": {"$in": chapter_ids}, "status": "paid", "month": current_month, "year": current_year}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]
+    kitty_sum = await db.kitty_payments.aggregate(kitty_pipeline).to_list(1) if chapter_ids else []
+
+    mf_pipeline = [
+        {"$match": {"chapter_id": {"$in": chapter_ids}, "status": "paid", "month": current_month, "year": current_year}},
+        {"$group": {"_id": None, "total": {"$sum": "$amount"}}}
+    ]
+    mf_sum = await db.meetingfee_payments.aggregate(mf_pipeline).to_list(1) if chapter_ids else []
+
+    this_month_collection = (
+        (kitty_sum[0]["total"] if kitty_sum else 0) +
+        (mf_sum[0]["total"] if mf_sum else 0)
+    )
+
+    return {
+        "total_chapters": total_chapters,
+        "active_chapters": active_chapters,
+        "inactive_chapters": inactive_chapters,
+        "total_members": total_members,
+        "this_month_collection": this_month_collection
+    }
+
+@api_router.get("/superadmin/chapters/overview")
+async def superadmin_chapters_overview(user=Depends(get_current_user)):
+    """All chapters with member_count, last_meeting_date, fund_status"""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    mobile = user.get("mobile", "")
+    chapters = await db.chapters.find({"created_by": mobile}, {"_id": 0, "admin_password_hash": 0}).to_list(1000)
+
+    result = []
+    for ch in chapters:
+        cid = ch["chapter_id"]
+        member_count = await db.members.count_documents({"chapter_id": cid, "status": "Active"})
+
+        # Last meeting
+        last_meeting = await db.meetings.find_one(
+            {"chapter_id": cid},
+            {"_id": 0, "date": 1, "meeting_id": 1},
+            sort=[("date", -1)]
+        )
+
+        # Admin info
+        admin_name = ch.get("admin_mobile", "")
+
+        result.append({
+            **ch,
+            "member_count": member_count,
+            "last_meeting_date": last_meeting.get("date", "") if last_meeting else "",
+            "admin_name": admin_name
+        })
+
+    return result
+
 app.include_router(api_router)
 
 app.add_middleware(
@@ -3156,6 +3548,12 @@ async def startup():
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         logger.info("Super admin created")
+
+    # Seed default subscription settings if not exists
+    existing_settings = await db.subscription_settings.find_one({"setting_id": "default"})
+    if not existing_settings:
+        await db.subscription_settings.insert_one({**DEFAULT_SUBSCRIPTION_SETTINGS})
+        logger.info("Default subscription settings seeded")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

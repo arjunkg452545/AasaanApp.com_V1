@@ -297,3 +297,57 @@ class DeveloperSeedRequest(BaseModel):
     email: str = "admin@aasaanapp.com"
     password: str = "AasaanAdmin2026!"
     name: str = "AasaanApp Developer"
+
+# ===== SUBSCRIPTION / RECHARGE MODELS =====
+
+class BillingCycleConfig(BaseModel):
+    cycle: str  # monthly, quarterly, half_yearly, yearly
+    months: int
+    discount_percent: float = 0
+    enabled: bool = True
+
+class SlabRate(BaseModel):
+    min_chapters: int
+    max_chapters: int
+    rate: float = 0
+
+class FreeTrialConfig(BaseModel):
+    enabled: bool = True
+    duration_days: int = 30
+    max_chapters: int = 1
+
+class SubscriptionSettingsUpdate(BaseModel):
+    pricing_model: Optional[str] = None  # per_chapter, slab, per_member
+    billing_cycles: Optional[List[BillingCycleConfig]] = None
+    per_chapter_rate: Optional[float] = None
+    slab_rates: Optional[List[SlabRate]] = None
+    per_member_rate: Optional[float] = None
+    free_trial: Optional[FreeTrialConfig] = None
+    gst_percent: Optional[float] = None
+
+class SubscriptionActivate(BaseModel):
+    superadmin_id: str
+    billing_cycle: str  # monthly, quarterly, half_yearly, yearly
+    chapters_allowed: int
+    amount_paid: float
+    payment_method: str  # razorpay, bank_transfer, cash, other
+    payment_ref: str = ""
+
+class SubscriptionExtend(BaseModel):
+    subscription_id: str
+    additional_months: int
+    amount_paid: float
+    payment_ref: str = ""
+
+class SubscriptionCancel(BaseModel):
+    subscription_id: str
+
+# ===== ENHANCED CHAPTER MODEL =====
+
+class ChapterCreateEnhanced(BaseModel):
+    name: str
+    admin_mobile: str
+    admin_password: str
+    region: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
