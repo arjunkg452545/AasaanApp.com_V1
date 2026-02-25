@@ -50,6 +50,9 @@ import AccountantManagement from "./pages/AccountantManagement";
 // Payment Reminders
 import PaymentReminders from "./pages/PaymentReminders";
 
+// Payment Gateway
+import PaymentGatewaySetup from "./pages/PaymentGatewaySetup";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -258,6 +261,16 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <PaymentReminders />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Payment Gateway Setup */}
+          <Route
+            path="/superadmin/gateway-setup"
+            element={
+              <ProtectedRoute requiredRole="superadmin">
+                <PaymentGatewaySetup />
               </ProtectedRoute>
             }
           />

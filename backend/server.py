@@ -4105,6 +4105,7 @@ from routes.member_portal import router as member_portal_router
 from routes.admin_verification import router as admin_verification_router
 from routes.ed_approval import router as ed_approval_router
 from routes.payment_reminders import router as payment_reminders_router
+from routes.payment_gateway import router as payment_gateway_router
 app.include_router(member_auth_router)
 app.include_router(payment_config_router)
 app.include_router(fee_ledger_router)
@@ -4112,6 +4113,7 @@ app.include_router(member_portal_router)
 app.include_router(admin_verification_router)
 app.include_router(ed_approval_router)
 app.include_router(payment_reminders_router)
+app.include_router(payment_gateway_router)
 
 # Serve uploaded files (payment proofs, etc.)
 import os as _os
