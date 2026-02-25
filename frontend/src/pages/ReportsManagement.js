@@ -1,0 +1,227 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { toast } from 'sonner';
+import { ArrowLeft, Users, Download, Trash2, FileSpreadsheet, FileText } from 'lucide-react';
+
+export default function ReportsManagement() {
+  const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadMeetings();
+  }, []);
+
+  const loadMeetings = async () => {
+    try {
+      const response = await api.get('/admin/meetings');
+      setMeetings(response.data);
+    } catch (error) {
+      toast.error('Failed to load meetings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadExcel = async (meetingId) => {
+    try {
+      const response = await api.get(`/admin/meetings/${meetingId}/report/excel`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `attendance_${meetingId}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Excel report downloaded');
+    } catch (error) {
+      toast.error('Failed to download Excel report');
+    }
+  };
+
+  const downloadPDF = async (meetingId) => {
+    try {
+      const response = await api.get(`/admin/meetings/${meetingId}/report/pdf`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `attendance_${meetingId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('PDF report downloaded');
+    } catch (error) {
+      toast.error('Failed to download PDF report');
+    }
+  };
+
+  const deleteMeeting = async (meetingId) => {
+    if (!window.confirm('Are you sure you want to delete this meeting? All attendance records will also be deleted.')) {
+      return;
+    }
+
+    try {
+      await api.delete(`/admin/meetings/${meetingId}`);
+      toast.success('Meeting deleted successfully');
+      loadMeetings();
+    } catch (error) {
+      toast.error('Failed to delete meeting');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header - Mobile optimized */}
+      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+        <Button
+          data-testid="back-btn"
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/admin/meeting-hub')}
+          className="mb-2"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
+          <span className="text-sm">Back</span>
+        </Button>
+        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Reports Management</h1>
+      </div>
+
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="mb-4 md:mb-8">
+          <h2 className="text-xl md:text-3xl font-bold text-slate-900">Attendance Reports</h2>
+          <p className="text-xs md:text-sm text-slate-600 mt-1">Download meeting attendance reports</p>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8 md:py-12 text-sm">Loading meetings...</div>
+        ) : meetings.length === 0 ? (
+          <Card className="p-8 md:p-12 text-center">
+            <p className="text-slate-600 text-sm md:text-base">No meetings available</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 md:gap-6">
+            {meetings.map((meeting) => (
+              <Card
+                key={meeting.meeting_id}
+                className="p-3 md:p-6 border-l-4 border-l-[#F59E0B]"
+                data-testid={`meeting-report-card-${meeting.meeting_id}`}
+              >
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  <h3 className="font-bold text-base text-slate-900 mb-2">
+                    {new Date(meeting.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </h3>
+                  <div className="text-xs text-slate-600 mb-3 space-y-1">
+                    <p>Start: {new Date(meeting.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                    <p>Late: {new Date(meeting.late_cutoff_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      data-testid={`view-attendance-btn-${meeting.meeting_id}`}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => navigate(`/admin/attendance/${meeting.meeting_id}`)}
+                    >
+                      <Users className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      data-testid={`excel-btn-${meeting.meeting_id}`}
+                      size="sm"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-xs"
+                      onClick={() => downloadExcel(meeting.meeting_id)}
+                    >
+                      <FileSpreadsheet className="h-3 w-3 mr-1" />
+                      Excel
+                    </Button>
+                    <Button
+                      data-testid={`pdf-btn-${meeting.meeting_id}`}
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1 text-xs"
+                      onClick={() => downloadPDF(meeting.meeting_id)}
+                    >
+                      <FileText className="h-3 w-3 mr-1" />
+                      PDF
+                    </Button>
+                    <Button
+                      data-testid={`delete-report-btn-${meeting.meeting_id}`}
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs px-2"
+                      onClick={() => deleteMeeting(meeting.meeting_id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Desktop Layout */}
+                <div className="hidden md:flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-xl text-slate-900 mb-2">
+                      Meeting - {new Date(meeting.date).toLocaleDateString()}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
+                      <div>
+                        <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
+                        <p><strong>Late Cutoff:</strong> {new Date(meeting.late_cutoff_time).toLocaleTimeString()}</p>
+                      </div>
+                      <div>
+                        <p><strong>End:</strong> {new Date(meeting.end_time).toLocaleTimeString()}</p>
+                        <p><strong>ID:</strong> {meeting.meeting_id}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      data-testid={`view-attendance-btn-${meeting.meeting_id}`}
+                      variant="outline"
+                      onClick={() => navigate(`/admin/attendance/${meeting.meeting_id}`)}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      View Attendance
+                    </Button>
+                    <Button
+                      data-testid={`excel-btn-${meeting.meeting_id}`}
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => downloadExcel(meeting.meeting_id)}
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Download Excel
+                    </Button>
+                    <Button
+                      data-testid={`pdf-btn-${meeting.meeting_id}`}
+                      variant="destructive"
+                      onClick={() => downloadPDF(meeting.meeting_id)}
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </Button>
+                    <Button
+                      data-testid={`delete-report-btn-${meeting.meeting_id}`}
+                      variant="outline"
+                      onClick={() => deleteMeeting(meeting.meeting_id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

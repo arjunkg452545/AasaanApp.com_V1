@@ -1,0 +1,311 @@
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card } from '../components/ui/card';
+import { toast } from 'sonner';
+import { CheckCircle2 } from 'lucide-react';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+export default function AttendanceForm() {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const [meetingInfo, setMeetingInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [type, setType] = useState('member');
+  const [deviceFingerprint, setDeviceFingerprint] = useState('');
+  const [ipAddress, setIpAddress] = useState('');
+  const [formData, setFormData] = useState({
+    unique_member_id: '',
+    primary_mobile: '',
+    substitute_name: '',
+    substitute_mobile: '',
+    visitor_name: '',
+    visitor_mobile: '',
+    invited_by_member_id: ''
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) {
+      toast.error('Invalid QR code');
+      return;
+    }
+    initFingerprint();
+    getIPAddress();
+    verifyQR();
+  }, [token]);
+
+  const initFingerprint = async () => {
+    try {
+      const fp = await FingerprintJS.load();
+      const result = await fp.get();
+      setDeviceFingerprint(result.visitorId);
+    } catch (error) {
+      console.error('Fingerprint error:', error);
+    }
+  };
+
+  const getIPAddress = async () => {
+    try {
+      const response = await axios.get('https://api.ipify.org?format=json');
+      setIpAddress(response.data.ip);
+    } catch (error) {
+      console.error('IP fetch error:', error);
+    }
+  };
+
+  const verifyQR = async () => {
+    try {
+      const response = await axios.get(`${API}/qr/verify/${token}`);
+      setMeetingInfo(response.data);
+    } catch (error) {
+      toast.error('Invalid or expired QR code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const attendanceData = {
+        meeting_id: meetingInfo.meeting_id,
+        type: type,
+        device_fingerprint: deviceFingerprint,
+        ip_address: ipAddress,
+        ...(type === 'member' && {
+          unique_member_id: formData.unique_member_id,
+          primary_mobile: formData.primary_mobile
+        }),
+        ...(type === 'substitute' && {
+          unique_member_id: formData.unique_member_id,
+          substitute_name: formData.substitute_name,
+          substitute_mobile: formData.substitute_mobile
+        }),
+        ...(type === 'visitor' && {
+          visitor_name: formData.visitor_name,
+          visitor_mobile: formData.visitor_mobile,
+          invited_by_member_id: formData.invited_by_member_id
+        })
+      };
+
+      const response = await axios.post(`${API}/attendance/mark`, attendanceData);
+      
+      setSuccess(true);
+      
+      // Show different messages based on approval status
+      if (response.data.approval_status === 'pending') {
+        toast.success('Request submitted! Waiting for admin approval.');
+      } else {
+        toast.success('Attendance marked successfully!');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to mark attendance');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#CF2030]"></div>
+      </div>
+    );
+  }
+
+  if (!meetingInfo) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Card className="p-8 max-w-md text-center">
+          <p className="text-red-600 font-semibold mb-4">Invalid QR Code</p>
+          <p className="text-slate-600">Please scan a valid QR code from the meeting display.</p>
+        </Card>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="min-h-screen bg-slate-50 pb-20">
+        <div className="bg-[#CF2030] text-white p-6 rounded-b-3xl shadow-lg mb-6">
+          <h1 className="text-2xl font-bold">BNI Attendance</h1>
+          <p className="text-white/90">Success!</p>
+        </div>
+        <div className="px-4">
+          <Card className="p-8 text-center">
+            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Attendance Marked!</h2>
+            <p className="text-slate-600">Your attendance has been recorded successfully.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 pb-20">
+      <div className="bg-[#CF2030] text-white p-6 rounded-b-3xl shadow-lg mb-6">
+        <h1 className="text-2xl font-bold">BNI Attendance</h1>
+        <p className="text-white/90">Meeting: {new Date(meetingInfo.date).toLocaleDateString()}</p>
+      </div>
+
+      <div className="px-4 space-y-4">
+        <Card className="p-6">
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Select Type</h2>
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              data-testid="type-member-btn"
+              type="button"
+              variant={type === 'member' ? 'default' : 'outline'}
+              onClick={() => setType('member')}
+              className={type === 'member' ? 'bg-[#CF2030] hover:bg-[#A61926]' : ''}
+            >
+              Member
+            </Button>
+            <Button
+              data-testid="type-substitute-btn"
+              type="button"
+              variant={type === 'substitute' ? 'default' : 'outline'}
+              onClick={() => setType('substitute')}
+              className={type === 'substitute' ? 'bg-[#CF2030] hover:bg-[#A61926]' : ''}
+            >
+              Substitute
+            </Button>
+            <Button
+              data-testid="type-visitor-btn"
+              type="button"
+              variant={type === 'visitor' ? 'default' : 'outline'}
+              onClick={() => setType('visitor')}
+              className={type === 'visitor' ? 'bg-[#CF2030] hover:bg-[#A61926]' : ''}
+            >
+              Visitor
+            </Button>
+          </div>
+        </Card>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {type === 'member' && (
+            <Card className="p-6 space-y-4">
+              <div>
+                <Label>Member ID (01, 02, etc.)</Label>
+                <Input
+                  data-testid="member-id-input"
+                  value={formData.unique_member_id}
+                  onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
+                  placeholder="01"
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <Label>Your Mobile Number</Label>
+                <Input
+                  data-testid="member-mobile-input"
+                  type="tel"
+                  value={formData.primary_mobile}
+                  onChange={(e) => setFormData({...formData, primary_mobile: e.target.value})}
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+            </Card>
+          )}
+
+          {type === 'substitute' && (
+            <Card className="p-6 space-y-4">
+              <div>
+                <Label>Member ID (Substituting for)</Label>
+                <Input
+                  data-testid="substitute-member-id-input"
+                  value={formData.unique_member_id}
+                  onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
+                  placeholder="01"
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <Label>Your Name</Label>
+                <Input
+                  data-testid="substitute-name-input"
+                  value={formData.substitute_name}
+                  onChange={(e) => setFormData({...formData, substitute_name: e.target.value})}
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <Label>Your Mobile</Label>
+                <Input
+                  data-testid="substitute-mobile-input"
+                  type="tel"
+                  value={formData.substitute_mobile}
+                  onChange={(e) => setFormData({...formData, substitute_mobile: e.target.value})}
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+            </Card>
+          )}
+
+          {type === 'visitor' && (
+            <Card className="p-6 space-y-4">
+              <div>
+                <Label>Your Name</Label>
+                <Input
+                  data-testid="visitor-name-input"
+                  value={formData.visitor_name}
+                  onChange={(e) => setFormData({...formData, visitor_name: e.target.value})}
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <Label>Your Mobile</Label>
+                <Input
+                  data-testid="visitor-mobile-input"
+                  type="tel"
+                  value={formData.visitor_mobile}
+                  onChange={(e) => setFormData({...formData, visitor_mobile: e.target.value})}
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
+                <Label>Invited By (Member ID)</Label>
+                <Input
+                  data-testid="invited-by-input"
+                  value={formData.invited_by_member_id}
+                  onChange={(e) => setFormData({...formData, invited_by_member_id: e.target.value})}
+                  placeholder="01"
+                  required
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+            </Card>
+          )}
+
+          <Button
+            data-testid="submit-attendance-btn"
+            type="submit"
+            disabled={submitting}
+            className="w-full min-h-[44px] bg-[#CF2030] hover:bg-[#A61926] text-white font-semibold"
+          >
+            {submitting ? 'Submitting...' : 'Mark Attendance'}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}

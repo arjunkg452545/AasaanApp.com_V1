@@ -1,0 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 356 73% 47%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 206 100% 29%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 356 73% 47%;
+    --radius: 0.5rem;
+    
+    /* Status Colors */
+    --color-present: #10B981;
+    --color-substitute: #F59E0B;
+    --color-absent: #EF4444;
+    --color-visitor: #3B82F6;
+    --color-total: #6366F1;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN SYSTEM
+   ============================================ */
+
+@layer components {
+  /* Typography - Responsive Scaling */
+  .page-header {
+    @apply text-xl md:text-2xl lg:text-[28px] font-bold;
+  }
+  
+  .section-header {
+    @apply text-base md:text-lg lg:text-xl font-semibold;
+  }
+  
+  .member-name {
+    @apply text-[15px] md:text-base lg:text-[17px] font-medium;
+  }
+  
+  .body-text {
+    @apply text-sm md:text-[15px] lg:text-base;
+  }
+  
+  .secondary-text {
+    @apply text-xs md:text-[13px] lg:text-sm text-slate-500;
+  }
+  
+  /* Dashboard Status Cards - Responsive */
+  .status-card {
+    @apply min-h-[90px] md:min-h-[100px] lg:min-h-[110px];
+    @apply p-[14px] md:p-4 lg:p-[18px];
+    @apply rounded-[10px];
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  /* Touch/Click Targets - Min 48x48px */
+  .touch-target {
+    @apply min-w-[48px] min-h-[48px];
+  }
+  
+  /* Responsive Containers */
+  .responsive-container {
+    @apply px-4 md:px-6 lg:px-8;
+    @apply mx-auto;
+    @apply max-w-full md:max-w-[720px] lg:max-w-[1200px];
+  }
+  
+  /* Section Spacing */
+  .section-spacing {
+    @apply my-5 md:my-7 lg:my-9;
+  }
+  
+  /* Card Grid - Dashboard */
+  .dashboard-grid {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5;
+  }
+  
+  /* Member Card */
+  .member-card {
+    @apply min-h-[65px] md:min-h-[70px] lg:min-h-[75px];
+    @apply p-3 md:p-[14px] lg:p-4;
+    @apply rounded-[10px];
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  
+  /* Member ID Circle - Responsive */
+  .member-id-circle {
+    @apply h-8 w-8 md:h-9 md:w-9 lg:h-10 lg:w-10;
+    @apply rounded-full flex items-center justify-center flex-shrink-0;
+  }
+  
+  /* Status Colors */
+  .status-present { color: var(--color-present); }
+  .status-substitute { color: var(--color-substitute); }
+  .status-absent { color: var(--color-absent); }
+  .status-visitor { color: var(--color-visitor); }
+  .status-total { color: var(--color-total); }
+  
+  .bg-status-present { background-color: var(--color-present); }
+  .bg-status-substitute { background-color: var(--color-substitute); }
+  .bg-status-absent { background-color: var(--color-absent); }
+  .bg-status-visitor { background-color: var(--color-visitor); }
+  .bg-status-total { background-color: var(--color-total); }
+}

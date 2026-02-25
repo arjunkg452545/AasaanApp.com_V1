@@ -1,0 +1,382 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Card } from '../components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { toast } from 'sonner';
+import { Plus, ArrowLeft, Edit, Trash2, Upload, Download } from 'lucide-react';
+
+export default function MembersManagement() {
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    unique_member_id: '',
+    full_name: '',
+    primary_mobile: '',
+    secondary_mobile: '',
+    status: 'Active'
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadMembers();
+  }, []);
+
+  const loadMembers = async () => {
+    try {
+      const response = await api.get('/admin/members');
+      setMembers(response.data);
+    } catch (error) {
+      toast.error('Failed to load members');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/admin/members', formData);
+      toast.success('Member added successfully');
+      setCreateOpen(false);
+      setFormData({
+        unique_member_id: '',
+        full_name: '',
+        primary_mobile: '',
+        secondary_mobile: '',
+        status: 'Active'
+      });
+      loadMembers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to add member');
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put(`/admin/members/${selectedMember.member_id}`, formData);
+      toast.success('Member updated successfully');
+      setEditOpen(false);
+      loadMembers();
+    } catch (error) {
+      toast.error('Failed to update member');
+    }
+  };
+
+  const handleDelete = async (memberId) => {
+    if (!window.confirm('Are you sure you want to delete this member?')) return;
+    
+    try {
+      await api.delete(`/admin/members/${memberId}`);
+      toast.success('Member deleted successfully');
+      loadMembers();
+    } catch (error) {
+      toast.error('Failed to delete member');
+    }
+  };
+
+  const downloadTemplate = async () => {
+    try {
+      const response = await api.get('/admin/members/template', {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'members_template.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Template downloaded');
+    } catch (error) {
+      toast.error('Failed to download template');
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!uploadFile) {
+      toast.error('Please select a file');
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+
+    try {
+      const response = await api.post('/admin/members/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      toast.success(response.data.message);
+      setUploadOpen(false);
+      setUploadFile(null);
+      loadMembers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Header - Mobile optimized */}
+      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+        <Button
+          data-testid="back-btn"
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/admin/dashboard')}
+          className="mb-2"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
+          <span className="text-sm">Back to Dashboard</span>
+        </Button>
+        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Members Management</h1>
+      </div>
+
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        {/* Title and Actions - Mobile optimized */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-8">
+          <div>
+            <h2 className="text-xl md:text-3xl font-bold text-slate-900">Members</h2>
+            <p className="text-xs md:text-sm text-slate-600 mt-1">Manage your chapter members</p>
+          </div>
+          
+          {/* Action buttons - stack on mobile */}
+          <div className="flex flex-wrap gap-2 w-full md:w-auto">
+            <Button
+              data-testid="download-template-btn"
+              variant="outline"
+              size="sm"
+              onClick={downloadTemplate}
+              className="text-xs md:text-sm"
+            >
+              <Download className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+              Template
+            </Button>
+            
+            <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="bulk-upload-btn" variant="outline" size="sm" className="text-xs md:text-sm">
+                  <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  Bulk Upload
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Bulk Upload Members</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Select Excel File</Label>
+                    <Input
+                      data-testid="upload-file-input"
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={(e) => setUploadFile(e.target.files[0])}
+                      className="mt-2"
+                    />
+                    <p className="text-sm text-slate-500 mt-2">
+                      Upload Excel file with member details. Download template for format.
+                    </p>
+                  </div>
+                  <Button
+                    data-testid="upload-submit-btn"
+                    onClick={handleFileUpload}
+                    disabled={uploading || !uploadFile}
+                    className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+                  >
+                    {uploading ? 'Uploading...' : 'Upload Members'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            
+            <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="add-member-btn" className="bg-[#CF2030] hover:bg-[#A61926] text-xs md:text-sm" size="sm">
+                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
+                  Add Member
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Member</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div>
+                    <Label>Member ID (01, 02, etc.)</Label>
+                    <Input
+                      data-testid="member-id-input"
+                      value={formData.unique_member_id}
+                      onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
+                      placeholder="01"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Full Name</Label>
+                    <Input
+                      data-testid="member-name-input"
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Primary Mobile</Label>
+                    <Input
+                      data-testid="primary-mobile-input"
+                      value={formData.primary_mobile}
+                      onChange={(e) => setFormData({...formData, primary_mobile: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Secondary Mobile (Optional)</Label>
+                    <Input
+                      data-testid="secondary-mobile-input"
+                      value={formData.secondary_mobile}
+                      onChange={(e) => setFormData({...formData, secondary_mobile: e.target.value})}
+                    />
+                  </div>
+                  <Button data-testid="submit-member-btn" type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+                    Add Member
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-center py-8 md:py-12 text-sm md:text-base">Loading members...</div>
+        ) : members.length === 0 ? (
+          <Card className="p-8 md:p-12 text-center">
+            <p className="text-slate-600 text-sm md:text-base">No members yet. Add your first member!</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-[10px] lg:gap-3">
+            {members.map((member) => (
+              <Card
+                key={member.member_id}
+                className="p-3 md:p-[14px] lg:p-4 hover:shadow-md transition-shadow border-l-4 border-l-[#CF2030] min-h-[65px] md:min-h-[70px] lg:min-h-[75px] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+                data-testid={`member-card-${member.member_id}`}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                    {/* Member ID Circle - Responsive sizes: Mobile 32px, Tablet 36px, Desktop 40px */}
+                    <div className="h-8 w-8 md:h-9 md:w-9 lg:h-10 lg:w-10 rounded-full bg-[#CF2030]/10 flex items-center justify-center flex-shrink-0 self-center">
+                      <span className="text-xs md:text-sm lg:text-base font-semibold text-[#CF2030] leading-none">{member.unique_member_id}</span>
+                    </div>
+                    {/* Member Info */}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-[15px] md:text-base lg:text-[17px] text-slate-900 truncate">{member.full_name}</h3>
+                      <p className="text-xs md:text-[13px] lg:text-sm text-slate-500">Primary: {member.primary_mobile}</p>
+                      {member.secondary_mobile && (
+                        <p className="text-xs md:text-[13px] lg:text-sm text-slate-500 hidden md:block">Secondary: {member.secondary_mobile}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button
+                      data-testid={`edit-member-btn-${member.member_id}`}
+                      variant="outline"
+                      size="sm"
+                      className="h-12 w-12 md:h-auto md:w-auto p-1 md:px-3 min-w-[48px] min-h-[48px]"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setFormData({
+                          unique_member_id: member.unique_member_id,
+                          full_name: member.full_name,
+                          primary_mobile: member.primary_mobile,
+                          secondary_mobile: member.secondary_mobile || '',
+                          status: member.status
+                        });
+                        setEditOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span className="hidden md:inline ml-2">Edit</span>
+                    </Button>
+                    <Button
+                      data-testid={`delete-member-btn-${member.member_id}`}
+                      variant="destructive"
+                      size="sm"
+                      className="h-12 w-12 md:h-auto md:w-auto p-1 md:px-3 min-w-[48px] min-h-[48px]"
+                      onClick={() => handleDelete(member.member_id)}
+                    >
+                      <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
+                      <span className="hidden md:inline ml-2">Delete</span>
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Member</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleUpdate} className="space-y-4">
+            <div>
+              <Label>Member ID</Label>
+              <Input
+                data-testid="edit-member-id-input"
+                value={formData.unique_member_id}
+                onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label>Full Name</Label>
+              <Input
+                data-testid="edit-member-name-input"
+                value={formData.full_name}
+                onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label>Primary Mobile</Label>
+              <Input
+                data-testid="edit-primary-mobile-input"
+                value={formData.primary_mobile}
+                onChange={(e) => setFormData({...formData, primary_mobile: e.target.value})}
+                required
+              />
+            </div>
+            <div>
+              <Label>Secondary Mobile</Label>
+              <Input
+                data-testid="edit-secondary-mobile-input"
+                value={formData.secondary_mobile}
+                onChange={(e) => setFormData({...formData, secondary_mobile: e.target.value})}
+              />
+            </div>
+            <Button data-testid="update-member-btn" type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+              Update Member
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

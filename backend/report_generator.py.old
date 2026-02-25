@@ -1,0 +1,189 @@
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+from datetime import datetime
+
+def generate_excel_report(meeting: dict, members: list, attendance: list) -> bytes:
+    """Generate Excel report with 2 sheets - Members/Substitutes and Visitors"""
+    wb = Workbook()
+    
+    # Sheet 1: Member Attendance Report (Members + Substitutes)
+    ws1 = wb.active
+    ws1.title = "Member Attendance Report"
+    
+    # Parse meeting times
+    from datetime import datetime
+    import pytz
+    IST = pytz.timezone('Asia/Kolkata')
+    
+    meeting_date = datetime.fromisoformat(meeting["date"])
+    start_time = datetime.fromisoformat(meeting["start_time"]).astimezone(IST)
+    cutoff_time = datetime.fromisoformat(meeting["late_cutoff_time"]).astimezone(IST)
+    end_time = datetime.fromisoformat(meeting["end_time"]).astimezone(IST)
+    
+    # Header
+    ws.append(["BNI ATTENDANCE REPORT"])
+    ws.append(["Meeting Date:", meeting_date.date()])
+    ws.append(["Start Time:", start_time.time()])
+    ws.append(["Cutoff Time:", cutoff_time.time()])
+    ws.append(["End Time:", end_time.time()])
+    ws.append([])
+    
+    # Column headers with Sr. No.
+    headers = [
+        "Sr. No.", "Member ID", "Member Name", "Status", "Date", "Timestamp",
+        "Late Type", "Substitute Name", "Substitute Mobile"
+    ]
+    ws.append(headers)
+    
+    # Style header row
+    header_fill = PatternFill(start_color="CF2030", end_color="CF2030", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    
+    for cell in ws[7]:
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center")
+    
+    # Create attendance lookup
+    attendance_map = {a["unique_member_id"]: a for a in attendance if a.get("unique_member_id")}
+    
+    # Add member data with serial numbers
+    sr_no = 1
+    for member in members:
+        att = attendance_map.get(member["unique_member_id"])
+        if att:
+            att_time = datetime.fromisoformat(att["timestamp"]).astimezone(IST)
+            row = [
+                sr_no,
+                member["unique_member_id"],
+                member["full_name"],
+                att["status"],
+                att_time.date(),
+                att_time.time(),
+                att.get("late_type", ""),
+                att.get("substitute_name", ""),
+                att.get("substitute_mobile", "")
+            ]
+        else:
+            row = [
+                sr_no,
+                member["unique_member_id"],
+                member["full_name"],
+                "Absent",
+                None, None, "", "", ""
+            ]
+        ws.append(row)
+        sr_no += 1
+    
+    # Add empty rows with just serial numbers (dummy entries)
+    for i in range(sr_no, sr_no + 5):
+        ws.append([i, None, None, None, None, None, None, None, None])
+    
+    # Summary
+    total = len(members)
+    present = len([a for a in attendance if a["type"] == "member"])
+    absent = total - present
+    
+    ws.append([])
+    ws.append(["SUMMARY"])
+    ws.append(["Total Members:", total])
+    ws.append(["Present:", present])
+    ws.append(["Absent:", absent])
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Save to BytesIO
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return buffer.getvalue()
+
+def generate_pdf_report(meeting: dict, members: list, attendance: list) -> bytes:
+    """Generate PDF report for meeting attendance"""
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title = Paragraph("<b>BNI ATTENDANCE REPORT</b>", styles['Title'])
+    elements.append(title)
+    elements.append(Spacer(1, 0.2*inch))
+    
+    # Meeting info
+    meeting_info = Paragraph(f"<b>Meeting Date:</b> {meeting['date']}<br/>"
+                            f"<b>Time:</b> {meeting['start_time']} - {meeting['end_time']}",
+                            styles['Normal'])
+    elements.append(meeting_info)
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Table
+    attendance_map = {a["unique_member_id"]: a for a in attendance if a.get("unique_member_id")}
+    
+    table_data = [['ID', 'Name', 'Mobile', 'Status', 'Time', 'Late Type']]
+    
+    for member in members:
+        att = attendance_map.get(member["unique_member_id"])
+        if att:
+            row = [
+                member["unique_member_id"],
+                member["full_name"],
+                member["primary_mobile"],
+                att["status"],
+                att["timestamp"][:16],
+                att.get("late_type", "")
+            ]
+        else:
+            row = [
+                member["unique_member_id"],
+                member["full_name"],
+                member["primary_mobile"],
+                "Absent",
+                "",
+                ""
+            ]
+        table_data.append(row)
+    
+    table = Table(table_data)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#CF2030')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(table)
+    
+    # Summary
+    total = len(members)
+    present = len([a for a in attendance if a["type"] == "member"])
+    absent = total - present
+    
+    elements.append(Spacer(1, 0.3*inch))
+    summary = Paragraph(f"<b>Summary:</b> Total: {total} | Present: {present} | Absent: {absent}",
+                       styles['Normal'])
+    elements.append(summary)
+    
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer.getvalue()
