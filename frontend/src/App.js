@@ -47,6 +47,9 @@ import AccountantDashboard from "./pages/AccountantDashboard";
 import AccountantApprovals from "./pages/AccountantApprovals";
 import AccountantManagement from "./pages/AccountantManagement";
 
+// Payment Reminders
+import PaymentReminders from "./pages/PaymentReminders";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -245,6 +248,16 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AdminManualEntry />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Payment Reminders */}
+          <Route
+            path="/admin/reminders"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <PaymentReminders />
               </ProtectedRoute>
             }
           />

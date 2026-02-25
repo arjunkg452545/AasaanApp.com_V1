@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { ArrowLeft, Wallet, Calendar, PartyPopper, FileText, Users, Check, X, Eye, ChevronLeft, ChevronRight, Settings, IndianRupee, ShieldCheck, Banknote } from 'lucide-react';
+import { ArrowLeft, Wallet, Calendar, PartyPopper, FileText, Users, Check, X, Eye, ChevronLeft, ChevronRight, Settings, IndianRupee, ShieldCheck, Banknote, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FundManagementHub() {
@@ -350,22 +350,38 @@ export default function FundManagementHub() {
           </div>
         </Card>
 
-        {/* Reports Card */}
-        <Card className="mt-4 md:mt-6 p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500"
-              onClick={() => navigate('/admin/fund/reports')}>
-          <div className="flex items-center justify-between">
+        {/* Reports + Reminders */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mt-4 md:mt-6">
+          {/* Reports Card */}
+          <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500"
+                onClick={() => navigate('/admin/fund/reports')}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
                 <FileText className="h-6 w-6 text-green-600" />
               </div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-base md:text-lg font-semibold text-slate-900">Reports</h3>
                 <p className="text-xs text-slate-600">Export & view reports</p>
               </div>
+              <span className="text-green-600 text-sm">View &rarr;</span>
             </div>
-            <span className="text-green-600 text-sm">View →</span>
-          </div>
-        </Card>
+          </Card>
+
+          {/* Reminders Card */}
+          <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-emerald-500"
+                onClick={() => navigate('/admin/reminders')}>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="h-6 w-6 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base md:text-lg font-semibold text-slate-900">Reminders</h3>
+                <p className="text-xs text-slate-600">WhatsApp payment reminders</p>
+              </div>
+              <span className="text-emerald-600 text-sm">Send &rarr;</span>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* Summary Dialog */}
