@@ -4101,9 +4101,11 @@ app.include_router(api_router)
 from routes.member_auth import router as member_auth_router
 from routes.payment_config import router as payment_config_router
 from routes.fee_ledger import router as fee_ledger_router
+from routes.member_portal import router as member_portal_router
 app.include_router(member_auth_router)
 app.include_router(payment_config_router)
 app.include_router(fee_ledger_router)
+app.include_router(member_portal_router)
 
 # Serve uploaded files (payment proofs, etc.)
 import os as _os
