@@ -1,37 +1,23 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'bni-attendance-v3';
-const urlsToCache = [
-  '/',
-  '/manifest.json',
-  '/index.html'
-];
+const CACHE_NAME = 'aasaanapp-v4';
 
 // Install event - skip waiting for immediate activation
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing', CACHE_NAME);
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker: Caching app shell');
-        return cache.addAll(urlsToCache).catch(err => {
-          console.log('Cache addAll error:', err);
-          return Promise.resolve();
-        });
-      })
-  );
 });
 
-// Activate event - claim clients immediately
+// Activate event - delete ALL old caches and claim clients immediately
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating');
+  console.log('Service Worker: Activating', CACHE_NAME);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Clearing old cache', cacheName);
-            return caches.delete(cacheName);
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            console.log('Service Worker: Deleting old cache', name);
+            return caches.delete(name);
           }
         })
       );
@@ -39,86 +25,45 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - Network first, fallback to cache for better real-time data
+// Fetch event - NETWORK FIRST for everything
+// This ensures users always get the latest code and data
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  
-  // Skip non-GET requests
+
+  // Skip non-GET requests entirely (let browser handle POST, PUT, DELETE)
   if (request.method !== 'GET') {
     return;
   }
 
-  // API requests - Network first, cache fallback
-  if (request.url.includes('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          // Clone the response
-          const responseToCache = response.clone();
-          
-          // Cache successful responses
-          if (response.status === 200) {
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, responseToCache);
-            });
-          }
-          
-          return response;
-        })
-        .catch(() => {
-          // Fallback to cache on network failure
-          return caches.match(request).then(cachedResponse => {
-            if (cachedResponse) {
-              return cachedResponse;
-            }
-            // Return offline page or error
-            return new Response('Offline - No cached data available', {
-              status: 503,
-              statusText: 'Service Unavailable',
-              headers: new Headers({
-                'Content-Type': 'text/plain'
-              })
-            });
-          });
-        })
-    );
+  // Skip chrome-extension and non-http requests
+  if (!request.url.startsWith('http')) {
     return;
   }
 
-  // Static assets - Cache first, network fallback
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          // Return cached version and update in background
-          fetch(request).then(response => {
-            if (response.status === 200) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(request, response);
-              });
-            }
-          }).catch(() => {});
-          
-          return cachedResponse;
+    fetch(request)
+      .then((response) => {
+        // Only cache successful same-origin responses
+        if (response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
         }
-        
-        // Not in cache, fetch from network
-        return fetch(request).then(response => {
-          // Cache successful responses
-          if (response.status === 200) {
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(request, responseToCache);
-            });
-          }
-          return response;
-        });
+        return response;
       })
       .catch(() => {
-        // Both cache and network failed
-        return new Response('Offline', {
-          status: 503,
-          statusText: 'Service Unavailable'
+        // Network failed - try cache as offline fallback
+        return caches.match(request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Nothing in cache either
+          return new Response('Offline', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({ 'Content-Type': 'text/plain' })
+          });
         });
       })
   );
