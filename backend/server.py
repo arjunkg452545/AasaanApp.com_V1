@@ -45,19 +45,32 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         raise HTTPException(status_code=401, detail="Invalid token")
     return payload
 
+# Role-based access helpers
+def require_role(*allowed_roles):
+    """Dependency factory: returns a dependency that checks the user's role."""
+    async def _check(user=Depends(get_current_user)):
+        if user.get("role") not in allowed_roles:
+            raise HTTPException(status_code=403, detail="Forbidden")
+        return user
+    return _check
+
 # ===== SUPER ADMIN ENDPOINTS =====
 @api_router.post("/superadmin/login", response_model=LoginResponse)
 async def superadmin_login(data: LoginRequest):
     admin = await db.superadmins.find_one({"mobile": data.mobile}, {"_id": 0})
     if not admin or not verify_password(data.password, admin["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
+
+    # Check if super admin is active
+    if admin.get("is_active") is False:
+        raise HTTPException(status_code=403, detail="Account is deactivated. Contact developer admin.")
+
     token = create_access_token({"mobile": data.mobile, "role": "superadmin"})
     return LoginResponse(token=token, role="superadmin", mobile=data.mobile)
 
 @api_router.post("/superadmin/chapters", response_model=ChapterResponse)
 async def create_chapter(chapter: ChapterCreate, user=Depends(get_current_user)):
-    if user["role"] != "superadmin":
+    if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     admin_password_hash = hash_password(chapter.admin_password)
@@ -76,7 +89,7 @@ async def create_chapter(chapter: ChapterCreate, user=Depends(get_current_user))
 
 @api_router.get("/superadmin/chapters", response_model=List[ChapterResponse])
 async def get_all_chapters(user=Depends(get_current_user)):
-    if user["role"] != "superadmin":
+    if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     chapters = await db.chapters.find({}, {"_id": 0, "admin_password_hash": 0}).to_list(1000)
@@ -84,7 +97,7 @@ async def get_all_chapters(user=Depends(get_current_user)):
 
 @api_router.put("/superadmin/chapters/{chapter_id}/credentials")
 async def update_chapter_credentials(chapter_id: str, data: UpdateCredentials, user=Depends(get_current_user)):
-    if user["role"] != "superadmin":
+    if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     new_password_hash = hash_password(data.new_password)
@@ -107,7 +120,7 @@ async def update_chapter_credentials(chapter_id: str, data: UpdateCredentials, u
 
 @api_router.delete("/superadmin/chapters/{chapter_id}")
 async def delete_chapter(chapter_id: str, user=Depends(get_current_user)):
-    if user["role"] != "superadmin":
+    if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     # Delete chapter
@@ -130,7 +143,7 @@ async def delete_chapter(chapter_id: str, user=Depends(get_current_user)):
 
 @api_router.get("/superadmin/chapters/{chapter_id}/audit-logs")
 async def get_audit_logs(chapter_id: str, user=Depends(get_current_user)):
-    if user["role"] != "superadmin":
+    if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0, "audit_logs": 1})
@@ -152,7 +165,7 @@ async def admin_login(data: LoginRequest):
 @api_router.get("/admin/profile")
 async def get_admin_profile(user=Depends(get_current_user)):
     """Get admin profile with chapter name"""
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     chapter = await db.chapters.find_one({"chapter_id": user.get("chapter_id")}, {"_id": 0, "admin_password_hash": 0})
@@ -165,7 +178,7 @@ async def get_admin_profile(user=Depends(get_current_user)):
 
 @api_router.get("/admin/members", response_model=List[MemberResponse])
 async def get_members(user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     members = await db.members.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
@@ -173,7 +186,7 @@ async def get_members(user=Depends(get_current_user)):
 
 @api_router.post("/admin/members", response_model=MemberResponse)
 async def add_member(member: MemberCreate, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     # Check if member with same unique_member_id already exists in this chapter
@@ -218,7 +231,7 @@ async def add_member(member: MemberCreate, user=Depends(get_current_user)):
 
 @api_router.post("/admin/members/bulk")
 async def bulk_add_members(members: List[MemberCreate], user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     from uuid import uuid4
@@ -282,7 +295,7 @@ async def bulk_add_members(members: List[MemberCreate], user=Depends(get_current
 
 @api_router.get("/admin/members/template")
 async def download_member_template(user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     from openpyxl import Workbook
@@ -320,7 +333,7 @@ async def download_member_template(user=Depends(get_current_user)):
 
 @api_router.post("/admin/members/upload")
 async def upload_members_excel(file: UploadFile = File(...), user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     from openpyxl import load_workbook
@@ -411,7 +424,7 @@ async def upload_members_excel(file: UploadFile = File(...), user=Depends(get_cu
 
 @api_router.put("/admin/members/{member_id}", response_model=MemberResponse)
 async def update_member(member_id: str, member: MemberUpdate, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     update_data = {k: v for k, v in member.dict(exclude_unset=True).items()}
@@ -428,7 +441,7 @@ async def update_member(member_id: str, member: MemberUpdate, user=Depends(get_c
 
 @api_router.delete("/admin/members/{member_id}")
 async def delete_member(member_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     result = await db.members.delete_one({"member_id": member_id, "chapter_id": user["chapter_id"]})
@@ -440,7 +453,7 @@ async def delete_member(member_id: str, user=Depends(get_current_user)):
 
 @api_router.post("/admin/meetings", response_model=MeetingResponse)
 async def create_meeting(meeting: MeetingCreate, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     meeting_id = f"MT{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
@@ -465,7 +478,7 @@ async def create_meeting(meeting: MeetingCreate, user=Depends(get_current_user))
 
 @api_router.get("/admin/meetings", response_model=List[MeetingResponse])
 async def get_meetings(user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     meetings = await db.meetings.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
@@ -473,7 +486,7 @@ async def get_meetings(user=Depends(get_current_user)):
 
 @api_router.delete("/admin/meetings/{meeting_id}")
 async def delete_meeting(meeting_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     result = await db.meetings.delete_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]})
@@ -488,7 +501,7 @@ async def delete_meeting(meeting_id: str, user=Depends(get_current_user)):
 
 @api_router.get("/admin/meetings/{meeting_id}/qr")
 async def get_qr_code(meeting_id: str, request: Request, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     meeting = await db.meetings.find_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0})
@@ -514,7 +527,7 @@ async def get_qr_code(meeting_id: str, request: Request, user=Depends(get_curren
 
 @api_router.get("/admin/meetings/{meeting_id}/attendance", response_model=List[AttendanceResponse])
 async def get_attendance(meeting_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     # Only show approved attendance
@@ -526,7 +539,7 @@ async def get_attendance(meeting_id: str, user=Depends(get_current_user)):
 
 @api_router.get("/admin/meetings/{meeting_id}/summary")
 async def get_meeting_summary(meeting_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     # Get meeting details
@@ -640,7 +653,7 @@ async def get_meeting_summary(meeting_id: str, user=Depends(get_current_user)):
 
 @api_router.get("/admin/attendance/pending", response_model=List[AttendanceResponse])
 async def get_pending_attendance(user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     # Get all pending attendance for this chapter
@@ -659,7 +672,7 @@ async def get_pending_attendance(user=Depends(get_current_user)):
 
 @api_router.post("/admin/attendance/{attendance_id}/approve")
 async def approve_attendance(attendance_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     result = await db.attendance.update_one(
@@ -674,7 +687,7 @@ async def approve_attendance(attendance_id: str, user=Depends(get_current_user))
 
 @api_router.post("/admin/attendance/{attendance_id}/reject")
 async def reject_attendance(attendance_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     result = await db.attendance.update_one(
@@ -689,7 +702,7 @@ async def reject_attendance(attendance_id: str, user=Depends(get_current_user)):
 
 @api_router.get("/admin/meetings/{meeting_id}/report/excel")
 async def download_excel_report(meeting_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     meeting = await db.meetings.find_one({"meeting_id": meeting_id}, {"_id": 0})
@@ -712,7 +725,7 @@ async def download_excel_report(meeting_id: str, user=Depends(get_current_user))
 
 @api_router.get("/admin/meetings/{meeting_id}/report/pdf")
 async def download_pdf_report(meeting_id: str, user=Depends(get_current_user)):
-    if user["role"] != "admin":
+    if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
     meeting = await db.meetings.find_one({"meeting_id": meeting_id}, {"_id": 0})
@@ -2954,6 +2967,166 @@ async def get_payments_by_date(date: str = None, category: str = "kitty", user =
         "count": len(payments),
         "total_amount": total_amount,
         "month_breakdown": breakdown_list
+    }
+
+# ===== DEVELOPER ENDPOINTS =====
+from uuid import uuid4 as _uuid4
+
+@api_router.post("/developer/seed")
+async def seed_developer():
+    """One-time seed developer account"""
+    data = DeveloperSeedRequest()
+
+    existing = await db.developers.find_one({"email": data.email})
+    if existing:
+        raise HTTPException(status_code=400, detail="Developer account already exists")
+
+    dev_data = {
+        "dev_id": str(_uuid4()),
+        "email": data.email,
+        "password_hash": hash_password(data.password),
+        "name": data.name,
+        "company": "AasaanApp",
+        "role": "developer",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.developers.insert_one(dev_data)
+    return {"message": "Developer account seeded successfully", "email": data.email}
+
+@api_router.post("/developer/login", response_model=DeveloperLoginResponse)
+async def developer_login(data: DeveloperLoginRequest):
+    developer = await db.developers.find_one({"email": data.email}, {"_id": 0})
+    if not developer or not verify_password(data.password, developer["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    token = create_access_token({"email": data.email, "role": "developer", "dev_id": developer["dev_id"]})
+    return DeveloperLoginResponse(token=token, role="developer", email=data.email, name=developer["name"])
+
+@api_router.post("/developer/superadmins", response_model=SuperAdminResponse)
+async def create_superadmin(data: SuperAdminCreate, user=Depends(require_role("developer"))):
+    """Developer creates a new Super Admin / ED"""
+    # Check if mobile already exists
+    existing = await db.superadmins.find_one({"mobile": data.mobile})
+    if existing:
+        raise HTTPException(status_code=400, detail="Super Admin with this mobile already exists")
+
+    superadmin_id = str(_uuid4())
+    superadmin_data = {
+        "superadmin_id": superadmin_id,
+        "name": data.name,
+        "email": data.email,
+        "mobile": data.mobile,
+        "password_hash": hash_password(data.password),
+        "region": data.region,
+        "state": data.state,
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_by": user.get("email")
+    }
+    await db.superadmins.insert_one(superadmin_data)
+
+    # Count chapters for this superadmin
+    chapter_count = await db.chapters.count_documents({"created_by": data.mobile})
+
+    return SuperAdminResponse(
+        superadmin_id=superadmin_id,
+        name=data.name,
+        email=data.email,
+        mobile=data.mobile,
+        region=data.region,
+        state=data.state,
+        is_active=True,
+        created_at=superadmin_data["created_at"],
+        chapter_count=chapter_count
+    )
+
+@api_router.get("/developer/superadmins")
+async def list_superadmins(user=Depends(require_role("developer"))):
+    """List all Super Admins with their chapter counts"""
+    superadmins = await db.superadmins.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
+
+    result = []
+    for sa in superadmins:
+        chapter_count = await db.chapters.count_documents({"created_by": sa.get("mobile", "")})
+        result.append({
+            "superadmin_id": sa.get("superadmin_id", sa.get("mobile", "")),
+            "name": sa.get("name", ""),
+            "email": sa.get("email", ""),
+            "mobile": sa.get("mobile", ""),
+            "region": sa.get("region", ""),
+            "state": sa.get("state", ""),
+            "is_active": sa.get("is_active", True),
+            "created_at": sa.get("created_at", ""),
+            "chapter_count": chapter_count
+        })
+
+    return result
+
+@api_router.put("/developer/superadmins/{superadmin_id}")
+async def update_superadmin(superadmin_id: str, data: SuperAdminUpdate, user=Depends(require_role("developer"))):
+    """Update ED details, activate/deactivate"""
+    update_data = {}
+    for k, v in data.dict(exclude_unset=True).items():
+        if isinstance(v, bool) or v is not None:
+            update_data[k] = v
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No data to update")
+
+    # Try finding by superadmin_id first, then by mobile (backward compat)
+    result = await db.superadmins.update_one(
+        {"$or": [{"superadmin_id": superadmin_id}, {"mobile": superadmin_id}]},
+        {"$set": update_data}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Super Admin not found")
+
+    return {"message": "Super Admin updated successfully"}
+
+@api_router.delete("/developer/superadmins/{superadmin_id}")
+async def delete_superadmin(superadmin_id: str, user=Depends(require_role("developer"))):
+    """Soft delete a Super Admin"""
+    result = await db.superadmins.update_one(
+        {"$or": [{"superadmin_id": superadmin_id}, {"mobile": superadmin_id}]},
+        {"$set": {"is_active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Super Admin not found")
+
+    return {"message": "Super Admin deactivated successfully"}
+
+@api_router.get("/developer/dashboard/stats")
+async def developer_dashboard_stats(user=Depends(require_role("developer"))):
+    """Dashboard stats: total EDs, chapters, members, revenue"""
+    total_eds = await db.superadmins.count_documents({"is_active": {"$ne": False}})
+    total_chapters = await db.chapters.count_documents({})
+    total_members = await db.members.count_documents({})
+
+    # Calculate total revenue from all payment collections
+    kitty_pipeline = [{"$match": {"status": "paid"}}, {"$group": {"_id": None, "total": {"$sum": "$amount"}}}]
+    meeting_fee_pipeline = [{"$match": {"status": "paid"}}, {"$group": {"_id": None, "total": {"$sum": "$amount"}}}]
+    misc_pipeline = [{"$match": {"status": "paid"}}, {"$group": {"_id": None, "total": {"$sum": "$amount"}}}]
+    event_pipeline = [{"$match": {"status": "paid"}}, {"$group": {"_id": None, "total": {"$sum": "$amount"}}}]
+
+    kitty_rev = await db.kitty_payments.aggregate(kitty_pipeline).to_list(1)
+    meeting_fee_rev = await db.meeting_fee_payments.aggregate(meeting_fee_pipeline).to_list(1)
+    misc_rev = await db.misc_payment_records.aggregate(misc_pipeline).to_list(1)
+    event_rev = await db.event_payments.aggregate(event_pipeline).to_list(1)
+
+    total_revenue = (
+        (kitty_rev[0]["total"] if kitty_rev else 0) +
+        (meeting_fee_rev[0]["total"] if meeting_fee_rev else 0) +
+        (misc_rev[0]["total"] if misc_rev else 0) +
+        (event_rev[0]["total"] if event_rev else 0)
+    )
+
+    return {
+        "total_eds": total_eds,
+        "total_chapters": total_chapters,
+        "total_members": total_members,
+        "total_revenue": total_revenue
     }
 
 app.include_router(api_router)

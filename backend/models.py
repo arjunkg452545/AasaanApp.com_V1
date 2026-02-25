@@ -253,3 +253,47 @@ class BulkUnmarkPayment(BaseModel):
     year: Optional[int] = None
     payment_id: Optional[str] = None
     event_id: Optional[str] = None
+
+# ===== DEVELOPER ROLE MODELS =====
+
+class DeveloperLoginRequest(BaseModel):
+    email: str
+    password: str
+
+class DeveloperLoginResponse(BaseModel):
+    token: str
+    role: str
+    email: str
+    name: str
+
+class SuperAdminCreate(BaseModel):
+    name: str
+    email: str
+    mobile: str
+    password: str
+    region: Optional[str] = None
+    state: Optional[str] = None
+
+class SuperAdminUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    mobile: Optional[str] = None
+    region: Optional[str] = None
+    state: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class SuperAdminResponse(BaseModel):
+    superadmin_id: str
+    name: str
+    email: Optional[str] = None
+    mobile: str
+    region: Optional[str] = None
+    state: Optional[str] = None
+    is_active: bool = True
+    created_at: str
+    chapter_count: int = 0
+
+class DeveloperSeedRequest(BaseModel):
+    email: str = "admin@aasaanapp.com"
+    password: str = "AasaanAdmin2026!"
+    name: str = "AasaanApp Developer"

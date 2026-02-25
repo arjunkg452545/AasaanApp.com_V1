@@ -4,6 +4,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 
 import Login from "./pages/Login";
+import DeveloperLogin from "./pages/DeveloperLogin";
+import DeveloperDashboard from "./pages/DeveloperDashboard";
+import CreateSuperAdmin from "./pages/CreateSuperAdmin";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import ChapterAdminDashboard from "./pages/ChapterAdminDashboard";
 import MembersManagement from "./pages/MembersManagement";
@@ -55,7 +58,26 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          
+          <Route path="/developer/login" element={<DeveloperLogin />} />
+
+          {/* Developer Routes */}
+          <Route
+            path="/developer/dashboard"
+            element={
+              <ProtectedRoute requiredRole="developer">
+                <DeveloperDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/developer/superadmin/create"
+            element={
+              <ProtectedRoute requiredRole="developer">
+                <CreateSuperAdmin />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Super Admin Routes */}
           <Route
             path="/superadmin/dashboard"
