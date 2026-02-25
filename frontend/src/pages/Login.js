@@ -57,7 +57,10 @@ export default function Login() {
     setDevLoading(true);
 
     try {
+      console.log('[DEV LOGIN] Full URL:', api.defaults.baseURL + '/developer/login');
+      console.log('[DEV LOGIN] Payload:', { email: devEmail, password: '***' });
       const response = await api.post('/developer/login', { email: devEmail, password: devPassword });
+      console.log('[DEV LOGIN] Success:', response.status);
 
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('role', response.data.role);
@@ -68,7 +71,10 @@ export default function Login() {
       setDevModalOpen(false);
       navigate('/developer/dashboard');
     } catch (error) {
-      console.error('Dev login error:', error);
+      console.error('[DEV LOGIN] Error:', error);
+      console.error('[DEV LOGIN] Response:', error.response);
+      console.error('[DEV LOGIN] Request:', error.request);
+      console.error('[DEV LOGIN] Message:', error.message);
       const detail = error.response?.data?.detail;
       const msg = typeof detail === 'string' ? detail : (Array.isArray(detail) ? detail[0]?.msg : null);
       toast.error(msg || error.message || 'Access denied');
