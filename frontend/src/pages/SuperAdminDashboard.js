@@ -465,6 +465,10 @@ export default function SuperAdminDashboard() {
             <CreditCard className="h-4 w-4 mr-2" />
             Payment Config
           </Button>
+          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/accountants')}>
+            <UserCheck className="h-4 w-4 mr-2" />
+            Accountants
+          </Button>
           <Button variant="outline" className="text-slate-600">
             <Settings className="h-4 w-4 mr-2" />
             Manage Admins

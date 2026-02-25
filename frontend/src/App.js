@@ -41,6 +41,12 @@ import ChapterFeeConfig from "./pages/ChapterFeeConfig";
 import AdminVerifyPayments from "./pages/AdminVerifyPayments";
 import AdminManualEntry from "./pages/AdminManualEntry";
 
+// Accountant Pages
+import AccountantLayout from "./pages/AccountantLayout";
+import AccountantDashboard from "./pages/AccountantDashboard";
+import AccountantApprovals from "./pages/AccountantApprovals";
+import AccountantManagement from "./pages/AccountantManagement";
+
 // Fund Management Pages
 import FundManagementHub from "./pages/FundManagementHub";
 import KittyPayment from "./pages/KittyPayment";
@@ -129,6 +135,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="superadmin">
                 <PaymentConfig />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/accountants"
+            element={
+              <ProtectedRoute requiredRole="superadmin">
+                <AccountantManagement />
               </ProtectedRoute>
             }
           />
@@ -299,6 +313,20 @@ function App() {
             <Route path="payments/:ledgerId" element={<MemberPaymentDetail />} />
             <Route path="history" element={<MemberPaymentHistory />} />
             <Route path="profile" element={<MemberMyProfile />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+          </Route>
+
+          {/* Accountant Portal Routes — nested inside AccountantLayout */}
+          <Route
+            path="/accountant"
+            element={
+              <ProtectedRoute requiredRole="accountant">
+                <AccountantLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<AccountantDashboard />} />
+            <Route path="approvals" element={<AccountantApprovals />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
 

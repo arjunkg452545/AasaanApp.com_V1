@@ -20,6 +20,12 @@ export default function Login() {
   const [memberPassword, setMemberPassword] = useState('');
   const [memberLoading, setMemberLoading] = useState(false);
 
+  // Accountant login state
+  const [accountantMode, setAccountantMode] = useState(false);
+  const [accMobile, setAccMobile] = useState('');
+  const [accPassword, setAccPassword] = useState('');
+  const [accLoading, setAccLoading] = useState(false);
+
   // Developer login modal state
   const [devModalOpen, setDevModalOpen] = useState(false);
   const [devEmail, setDevEmail] = useState('');
@@ -81,6 +87,31 @@ export default function Login() {
       toast.error(error.response?.data?.detail || 'Login failed');
     } finally {
       setMemberLoading(false);
+    }
+  };
+
+  const handleAccountantLogin = async (e) => {
+    e.preventDefault();
+    setAccLoading(true);
+
+    try {
+      const response = await api.post('/accountant/login', {
+        mobile: accMobile,
+        password: accPassword,
+      });
+
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('role', 'accountant');
+      localStorage.setItem('accountant_id', response.data.accountant_id);
+      localStorage.setItem('accountant_name', response.data.name);
+      localStorage.setItem('superadmin_id', response.data.superadmin_id);
+
+      toast.success('Welcome back!');
+      navigate('/accountant/dashboard');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Login failed');
+    } finally {
+      setAccLoading(false);
     }
   };
 
@@ -221,15 +252,24 @@ export default function Login() {
             </form>
           </div>
 
-          {/* Member Login Link */}
-          {!memberMode ? (
-            <button
-              onClick={() => setMemberMode(true)}
-              className="block w-full text-center text-sm text-[#CF2030] hover:text-[#A61926] font-medium mt-4 py-2 transition-colors"
-            >
-              Are you a Member? Login here
-            </button>
-          ) : (
+          {/* Member / Accountant Login Links */}
+          {!memberMode && !accountantMode ? (
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <button
+                onClick={() => setMemberMode(true)}
+                className="text-sm text-[#CF2030] hover:text-[#A61926] font-medium py-2 transition-colors"
+              >
+                Member Login
+              </button>
+              <span className="text-slate-300">|</span>
+              <button
+                onClick={() => setAccountantMode(true)}
+                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium py-2 transition-colors"
+              >
+                Accountant Login
+              </button>
+            </div>
+          ) : memberMode ? (
             <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100 mt-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-slate-900">Member Login</h3>
@@ -281,6 +321,61 @@ export default function Login() {
                   className="w-full h-11 bg-[#CF2030] hover:bg-[#A61926] text-white font-medium"
                 >
                   {memberLoading ? 'Signing in...' : 'Sign In as Member'}
+                </Button>
+              </form>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100 mt-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-indigo-900">Accountant Login</h3>
+                <button
+                  onClick={() => { setAccountantMode(false); setAccMobile(''); setAccPassword(''); }}
+                  className="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-sm"
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" /> Admin Login
+                </button>
+              </div>
+              <form onSubmit={handleAccountantLogin} className="space-y-4">
+                <div>
+                  <Label htmlFor="acc-mobile" className="text-slate-700 text-sm font-medium">
+                    Mobile Number
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="acc-mobile"
+                      type="text"
+                      value={accMobile}
+                      onChange={(e) => setAccMobile(e.target.value)}
+                      placeholder="Enter your mobile number"
+                      required
+                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="acc-password" className="text-slate-700 text-sm font-medium">
+                    Password
+                  </Label>
+                  <div className="relative mt-1.5">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="acc-password"
+                      type="password"
+                      value={accPassword}
+                      onChange={(e) => setAccPassword(e.target.value)}
+                      placeholder="Enter password"
+                      required
+                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={accLoading}
+                  className="w-full h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+                >
+                  {accLoading ? 'Signing in...' : 'Sign In as Accountant'}
                 </Button>
               </form>
             </div>
