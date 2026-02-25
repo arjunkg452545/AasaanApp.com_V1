@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'bni-attendance-v2';
+const CACHE_NAME = 'bni-attendance-v3';
 const urlsToCache = [
   '/',
   '/manifest.json',
