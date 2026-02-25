@@ -3,25 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { LogOut, Users, ClipboardList, Wallet } from 'lucide-react';
+import { LogOut, Users, ClipboardList, Wallet, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ChapterAdminDashboard() {
-  const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0 });
+  const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0, expiringSoon: 0 });
   const [chapterName, setChapterName] = useState('');
   const navigate = useNavigate();
 
   const loadStats = async () => {
     try {
-      const [membersRes, meetingsRes, fundRes] = await Promise.all([
+      const [membersRes, meetingsRes, fundRes, memberStatsRes] = await Promise.all([
         api.get('/admin/members'),
         api.get('/admin/meetings'),
-        api.get('/admin/fund/reports/summary').catch(() => ({ data: { grand_total: 0 } }))
+        api.get('/admin/fund/reports/summary').catch(() => ({ data: { grand_total: 0 } })),
+        api.get('/admin/members/stats').catch(() => ({ data: { expiring_soon: 0 } })),
       ]);
       setStats({
         members: membersRes.data.length,
         meetings: meetingsRes.data.length,
-        fundTotal: fundRes.data.grand_total || 0
+        fundTotal: fundRes.data.grand_total || 0,
+        expiringSoon: memberStatsRes.data.expiring_soon || 0,
       });
     } catch (error) {
       toast.error('Failed to load dashboard');
@@ -68,7 +70,7 @@ export default function ChapterAdminDashboard() {
         <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold text-slate-900 mb-5 md:mb-7 lg:mb-9">Welcome Back</h2>
 
         {/* Main Cards - Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
           {/* Members Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-[#CF2030] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
@@ -126,6 +128,27 @@ export default function ChapterAdminDashboard() {
                 <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Payments & Collections</p>
                 <div className="inline-flex items-center gap-1 md:gap-2 bg-green-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
                   <span className="text-sm md:text-base lg:text-lg font-bold text-green-600">{formatCurrency(stats.fundTotal)}</span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Expiring Soon Card */}
+          <Card
+            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-amber-500 group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            onClick={() => navigate('/admin/members')}
+            data-testid="nav-expiring"
+          >
+            <div className="flex items-center md:flex-col md:text-center gap-3 md:gap-4">
+              <div className="h-12 w-12 md:h-14 md:w-14 lg:h-16 lg:w-16 rounded-xl bg-amber-100 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
+                <AlertTriangle className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-amber-600" />
+              </div>
+              <div className="flex-1 md:flex-none">
+                <h3 className="text-base md:text-lg lg:text-xl font-semibold text-slate-900">Renewals</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Expiring soon</p>
+                <div className="inline-flex items-center gap-1 md:gap-2 bg-amber-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
+                  <span className="text-sm md:text-base lg:text-lg font-bold text-amber-600">{stats.expiringSoon}</span>
+                  <span className="text-xs md:text-[13px] text-slate-600">Members</span>
                 </div>
               </div>
             </div>

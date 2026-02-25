@@ -39,6 +39,8 @@ import {
   Clock,
   AlertTriangle,
   Settings,
+  ChevronRight,
+  UserCheck,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -89,6 +91,7 @@ export default function SuperAdminDashboard() {
     active_chapters: 0,
     inactive_chapters: 0,
     total_members: 0,
+    pending_members: 0,
     this_month_collection: 0,
   });
   const [chapters, setChapters] = useState([]);
@@ -419,6 +422,22 @@ export default function SuperAdminDashboard() {
           </Card>
         </div>
 
+        {/* --- Pending Approvals Alert --- */}
+        {stats.pending_members > 0 && (
+          <div
+            className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-100 transition-colors"
+            onClick={() => navigate('/superadmin/members/pending')}
+          >
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-amber-500" />
+              <p className="text-sm text-amber-700">
+                <strong>{stats.pending_members}</strong> member{stats.pending_members > 1 ? 's' : ''} pending approval
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-amber-400" />
+          </div>
+        )}
+
         {/* --- Quick Actions --- */}
         <div className="flex flex-wrap gap-3">
           <Button
@@ -428,6 +447,19 @@ export default function SuperAdminDashboard() {
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Chapter
+          </Button>
+          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/members/pending')}>
+            <UserCheck className="h-4 w-4 mr-2" />
+            Pending Approvals
+            {stats.pending_members > 0 && (
+              <span className="ml-1.5 bg-amber-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {stats.pending_members}
+              </span>
+            )}
+          </Button>
+          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/members')}>
+            <Users className="h-4 w-4 mr-2" />
+            All Members
           </Button>
           <Button variant="outline" className="text-slate-600">
             <Settings className="h-4 w-4 mr-2" />

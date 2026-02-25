@@ -205,53 +205,119 @@ async def get_admin_profile(user=Depends(get_current_user)):
         "role": user.get("role")
     }
 
-@api_router.get("/admin/members", response_model=List[MemberResponse])
-async def get_members(user=Depends(get_current_user)):
-    if user["role"] not in ("admin", "developer"):
+@api_router.get("/admin/members")
+async def get_members(
+    search: str = "",
+    status_filter: str = "",
+    category: str = "",
+    sort_by: str = "unique_member_id",
+    user=Depends(get_current_user)
+):
+    if user["role"] not in ("admin", "superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    members = await db.members.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
+    query = {"chapter_id": chapter_id, "archived": {"$ne": True}}
+
+    if status_filter:
+        query["membership_status"] = status_filter
+    if category:
+        query["business_category"] = {"$regex": category, "$options": "i"}
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"primary_mobile": {"$regex": search, "$options": "i"}},
+            {"business_name": {"$regex": search, "$options": "i"}},
+            {"unique_member_id": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+        ]
+
+    sort_field = sort_by if sort_by in ("full_name", "unique_member_id", "created_at", "renewal_date") else "unique_member_id"
+    members = await db.members.find(query, {"_id": 0}).sort(sort_field, 1).to_list(2000)
     return members
 
 @api_router.post("/admin/members", response_model=MemberResponse)
 async def add_member(member: MemberCreate, user=Depends(get_current_user)):
-    if user["role"] not in ("admin", "developer"):
+    if user["role"] not in ("admin", "superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
+
+    chapter_id = user.get("chapter_id")
+
+    # SuperAdmin: resolve chapter_id from their chapters
+    if user["role"] == "superadmin" and not chapter_id:
+        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
+        first_ch = await db.chapters.find_one({"created_by": sa_id}, {"_id": 0, "chapter_id": 1})
+        if first_ch:
+            chapter_id = first_ch["chapter_id"]
+        else:
+            raise HTTPException(status_code=400, detail="No chapter found for this SuperAdmin")
+
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
     # Check if member with same unique_member_id already exists in this chapter
     existing_member = await db.members.find_one({
-        "chapter_id": user["chapter_id"],
+        "chapter_id": chapter_id,
         "unique_member_id": member.unique_member_id
     })
-    
+
     if existing_member:
         raise HTTPException(status_code=400, detail=f"Member with ID {member.unique_member_id} already exists in this chapter")
-    
+
     # Check if mobile number already exists in this chapter
     existing_mobile = await db.members.find_one({
-        "chapter_id": user["chapter_id"],
+        "chapter_id": chapter_id,
         "primary_mobile": member.primary_mobile
     })
-    
+
     if existing_mobile:
         raise HTTPException(status_code=400, detail="Member with this mobile number already exists")
-    
-    # Use UUID for unique member_id to avoid duplicates
+
     from uuid import uuid4
-    
+
+    # Approval workflow: admin → pending, superadmin/developer → active
+    if user["role"] == "admin":
+        membership_status = "pending"
+        sync_status = "Inactive"  # pending members should not appear in fund/attendance
+    else:
+        membership_status = "active"
+        sync_status = "Active"
+
     member_data = {
-        "member_id": str(uuid4()),  # Use UUID for guaranteed uniqueness
-        "chapter_id": user["chapter_id"],
+        "member_id": str(uuid4()),
+        "chapter_id": chapter_id,
         "unique_member_id": member.unique_member_id,
         "full_name": member.full_name,
         "primary_mobile": member.primary_mobile,
         "secondary_mobile": member.secondary_mobile,
-        "status": member.status,
+        "email": member.email,
+        "business_name": member.business_name,
+        "business_category": member.business_category,
+        "joining_date": member.joining_date,
+        "renewal_date": member.renewal_date,
+        "induction_fee": member.induction_fee,
+        "membership_status": membership_status,
+        "status": sync_status,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "bni_member_id": member.unique_member_id,
-        "organization_id": user["chapter_id"],
+        "organization_id": chapter_id,
+        "status_history": [{
+            "action": "created",
+            "from_status": None,
+            "to_status": membership_status,
+            "reason": "Member created",
+            "changed_by": user.get("mobile", user.get("email", "system")),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }],
+        "archived": False,
+        "transfer_from_chapter": None,
+        "transfer_date": None,
     }
-    
+
     try:
         await db.members.insert_one(member_data)
         return MemberResponse(**member_data)
@@ -453,18 +519,20 @@ async def upload_members_excel(file: UploadFile = File(...), user=Depends(get_cu
 
 @api_router.put("/admin/members/{member_id}", response_model=MemberResponse)
 async def update_member(member_id: str, member: MemberUpdate, user=Depends(get_current_user)):
-    if user["role"] not in ("admin", "developer"):
+    if user["role"] not in ("admin", "superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
+
+    chapter_id = user.get("chapter_id")
+    query = {"member_id": member_id}
+    if chapter_id:
+        query["chapter_id"] = chapter_id
+
     update_data = {k: v for k, v in member.dict(exclude_unset=True).items()}
-    result = await db.members.update_one(
-        {"member_id": member_id, "chapter_id": user["chapter_id"]},
-        {"$set": update_data}
-    )
-    
+    result = await db.members.update_one(query, {"$set": update_data})
+
     if result.modified_count == 0:
         raise HTTPException(status_code=404, detail="Member not found")
-    
+
     updated_member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
     return MemberResponse(**updated_member)
 
@@ -479,6 +547,510 @@ async def delete_member(member_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Member not found")
     
     return {"message": "Member deleted successfully"}
+
+# ===== ENHANCED MEMBER MANAGEMENT ENDPOINTS =====
+
+# Helper: sync dual status fields
+def _sync_status(membership_status: str) -> str:
+    """Return legacy status field value based on membership_status."""
+    return "Active" if membership_status == "active" else "Inactive"
+
+@api_router.get("/admin/members/stats")
+async def get_member_stats(user=Depends(get_current_user)):
+    """Return member counts by status for the chapter."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id and user["role"] == "superadmin":
+        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
+        chapters = await db.chapters.find({"created_by": sa_id}, {"chapter_id": 1}).to_list(100)
+        chapter_ids = [c["chapter_id"] for c in chapters]
+        base_filter = {"chapter_id": {"$in": chapter_ids}}
+    elif chapter_id:
+        base_filter = {"chapter_id": chapter_id}
+    else:
+        base_filter = {}
+
+    total = await db.members.count_documents({**base_filter, "archived": {"$ne": True}})
+    active = await db.members.count_documents({**base_filter, "membership_status": "active", "archived": {"$ne": True}})
+    pending = await db.members.count_documents({**base_filter, "membership_status": "pending"})
+    inactive = await db.members.count_documents({**base_filter, "membership_status": "inactive", "archived": {"$ne": True}})
+    suspended = await db.members.count_documents({**base_filter, "membership_status": "suspended"})
+
+    # Expiring soon: renewal_date within 30 days
+    from datetime import date
+    today_str = date.today().isoformat()
+    thirty_days = (date.today() + timedelta(days=30)).isoformat()
+    expiring_soon = await db.members.count_documents({
+        **base_filter,
+        "membership_status": "active",
+        "renewal_date": {"$ne": None, "$lte": thirty_days, "$gte": today_str}
+    })
+
+    return {
+        "total": total,
+        "active": active,
+        "pending": pending,
+        "inactive": inactive,
+        "suspended": suspended,
+        "expiring_soon": expiring_soon
+    }
+
+@api_router.get("/admin/members/expiring")
+async def get_expiring_members(user=Depends(get_current_user)):
+    """Members with renewal_date within next 30 days."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
+    from datetime import date
+    today_str = date.today().isoformat()
+    thirty_days = (date.today() + timedelta(days=30)).isoformat()
+
+    members = await db.members.find({
+        "chapter_id": chapter_id,
+        "membership_status": "active",
+        "renewal_date": {"$ne": None, "$lte": thirty_days, "$gte": today_str}
+    }, {"_id": 0}).to_list(500)
+    return members
+
+@api_router.get("/admin/members/export")
+async def export_members(user=Depends(get_current_user)):
+    """Export member list as Excel."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
+    members = await db.members.find(
+        {"chapter_id": chapter_id, "archived": {"$ne": True}},
+        {"_id": 0}
+    ).sort("unique_member_id", 1).to_list(2000)
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Members"
+
+    headers = [
+        "Member ID", "Full Name", "Primary Mobile", "Secondary Mobile",
+        "Email", "Business Name", "Business Category",
+        "Joining Date", "Renewal Date", "Induction Fee",
+        "Membership Status", "Status"
+    ]
+    ws.append(headers)
+
+    header_fill = PatternFill(start_color="CF2030", end_color="CF2030", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    for cell in ws[1]:
+        cell.fill = header_fill
+        cell.font = header_font
+
+    for m in members:
+        ws.append([
+            m.get("unique_member_id", ""),
+            m.get("full_name", ""),
+            m.get("primary_mobile", ""),
+            m.get("secondary_mobile", ""),
+            m.get("email", ""),
+            m.get("business_name", ""),
+            m.get("business_category", ""),
+            m.get("joining_date", ""),
+            m.get("renewal_date", ""),
+            m.get("induction_fee", ""),
+            m.get("membership_status", "active"),
+            m.get("status", "Active"),
+        ])
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=members_export.xlsx"}
+    )
+
+@api_router.get("/admin/members/{member_id}/profile")
+async def get_member_profile(member_id: str, user=Depends(get_current_user)):
+    """Full member profile with attendance & payment history."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    # Attendance history (last 20)
+    attendance = await db.attendance.find(
+        {"unique_member_id": member.get("unique_member_id"), "meeting_id": {"$exists": True}},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(20)
+
+    # Enrich attendance with meeting dates
+    for att in attendance:
+        meeting = await db.meetings.find_one({"meeting_id": att["meeting_id"]}, {"_id": 0, "date": 1})
+        att["meeting_date"] = meeting.get("date") if meeting else None
+
+    # Attendance stats
+    all_att = await db.attendance.find(
+        {"unique_member_id": member.get("unique_member_id"), "type": "member"},
+        {"_id": 0, "status": 1, "late_type": 1}
+    ).to_list(5000)
+    total_meetings_attended = len(all_att)
+    present_count = sum(1 for a in all_att if a.get("status") == "present")
+    late_count = sum(1 for a in all_att if a.get("late_type") in ("late", "very_late"))
+
+    # Payment history: kitty, meeting fee, misc, events (last 20 each)
+    kitty_payments = await db.kitty_payments.find(
+        {"member_id": member["member_id"]}, {"_id": 0}
+    ).sort("year", -1).to_list(20)
+
+    meetingfee_payments = await db.meetingfee_payments.find(
+        {"member_id": member["member_id"]}, {"_id": 0}
+    ).sort("year", -1).to_list(20)
+
+    misc_records = await db.misc_payment_records.find(
+        {"member_id": member["member_id"]}, {"_id": 0}
+    ).to_list(20)
+
+    event_payments = await db.event_payments.find(
+        {"member_id": member["member_id"]}, {"_id": 0}
+    ).to_list(20)
+
+    # Chapter name
+    chapter = await db.chapters.find_one({"chapter_id": member.get("chapter_id")}, {"_id": 0, "name": 1})
+
+    return {
+        "member": member,
+        "chapter_name": chapter.get("name") if chapter else "",
+        "attendance": {
+            "recent": attendance,
+            "total_attended": total_meetings_attended,
+            "present_count": present_count,
+            "late_count": late_count,
+        },
+        "payments": {
+            "kitty": kitty_payments,
+            "meeting_fee": meetingfee_payments,
+            "misc": misc_records,
+            "events": event_payments,
+        }
+    }
+
+@api_router.post("/admin/members/{member_id}/status")
+async def change_member_status(member_id: str, data: MemberStatusChange, user=Depends(get_current_user)):
+    """Change member status: deactivate, suspend, reactivate. Requires reason."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    action_map = {
+        "deactivate": "inactive",
+        "suspend": "suspended",
+        "reactivate": "active",
+    }
+    new_ms = action_map.get(data.action)
+    if not new_ms:
+        raise HTTPException(status_code=400, detail=f"Invalid action: {data.action}. Must be deactivate, suspend, or reactivate")
+
+    old_ms = member.get("membership_status", "active")
+
+    history_entry = {
+        "action": data.action,
+        "from_status": old_ms,
+        "to_status": new_ms,
+        "reason": data.reason,
+        "changed_by": user.get("mobile", user.get("email", "system")),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    await db.members.update_one(
+        {"member_id": member_id},
+        {
+            "$set": {
+                "membership_status": new_ms,
+                "status": _sync_status(new_ms),
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+
+    return {"message": f"Member {data.action}d successfully", "new_status": new_ms}
+
+@api_router.post("/admin/members/bulk-status")
+async def bulk_change_status(data: BulkMemberStatus, user=Depends(get_current_user)):
+    """Bulk activate/deactivate members."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    action_map = {"activate": "active", "deactivate": "inactive"}
+    new_ms = action_map.get(data.action)
+    if not new_ms:
+        raise HTTPException(status_code=400, detail="Action must be activate or deactivate")
+
+    history_entry = {
+        "action": data.action,
+        "from_status": "bulk",
+        "to_status": new_ms,
+        "reason": data.reason,
+        "changed_by": user.get("mobile", user.get("email", "system")),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    result = await db.members.update_many(
+        {"member_id": {"$in": data.member_ids}},
+        {
+            "$set": {
+                "membership_status": new_ms,
+                "status": _sync_status(new_ms),
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+
+    return {"message": f"{result.modified_count} members updated", "new_status": new_ms}
+
+@api_router.post("/admin/members/auto-archive")
+async def auto_archive_members(user=Depends(get_current_user)):
+    """Archive members inactive for 6+ months."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
+    six_months_ago = (datetime.now(timezone.utc) - timedelta(days=180)).isoformat()
+
+    # Find inactive members whose last status change was 6+ months ago
+    inactive_members = await db.members.find({
+        "chapter_id": chapter_id,
+        "membership_status": "inactive",
+        "archived": {"$ne": True},
+    }, {"_id": 0, "member_id": 1, "status_history": 1}).to_list(1000)
+
+    archived_ids = []
+    for m in inactive_members:
+        history = m.get("status_history", [])
+        if history:
+            last_entry = history[-1]
+            if last_entry.get("timestamp", "") < six_months_ago:
+                archived_ids.append(m["member_id"])
+        else:
+            # No history — check created_at or archive anyway
+            archived_ids.append(m["member_id"])
+
+    if archived_ids:
+        await db.members.update_many(
+            {"member_id": {"$in": archived_ids}},
+            {"$set": {"archived": True}}
+        )
+
+    return {"message": f"{len(archived_ids)} members archived"}
+
+# ===== SUPERADMIN MEMBER APPROVAL ENDPOINTS =====
+
+@api_router.get("/superadmin/members/pending")
+async def get_pending_members(user=Depends(get_current_user)):
+    """List all pending members across ED's chapters."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if user["role"] == "developer":
+        # Developer sees all pending
+        members = await db.members.find(
+            {"membership_status": "pending"}, {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+    else:
+        # SuperAdmin sees only their chapters' pending
+        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
+        chapters = await db.chapters.find({"created_by": sa_id}, {"chapter_id": 1}).to_list(100)
+        chapter_ids = [c["chapter_id"] for c in chapters]
+        members = await db.members.find(
+            {"chapter_id": {"$in": chapter_ids}, "membership_status": "pending"},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+
+    # Enrich with chapter name
+    for m in members:
+        ch = await db.chapters.find_one({"chapter_id": m.get("chapter_id")}, {"_id": 0, "name": 1})
+        m["chapter_name"] = ch.get("name") if ch else ""
+
+    return members
+
+@api_router.post("/superadmin/members/{member_id}/approve")
+async def approve_member(member_id: str, user=Depends(get_current_user)):
+    """Approve a pending member."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if member.get("membership_status") != "pending":
+        raise HTTPException(status_code=400, detail="Member is not in pending status")
+
+    history_entry = {
+        "action": "approved",
+        "from_status": "pending",
+        "to_status": "active",
+        "reason": "Approved by ED",
+        "changed_by": user.get("mobile", user.get("email", "system")),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    await db.members.update_one(
+        {"member_id": member_id},
+        {
+            "$set": {
+                "membership_status": "active",
+                "status": "Active",
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+
+    return {"message": "Member approved successfully"}
+
+@api_router.post("/superadmin/members/{member_id}/reject")
+async def reject_member(member_id: str, data: MemberApprovalAction, user=Depends(get_current_user)):
+    """Reject a pending member."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if member.get("membership_status") != "pending":
+        raise HTTPException(status_code=400, detail="Member is not in pending status")
+
+    if not data.reason:
+        raise HTTPException(status_code=400, detail="Reason is required for rejection")
+
+    history_entry = {
+        "action": "rejected",
+        "from_status": "pending",
+        "to_status": "rejected",
+        "reason": data.reason,
+        "changed_by": user.get("mobile", user.get("email", "system")),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    await db.members.update_one(
+        {"member_id": member_id},
+        {
+            "$set": {
+                "membership_status": "rejected",
+                "status": "Inactive",
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+
+    return {"message": "Member rejected"}
+
+@api_router.post("/superadmin/members/{member_id}/transfer")
+async def transfer_member(member_id: str, data: MemberTransfer, user=Depends(get_current_user)):
+    """Transfer member to a different chapter."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    # Verify target chapter exists
+    target_ch = await db.chapters.find_one({"chapter_id": data.target_chapter_id}, {"_id": 0})
+    if not target_ch:
+        raise HTTPException(status_code=404, detail="Target chapter not found")
+
+    old_chapter = member.get("chapter_id")
+
+    history_entry = {
+        "action": "transferred",
+        "from_status": member.get("membership_status", "active"),
+        "to_status": member.get("membership_status", "active"),
+        "reason": data.reason or f"Transferred from chapter {old_chapter} to {data.target_chapter_id}",
+        "changed_by": user.get("mobile", user.get("email", "system")),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+    await db.members.update_one(
+        {"member_id": member_id},
+        {
+            "$set": {
+                "chapter_id": data.target_chapter_id,
+                "organization_id": data.target_chapter_id,
+                "transfer_from_chapter": old_chapter,
+                "transfer_date": datetime.now(timezone.utc).isoformat(),
+            },
+            "$push": {"status_history": history_entry}
+        }
+    )
+
+    return {"message": f"Member transferred to {target_ch.get('name', data.target_chapter_id)}"}
+
+@api_router.get("/superadmin/members/all")
+async def get_all_ed_members(
+    search: str = "",
+    status_filter: str = "",
+    chapter_filter: str = "",
+    user=Depends(get_current_user)
+):
+    """Cross-chapter member view for SuperAdmin/Developer."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if user["role"] == "developer":
+        base_filter = {}
+    else:
+        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
+        chapters = await db.chapters.find({"created_by": sa_id}, {"chapter_id": 1}).to_list(100)
+        chapter_ids = [c["chapter_id"] for c in chapters]
+        base_filter = {"chapter_id": {"$in": chapter_ids}}
+
+    query = {**base_filter, "archived": {"$ne": True}}
+
+    if status_filter:
+        query["membership_status"] = status_filter
+    if chapter_filter:
+        query["chapter_id"] = chapter_filter
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"primary_mobile": {"$regex": search, "$options": "i"}},
+            {"business_name": {"$regex": search, "$options": "i"}},
+            {"unique_member_id": {"$regex": search, "$options": "i"}},
+        ]
+
+    members = await db.members.find(query, {"_id": 0}).sort("full_name", 1).to_list(2000)
+
+    # Enrich with chapter names
+    chapter_cache = {}
+    for m in members:
+        cid = m.get("chapter_id")
+        if cid not in chapter_cache:
+            ch = await db.chapters.find_one({"chapter_id": cid}, {"_id": 0, "name": 1})
+            chapter_cache[cid] = ch.get("name") if ch else ""
+        m["chapter_name"] = chapter_cache[cid]
+
+    return members
 
 @api_router.post("/admin/meetings", response_model=MeetingResponse)
 async def create_meeting(meeting: MeetingCreate, user=Depends(get_current_user)):
@@ -576,10 +1148,10 @@ async def get_meeting_summary(meeting_id: str, user=Depends(get_current_user)):
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     
-    # Get all members for this chapter
-    members = await db.members.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
+    # Get all ACTIVE members for this chapter
+    members = await db.members.find({"chapter_id": user["chapter_id"], "status": "Active"}, {"_id": 0}).to_list(1000)
     total_members = len(members)
-    
+
     # Get all attendance for this meeting
     attendance = await db.attendance.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(1000)
     
@@ -3157,7 +3729,7 @@ async def developer_dashboard_stats(user=Depends(require_role("developer"))):
     """Dashboard stats: total EDs, chapters, members, revenue"""
     total_eds = await db.superadmins.count_documents({"is_active": {"$ne": False}})
     total_chapters = await db.chapters.count_documents({})
-    total_members = await db.members.count_documents({})
+    total_members = await db.members.count_documents({"status": "Active"})
 
     # Calculate total revenue from all payment collections
     kitty_pipeline = [{"$match": {"status": "paid"}}, {"$group": {"_id": None, "total": {"$sum": "$amount"}}}]
@@ -3456,7 +4028,8 @@ async def superadmin_dashboard_stats(user=Depends(get_current_user)):
     active_chapters = sum(1 for ch in my_chapters if ch.get("status", "active") == "active")
     inactive_chapters = total_chapters - active_chapters
 
-    total_members = await db.members.count_documents({"chapter_id": {"$in": chapter_ids}}) if chapter_ids else 0
+    total_members = await db.members.count_documents({"chapter_id": {"$in": chapter_ids}, "status": "Active"}) if chapter_ids else 0
+    pending_members = await db.members.count_documents({"chapter_id": {"$in": chapter_ids}, "membership_status": "pending"}) if chapter_ids else 0
 
     # Fund collection summary (this month)
     now = datetime.now(IST)
@@ -3484,6 +4057,7 @@ async def superadmin_dashboard_stats(user=Depends(get_current_user)):
         "total_chapters": total_chapters,
         "active_chapters": active_chapters,
         "inactive_chapters": inactive_chapters,
+        "pending_members": pending_members,
         "total_members": total_members,
         "this_month_collection": this_month_collection
     }
@@ -3554,6 +4128,32 @@ async def startup():
     if not existing_settings:
         await db.subscription_settings.insert_one({**DEFAULT_SUBSCRIPTION_SETTINGS})
         logger.info("Default subscription settings seeded")
+
+    # ===== Phase 1.3 Migration: Enhanced Member Fields =====
+    migrated = await db.members.update_many(
+        {"membership_status": {"$exists": False}},
+        {"$set": {
+            "membership_status": "active",
+            "email": None,
+            "business_name": None,
+            "business_category": None,
+            "joining_date": None,
+            "renewal_date": None,
+            "induction_fee": None,
+            "status_history": [],
+            "archived": False,
+            "transfer_from_chapter": None,
+            "transfer_date": None,
+        }}
+    )
+    if migrated.modified_count > 0:
+        logger.info(f"Migrated {migrated.modified_count} members with enhanced fields")
+
+    # Create indexes for member search/filter
+    await db.members.create_index([("chapter_id", 1), ("membership_status", 1)])
+    await db.members.create_index([("chapter_id", 1), ("status", 1)])
+    await db.members.create_index([("membership_status", 1)])
+    logger.info("Member indexes ensured")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

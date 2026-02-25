@@ -20,6 +20,9 @@ import QRDisplay from "./pages/QRDisplay";
 import ReportsManagement from "./pages/ReportsManagement";
 import LiveAttendance from "./pages/LiveAttendance";
 import AttendanceForm from "./pages/AttendanceForm";
+import MemberProfile from "./pages/MemberProfile";
+import MemberPendingApprovals from "./pages/MemberPendingApprovals";
+import SuperAdminMembers from "./pages/SuperAdminMembers";
 import InstallPWA from "./components/InstallPWA";
 
 // Fund Management Pages
@@ -88,6 +91,22 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/superadmin/members/pending"
+            element={
+              <ProtectedRoute requiredRole="superadmin">
+                <MemberPendingApprovals />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/superadmin/members"
+            element={
+              <ProtectedRoute requiredRole="superadmin">
+                <SuperAdminMembers />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Chapter Admin Routes */}
           <Route
@@ -103,6 +122,14 @@ function App() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <MembersManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/members/:memberId"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <MemberProfile />
               </ProtectedRoute>
             }
           />

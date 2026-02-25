@@ -35,6 +35,12 @@ class MemberCreate(BaseModel):
     full_name: str
     primary_mobile: str
     secondary_mobile: Optional[str] = None
+    email: Optional[str] = None
+    business_name: Optional[str] = None
+    business_category: Optional[str] = None
+    joining_date: Optional[str] = None
+    renewal_date: Optional[str] = None
+    induction_fee: Optional[float] = None
     status: str = "Active"
 
 class MemberUpdate(BaseModel):
@@ -42,6 +48,12 @@ class MemberUpdate(BaseModel):
     full_name: Optional[str] = None
     primary_mobile: Optional[str] = None
     secondary_mobile: Optional[str] = None
+    email: Optional[str] = None
+    business_name: Optional[str] = None
+    business_category: Optional[str] = None
+    joining_date: Optional[str] = None
+    renewal_date: Optional[str] = None
+    induction_fee: Optional[float] = None
     status: Optional[str] = None
 
 class MemberResponse(BaseModel):
@@ -51,10 +63,38 @@ class MemberResponse(BaseModel):
     full_name: str
     primary_mobile: str
     secondary_mobile: Optional[str] = None
-    status: str
+    email: Optional[str] = None
+    business_name: Optional[str] = None
+    business_category: Optional[str] = None
+    joining_date: Optional[str] = None
+    renewal_date: Optional[str] = None
+    induction_fee: Optional[float] = None
+    membership_status: str = "active"
+    status: str = "Active"
     created_at: str
     bni_member_id: Optional[str] = None
     organization_id: Optional[str] = None
+    status_history: List[dict] = []
+    archived: bool = False
+    transfer_from_chapter: Optional[str] = None
+    transfer_date: Optional[str] = None
+
+class MemberStatusChange(BaseModel):
+    action: str          # deactivate, suspend, reactivate
+    reason: str          # Mandatory reason
+
+class MemberTransfer(BaseModel):
+    target_chapter_id: str
+    reason: Optional[str] = None
+
+class MemberApprovalAction(BaseModel):
+    action: str          # approve, reject
+    reason: Optional[str] = None   # Required for reject
+
+class BulkMemberStatus(BaseModel):
+    member_ids: List[str]
+    action: str          # activate, deactivate
+    reason: str
 
 class MeetingCreate(BaseModel):
     date: str

@@ -1,40 +1,87 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { Badge } from '../components/ui/badge';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from '../components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '../components/ui/select';
+import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
-import { Plus, ArrowLeft, Edit, Trash2, Upload, Download } from 'lucide-react';
+import {
+  Plus, ArrowLeft, Edit, Trash2, Upload, Download,
+  Search, Users, UserCheck, UserX, Clock, AlertTriangle,
+  FileDown, Loader2, Shield, ChevronRight,
+} from 'lucide-react';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const STATUS_COLORS = {
+  active: 'bg-emerald-100 text-emerald-700',
+  pending: 'bg-amber-100 text-amber-700',
+  inactive: 'bg-slate-100 text-slate-600',
+  suspended: 'bg-red-100 text-red-700',
+  rejected: 'bg-red-100 text-red-700',
+};
+
+const STAT_CARDS = [
+  { key: 'total', label: 'Total', icon: Users, color: 'text-slate-700', bg: 'bg-slate-100', filter: '' },
+  { key: 'active', label: 'Active', icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-100', filter: 'active' },
+  { key: 'pending', label: 'Pending', icon: Clock, color: 'text-amber-600', bg: 'bg-amber-100', filter: 'pending' },
+  { key: 'inactive', label: 'Inactive', icon: UserX, color: 'text-slate-500', bg: 'bg-slate-100', filter: 'inactive' },
+  { key: 'suspended', label: 'Suspended', icon: Shield, color: 'text-red-600', bg: 'bg-red-100', filter: 'suspended' },
+];
 
 export default function MembersManagement() {
   const [members, setMembers] = useState([]);
+  const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, inactive: 0, suspended: 0, expiring_soon: 0 });
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const navigate = useNavigate();
+
+  const emptyForm = {
     unique_member_id: '',
     full_name: '',
     primary_mobile: '',
     secondary_mobile: '',
-    status: 'Active'
-  });
-  const navigate = useNavigate();
+    email: '',
+    business_name: '',
+    business_category: '',
+    joining_date: '',
+    renewal_date: '',
+    induction_fee: '',
+    status: 'Active',
+  };
+  const [formData, setFormData] = useState(emptyForm);
+  const [statusAction, setStatusAction] = useState('deactivate');
+  const [statusReason, setStatusReason] = useState('');
 
-  useEffect(() => {
-    loadMembers();
-  }, []);
+  // ---- Data Loading ----
+  useEffect(() => { loadData(); }, []); // eslint-disable-line
 
-  const loadMembers = async () => {
+  const loadData = async () => {
     try {
-      const response = await api.get('/admin/members');
-      setMembers(response.data);
+      const [membersRes, statsRes] = await Promise.all([
+        api.get('/admin/members'),
+        api.get('/admin/members/stats'),
+      ]);
+      setMembers(membersRes.data);
+      setStats(statsRes.data);
     } catch (error) {
       toast.error('Failed to load members');
     } finally {
@@ -42,20 +89,41 @@ export default function MembersManagement() {
     }
   };
 
+  // ---- Client-side search/filter ----
+  const filteredMembers = useMemo(() => {
+    let result = members;
+    if (statusFilter) {
+      result = result.filter(m => m.membership_status === statusFilter);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(m =>
+        (m.full_name || '').toLowerCase().includes(q) ||
+        (m.primary_mobile || '').includes(q) ||
+        (m.business_name || '').toLowerCase().includes(q) ||
+        (m.unique_member_id || '').toLowerCase().includes(q) ||
+        (m.email || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [members, statusFilter, searchQuery]);
+
+  // ---- CRUD ----
   const handleCreate = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/admin/members', formData);
+      const payload = { ...formData };
+      if (payload.induction_fee) payload.induction_fee = parseFloat(payload.induction_fee);
+      else delete payload.induction_fee;
+      // Remove empty optional fields
+      Object.keys(payload).forEach(k => {
+        if (payload[k] === '' || payload[k] === null) delete payload[k];
+      });
+      await api.post('/admin/members', payload);
       toast.success('Member added successfully');
       setCreateOpen(false);
-      setFormData({
-        unique_member_id: '',
-        full_name: '',
-        primary_mobile: '',
-        secondary_mobile: '',
-        status: 'Active'
-      });
-      loadMembers();
+      setFormData(emptyForm);
+      loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add member');
     }
@@ -64,10 +132,13 @@ export default function MembersManagement() {
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/admin/members/${selectedMember.member_id}`, formData);
+      const payload = { ...formData };
+      if (payload.induction_fee) payload.induction_fee = parseFloat(payload.induction_fee);
+      else delete payload.induction_fee;
+      await api.put(`/admin/members/${selectedMember.member_id}`, payload);
       toast.success('Member updated successfully');
       setEditOpen(false);
-      loadMembers();
+      loadData();
     } catch (error) {
       toast.error('Failed to update member');
     }
@@ -75,21 +146,35 @@ export default function MembersManagement() {
 
   const handleDelete = async (memberId) => {
     if (!window.confirm('Are you sure you want to delete this member?')) return;
-    
     try {
       await api.delete(`/admin/members/${memberId}`);
-      toast.success('Member deleted successfully');
-      loadMembers();
+      toast.success('Member deleted');
+      loadData();
     } catch (error) {
       toast.error('Failed to delete member');
     }
   };
 
+  const handleStatusChange = async () => {
+    if (!statusReason.trim()) { toast.error('Reason is required'); return; }
+    try {
+      await api.post(`/admin/members/${selectedMember.member_id}/status`, {
+        action: statusAction,
+        reason: statusReason,
+      });
+      toast.success(`Member ${statusAction}d successfully`);
+      setStatusOpen(false);
+      setStatusReason('');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to change status');
+    }
+  };
+
+  // ---- Excel ----
   const downloadTemplate = async () => {
     try {
-      const response = await api.get('/admin/members/template', {
-        responseType: 'blob'
-      });
+      const response = await api.get('/admin/members/template', { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -98,162 +183,218 @@ export default function MembersManagement() {
       link.click();
       link.remove();
       toast.success('Template downloaded');
-    } catch (error) {
-      toast.error('Failed to download template');
-    }
+    } catch { toast.error('Failed to download template'); }
+  };
+
+  const exportMembers = async () => {
+    try {
+      const response = await api.get('/admin/members/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'members_export.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Export downloaded');
+    } catch { toast.error('Failed to export'); }
   };
 
   const handleFileUpload = async () => {
-    if (!uploadFile) {
-      toast.error('Please select a file');
-      return;
-    }
-
+    if (!uploadFile) { toast.error('Please select a file'); return; }
     setUploading(true);
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-
+    const fd = new FormData();
+    fd.append('file', uploadFile);
     try {
-      const response = await api.post('/admin/members/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await api.post('/admin/members/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(response.data.message);
       setUploadOpen(false);
       setUploadFile(null);
-      loadMembers();
+      loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Upload failed');
-    } finally {
-      setUploading(false);
-    }
+    } finally { setUploading(false); }
   };
+
+  // ---- Form Fields Component ----
+  const MemberFormFields = ({ isEdit = false }) => (
+    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Member ID *</Label>
+          <Input value={formData.unique_member_id}
+            onChange={(e) => setFormData({ ...formData, unique_member_id: e.target.value })}
+            placeholder="01" required />
+        </div>
+        <div>
+          <Label>Full Name *</Label>
+          <Input value={formData.full_name}
+            onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+            required />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Primary Mobile *</Label>
+          <Input value={formData.primary_mobile}
+            onChange={(e) => setFormData({ ...formData, primary_mobile: e.target.value })}
+            required />
+        </div>
+        <div>
+          <Label>Secondary Mobile</Label>
+          <Input value={formData.secondary_mobile}
+            onChange={(e) => setFormData({ ...formData, secondary_mobile: e.target.value })} />
+        </div>
+      </div>
+      <div>
+        <Label>Email</Label>
+        <Input type="email" value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Business Name</Label>
+          <Input value={formData.business_name}
+            onChange={(e) => setFormData({ ...formData, business_name: e.target.value })} />
+        </div>
+        <div>
+          <Label>Business Category</Label>
+          <Input value={formData.business_category}
+            onChange={(e) => setFormData({ ...formData, business_category: e.target.value })}
+            placeholder="e.g. IT, Healthcare" />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Joining Date</Label>
+          <Input type="date" value={formData.joining_date}
+            onChange={(e) => setFormData({ ...formData, joining_date: e.target.value })} />
+        </div>
+        <div>
+          <Label>Renewal Date</Label>
+          <Input type="date" value={formData.renewal_date}
+            onChange={(e) => setFormData({ ...formData, renewal_date: e.target.value })} />
+        </div>
+      </div>
+      <div>
+        <Label>Induction Fee</Label>
+        <Input type="number" value={formData.induction_fee}
+          onChange={(e) => setFormData({ ...formData, induction_fee: e.target.value })}
+          placeholder="0" />
+      </div>
+    </div>
+  );
+
+  // ---- Loading State ----
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto mb-4" />
+          <p className="text-slate-500 text-sm">Loading members...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header - Mobile optimized */}
+      {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
-        <Button
-          data-testid="back-btn"
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/admin/dashboard')}
-          className="mb-2"
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
           <span className="text-sm">Back to Dashboard</span>
         </Button>
         <h1 className="text-lg md:text-2xl font-bold text-slate-900">Members Management</h1>
       </div>
 
-      <div className="p-4 md:p-8 max-w-7xl mx-auto">
-        {/* Title and Actions - Mobile optimized */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 md:mb-8">
-          <div>
-            <h2 className="text-xl md:text-3xl font-bold text-slate-900">Members</h2>
-            <p className="text-xs md:text-sm text-slate-600 mt-1">Manage your chapter members</p>
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+        {/* Stats Bar */}
+        <div className="grid grid-cols-5 gap-2 md:gap-3">
+          {STAT_CARDS.map((s) => {
+            const Icon = s.icon;
+            const isActive = statusFilter === s.filter;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setStatusFilter(isActive ? '' : s.filter)}
+                className={`rounded-xl p-2 md:p-3 text-center transition-all border-2 ${
+                  isActive ? 'border-[#CF2030] shadow-md' : 'border-transparent'
+                } bg-white hover:shadow-sm`}
+              >
+                <div className={`h-8 w-8 md:h-9 md:w-9 rounded-lg ${s.bg} flex items-center justify-center mx-auto mb-1`}>
+                  <Icon className={`h-4 w-4 ${s.color}`} />
+                </div>
+                <p className="text-lg md:text-2xl font-bold text-slate-900">{stats[s.key] || 0}</p>
+                <p className="text-[10px] md:text-xs text-slate-500">{s.label}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Expiring Soon Alert */}
+        {stats.expiring_soon > 0 && (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
+            <p className="text-sm text-amber-700">
+              <strong>{stats.expiring_soon}</strong> member{stats.expiring_soon > 1 ? 's' : ''} renew{stats.expiring_soon === 1 ? 's' : ''} within 30 days
+            </p>
           </div>
-          
-          {/* Action buttons - stack on mobile */}
+        )}
+
+        {/* Search + Actions */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search name, mobile, business..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            <Button
-              data-testid="download-template-btn"
-              variant="outline"
-              size="sm"
-              onClick={downloadTemplate}
-              className="text-xs md:text-sm"
-            >
-              <Download className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-              Template
+            <Button variant="outline" size="sm" onClick={exportMembers} className="text-xs md:text-sm">
+              <FileDown className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Export
             </Button>
-            
+            <Button variant="outline" size="sm" onClick={downloadTemplate} className="text-xs md:text-sm">
+              <Download className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Template
+            </Button>
             <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="bulk-upload-btn" variant="outline" size="sm" className="text-xs md:text-sm">
-                  <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                  Bulk Upload
+                <Button variant="outline" size="sm" className="text-xs md:text-sm">
+                  <Upload className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Bulk Upload
                 </Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Bulk Upload Members</DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle>Bulk Upload Members</DialogTitle></DialogHeader>
                 <div className="space-y-4">
                   <div>
                     <Label>Select Excel File</Label>
-                    <Input
-                      data-testid="upload-file-input"
-                      type="file"
-                      accept=".xlsx,.xls"
-                      onChange={(e) => setUploadFile(e.target.files[0])}
-                      className="mt-2"
-                    />
-                    <p className="text-sm text-slate-500 mt-2">
-                      Upload Excel file with member details. Download template for format.
-                    </p>
+                    <Input type="file" accept=".xlsx,.xls"
+                      onChange={(e) => setUploadFile(e.target.files[0])} className="mt-2" />
+                    <p className="text-sm text-slate-500 mt-2">Download template for format.</p>
                   </div>
-                  <Button
-                    data-testid="upload-submit-btn"
-                    onClick={handleFileUpload}
-                    disabled={uploading || !uploadFile}
-                    className="w-full bg-[#CF2030] hover:bg-[#A61926]"
-                  >
+                  <Button onClick={handleFileUpload} disabled={uploading || !uploadFile}
+                    className="w-full bg-[#CF2030] hover:bg-[#A61926]">
                     {uploading ? 'Uploading...' : 'Upload Members'}
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
-            
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button data-testid="add-member-btn" className="bg-[#CF2030] hover:bg-[#A61926] text-xs md:text-sm" size="sm">
-                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1 md:mr-2" />
-                  Add Member
+                <Button className="bg-[#CF2030] hover:bg-[#A61926] text-xs md:text-sm" size="sm">
+                  <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Add Member
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Member</DialogTitle>
-                </DialogHeader>
+              <DialogContent className="max-w-lg">
+                <DialogHeader><DialogTitle>Add New Member</DialogTitle></DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4">
-                  <div>
-                    <Label>Member ID (01, 02, etc.)</Label>
-                    <Input
-                      data-testid="member-id-input"
-                      value={formData.unique_member_id}
-                      onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
-                      placeholder="01"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>Full Name</Label>
-                    <Input
-                      data-testid="member-name-input"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>Primary Mobile</Label>
-                    <Input
-                      data-testid="primary-mobile-input"
-                      value={formData.primary_mobile}
-                      onChange={(e) => setFormData({...formData, primary_mobile: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>Secondary Mobile (Optional)</Label>
-                    <Input
-                      data-testid="secondary-mobile-input"
-                      value={formData.secondary_mobile}
-                      onChange={(e) => setFormData({...formData, secondary_mobile: e.target.value})}
-                    />
-                  </div>
-                  <Button data-testid="submit-member-btn" type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+                  <MemberFormFields />
+                  <Button type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
                     Add Member
                   </Button>
                 </form>
@@ -262,66 +403,86 @@ export default function MembersManagement() {
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-8 md:py-12 text-sm md:text-base">Loading members...</div>
-        ) : members.length === 0 ? (
+        {/* Active Filter Indicator */}
+        {statusFilter && (
+          <div className="flex items-center gap-2">
+            <Badge className={`${STATUS_COLORS[statusFilter]} text-xs`}>
+              Showing: {statusFilter}
+            </Badge>
+            <button onClick={() => setStatusFilter('')} className="text-xs text-slate-500 hover:text-slate-700 underline">
+              Clear filter
+            </button>
+          </div>
+        )}
+
+        {/* Member Cards */}
+        {filteredMembers.length === 0 ? (
           <Card className="p-8 md:p-12 text-center">
-            <p className="text-slate-600 text-sm md:text-base">No members yet. Add your first member!</p>
+            <p className="text-slate-600 text-sm md:text-base">
+              {members.length === 0 ? 'No members yet. Add your first member!' : 'No members match your search/filter.'}
+            </p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-[10px] lg:gap-3">
-            {members.map((member) => (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3">
+            {filteredMembers.map((member) => (
               <Card
                 key={member.member_id}
-                className="p-3 md:p-[14px] lg:p-4 hover:shadow-md transition-shadow border-l-4 border-l-[#CF2030] min-h-[65px] md:min-h-[70px] lg:min-h-[75px] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                data-testid={`member-card-${member.member_id}`}
+                className="p-3 md:p-4 hover:shadow-md transition-shadow border-l-4 border-l-[#CF2030] rounded-xl shadow-sm cursor-pointer"
+                onClick={() => navigate(`/admin/members/${member.member_id}`)}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-                    {/* Member ID Circle - Responsive sizes: Mobile 32px, Tablet 36px, Desktop 40px */}
-                    <div className="h-8 w-8 md:h-9 md:w-9 lg:h-10 lg:w-10 rounded-full bg-[#CF2030]/10 flex items-center justify-center flex-shrink-0 self-center">
-                      <span className="text-xs md:text-sm lg:text-base font-semibold text-[#CF2030] leading-none">{member.unique_member_id}</span>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {/* ID Circle */}
+                    <div className="h-9 w-9 md:h-10 md:w-10 rounded-full bg-[#CF2030]/10 flex items-center justify-center shrink-0">
+                      <span className="text-xs md:text-sm font-semibold text-[#CF2030]">{member.unique_member_id}</span>
                     </div>
-                    {/* Member Info */}
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-medium text-[15px] md:text-base lg:text-[17px] text-slate-900 truncate">{member.full_name}</h3>
-                      <p className="text-xs md:text-[13px] lg:text-sm text-slate-500">Primary: {member.primary_mobile}</p>
-                      {member.secondary_mobile && (
-                        <p className="text-xs md:text-[13px] lg:text-sm text-slate-500 hidden md:block">Secondary: {member.secondary_mobile}</p>
-                      )}
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="font-medium text-sm md:text-base text-slate-900 truncate">{member.full_name}</h3>
+                        <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
+                          {member.membership_status || 'active'}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-slate-500 truncate">
+                        {member.primary_mobile}
+                        {member.business_name ? ` · ${member.business_name}` : ''}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <Button
-                      data-testid={`edit-member-btn-${member.member_id}`}
-                      variant="outline"
-                      size="sm"
-                      className="h-12 w-12 md:h-auto md:w-auto p-1 md:px-3 min-w-[48px] min-h-[48px]"
+                  <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
                       onClick={() => {
                         setSelectedMember(member);
                         setFormData({
-                          unique_member_id: member.unique_member_id,
-                          full_name: member.full_name,
-                          primary_mobile: member.primary_mobile,
+                          unique_member_id: member.unique_member_id || '',
+                          full_name: member.full_name || '',
+                          primary_mobile: member.primary_mobile || '',
                           secondary_mobile: member.secondary_mobile || '',
-                          status: member.status
+                          email: member.email || '',
+                          business_name: member.business_name || '',
+                          business_category: member.business_category || '',
+                          joining_date: member.joining_date || '',
+                          renewal_date: member.renewal_date || '',
+                          induction_fee: member.induction_fee || '',
+                          status: member.status || 'Active',
                         });
                         setEditOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4" />
-                      <span className="hidden md:inline ml-2">Edit</span>
+                      }}>
+                      <Edit className="h-3.5 w-3.5 text-slate-500" />
                     </Button>
-                    <Button
-                      data-testid={`delete-member-btn-${member.member_id}`}
-                      variant="destructive"
-                      size="sm"
-                      className="h-12 w-12 md:h-auto md:w-auto p-1 md:px-3 min-w-[48px] min-h-[48px]"
-                      onClick={() => handleDelete(member.member_id)}
-                    >
-                      <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
-                      <span className="hidden md:inline ml-2">Delete</span>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setStatusAction(member.membership_status === 'active' ? 'deactivate' : 'reactivate');
+                        setStatusOpen(true);
+                      }}>
+                      <Shield className="h-3.5 w-3.5 text-slate-500" />
                     </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                      onClick={() => handleDelete(member.member_id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <ChevronRight className="h-4 w-4 text-slate-300 self-center" />
                   </div>
                 </div>
               </Card>
@@ -330,51 +491,53 @@ export default function MembersManagement() {
         )}
       </div>
 
+      {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Member</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Edit Member</DialogTitle></DialogHeader>
           <form onSubmit={handleUpdate} className="space-y-4">
-            <div>
-              <Label>Member ID</Label>
-              <Input
-                data-testid="edit-member-id-input"
-                value={formData.unique_member_id}
-                onChange={(e) => setFormData({...formData, unique_member_id: e.target.value})}
-                required
-              />
-            </div>
-            <div>
-              <Label>Full Name</Label>
-              <Input
-                data-testid="edit-member-name-input"
-                value={formData.full_name}
-                onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                required
-              />
-            </div>
-            <div>
-              <Label>Primary Mobile</Label>
-              <Input
-                data-testid="edit-primary-mobile-input"
-                value={formData.primary_mobile}
-                onChange={(e) => setFormData({...formData, primary_mobile: e.target.value})}
-                required
-              />
-            </div>
-            <div>
-              <Label>Secondary Mobile</Label>
-              <Input
-                data-testid="edit-secondary-mobile-input"
-                value={formData.secondary_mobile}
-                onChange={(e) => setFormData({...formData, secondary_mobile: e.target.value})}
-              />
-            </div>
-            <Button data-testid="update-member-btn" type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <MemberFormFields isEdit />
+            <Button type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
               Update Member
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Status Change Dialog */}
+      <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Member Status</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Member: <strong>{selectedMember?.full_name}</strong>
+            </p>
+            <div>
+              <Label>Action</Label>
+              <Select value={statusAction} onValueChange={setStatusAction}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="deactivate">Deactivate</SelectItem>
+                  <SelectItem value="suspend">Suspend</SelectItem>
+                  <SelectItem value="reactivate">Reactivate</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Reason (required)</Label>
+              <Textarea
+                value={statusReason}
+                onChange={(e) => setStatusReason(e.target.value)}
+                placeholder="Enter reason for status change..."
+                rows={3}
+              />
+            </div>
+            <Button onClick={handleStatusChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+              Confirm
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
