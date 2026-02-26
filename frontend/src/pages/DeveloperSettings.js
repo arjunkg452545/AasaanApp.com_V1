@@ -164,7 +164,7 @@ export default function DeveloperSettings() {
       <div className="flex items-center justify-center py-32">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-slate-600">Loading settings...</p>
+          <p style={{ color: 'var(--nm-text-secondary)' }}>Loading settings...</p>
         </div>
       </div>
     );
@@ -204,7 +204,7 @@ export default function DeveloperSettings() {
             <CardContent className="space-y-6">
               {/* Pricing model selector */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium text-slate-700">Pricing Model</Label>
+                <Label className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Pricing Model</Label>
                 <RadioGroup
                   value={settings.pricing_model}
                   onValueChange={handlePricingModelChange}
@@ -220,14 +220,14 @@ export default function DeveloperSettings() {
                       htmlFor={`model-${option.value}`}
                       className={`relative flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
                         settings.pricing_model === option.value
-                          ? 'border-slate-900 bg-slate-50 ring-1 ring-slate-900'
-                          : 'border-slate-200 hover:border-slate-300'
+                          ? 'ring-1'
+                          : ''
                       }`}
                     >
                       <RadioGroupItem value={option.value} id={`model-${option.value}`} className="mt-0.5" />
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{option.label}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">{option.desc}</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{option.label}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--nm-text-secondary)' }}>{option.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -236,15 +236,16 @@ export default function DeveloperSettings() {
 
               {/* Per Chapter rate */}
               {settings.pricing_model === 'per_chapter' && (
-                <Card className="border-slate-200 bg-slate-50/50">
+                <Card className=""
+              style={{ borderColor: 'var(--nm-border)', background: 'var(--nm-bg)' }}>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <Layers className="h-4 w-4 text-slate-600" />
-                      <Label className="text-sm font-medium text-slate-700">Per Chapter Rate</Label>
+                      <Layers className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} />
+                      <Label className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Per Chapter Rate</Label>
                     </div>
                     <div className="max-w-xs">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">&#8377;</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>&#8377;</span>
                         <Input
                           type="number"
                           min="0"
@@ -254,7 +255,7 @@ export default function DeveloperSettings() {
                           placeholder="0"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1.5">Rate charged per chapter per month</p>
+                      <p className="text-xs mt-1.5" style={{ color: 'var(--nm-text-secondary)' }}>Rate charged per chapter per month</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -262,23 +263,24 @@ export default function DeveloperSettings() {
 
               {/* Slab rates */}
               {settings.pricing_model === 'slab' && (
-                <Card className="border-slate-200 bg-slate-50/50">
+                <Card className=""
+              style={{ borderColor: 'var(--nm-border)', background: 'var(--nm-bg)' }}>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <Layers className="h-4 w-4 text-slate-600" />
-                      <Label className="text-sm font-medium text-slate-700">Slab-based Rates</Label>
+                      <Layers className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} />
+                      <Label className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Slab-based Rates</Label>
                     </div>
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="border-b border-slate-200">
-                            <th className="text-left py-2.5 px-3 text-slate-600 font-medium">Chapter Range</th>
-                            <th className="text-left py-2.5 px-3 text-slate-600 font-medium">Rate (&#8377; / chapter / month)</th>
+                          <tr className="border-b">
+                            <th className="text-left py-2.5 px-3 font-medium">Chapter Range</th>
+                            <th className="text-left py-2.5 px-3 font-medium">Rate (&#8377; / chapter / month)</th>
                           </tr>
                         </thead>
                         <tbody>
                           {settings.slab_rates.map((slab, idx) => (
-                            <tr key={idx} className="border-b border-slate-100 last:border-0">
+                            <tr key={idx} className="border-b last:border-0">
                               <td className="py-3 px-3">
                                 <Badge variant="outline" className="font-mono text-xs">
                                   {formatSlabRange(slab)}
@@ -286,7 +288,7 @@ export default function DeveloperSettings() {
                               </td>
                               <td className="py-3 px-3">
                                 <div className="relative max-w-[160px]">
-                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">&#8377;</span>
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>&#8377;</span>
                                   <Input
                                     type="number"
                                     min="0"
@@ -308,15 +310,16 @@ export default function DeveloperSettings() {
 
               {/* Per Member rate */}
               {settings.pricing_model === 'per_member' && (
-                <Card className="border-slate-200 bg-slate-50/50">
+                <Card className=""
+              style={{ borderColor: 'var(--nm-border)', background: 'var(--nm-bg)' }}>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2 mb-4">
-                      <Layers className="h-4 w-4 text-slate-600" />
-                      <Label className="text-sm font-medium text-slate-700">Per Member Rate</Label>
+                      <Layers className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} />
+                      <Label className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Per Member Rate</Label>
                     </div>
                     <div className="max-w-xs">
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">&#8377;</span>
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>&#8377;</span>
                         <Input
                           type="number"
                           min="0"
@@ -326,7 +329,7 @@ export default function DeveloperSettings() {
                           placeholder="0"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 mt-1.5">Rate charged per member per month</p>
+                      <p className="text-xs mt-1.5" style={{ color: 'var(--nm-text-secondary)' }}>Rate charged per member per month</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -355,18 +358,18 @@ export default function DeveloperSettings() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-2.5 px-3 text-slate-600 font-medium">Cycle</th>
-                      <th className="text-center py-2.5 px-3 text-slate-600 font-medium">Months</th>
-                      <th className="text-center py-2.5 px-3 text-slate-600 font-medium">Enabled</th>
-                      <th className="text-left py-2.5 px-3 text-slate-600 font-medium">Discount %</th>
+                    <tr className="border-b">
+                      <th className="text-left py-2.5 px-3 font-medium">Cycle</th>
+                      <th className="text-center py-2.5 px-3 font-medium">Months</th>
+                      <th className="text-center py-2.5 px-3 font-medium">Enabled</th>
+                      <th className="text-left py-2.5 px-3 font-medium">Discount %</th>
                     </tr>
                   </thead>
                   <tbody>
                     {settings.billing_cycles.map((cycle, idx) => (
-                      <tr key={cycle.cycle} className="border-b border-slate-100 last:border-0">
+                      <tr key={cycle.cycle} className="border-b last:border-0">
                         <td className="py-3.5 px-3">
-                          <span className="font-medium text-slate-900">
+                          <span className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                             {CYCLE_LABELS[cycle.cycle] || cycle.cycle}
                           </span>
                         </td>
@@ -393,7 +396,7 @@ export default function DeveloperSettings() {
                               placeholder="0"
                               disabled={!cycle.enabled}
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>%</span>
                           </div>
                         </td>
                       </tr>
@@ -422,10 +425,10 @@ export default function DeveloperSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200 bg-slate-50/50">
+              <div className="flex items-center justify-between p-4 rounded-lg border" style={{ borderColor: 'var(--nm-border)', background: 'var(--nm-bg)' }}>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">Enable Free Trial</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Enable Free Trial</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--nm-text-secondary)' }}>
                     Allow new chapters to use the platform free for a limited period
                   </p>
                 </div>
@@ -450,7 +453,7 @@ export default function DeveloperSettings() {
                       className="bg-white"
                       placeholder="30"
                     />
-                    <p className="text-xs text-slate-500">Number of days the trial lasts</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Number of days the trial lasts</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="trial-chapters" className="text-sm font-medium text-slate-700">
@@ -465,7 +468,7 @@ export default function DeveloperSettings() {
                       className="bg-white"
                       placeholder="1"
                     />
-                    <p className="text-xs text-slate-500">Maximum chapters allowed during the trial period</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Maximum chapters allowed during the trial period</p>
                   </div>
                 </div>
               )}
@@ -505,9 +508,9 @@ export default function DeveloperSettings() {
                     className="pr-7 bg-white"
                     placeholder="18"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">%</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>%</span>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                   GST applied on all subscription invoices
                 </p>
               </div>

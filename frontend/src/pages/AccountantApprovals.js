@@ -176,11 +176,11 @@ export default function AccountantApprovals() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-lg md:text-2xl font-bold text-slate-900">Payment Approvals</h1>
+          <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Approvals</h1>
           <div className="flex items-center gap-2">
             {activeTab === 'admin_confirmed' && selectedIds.length > 0 && (
               <Button onClick={handleBulkApprove} className="bg-emerald-600 hover:bg-emerald-700">
@@ -203,7 +203,7 @@ export default function AccountantApprovals() {
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {/* Tabs */}
-        <div className="flex gap-1 bg-white rounded-lg p-1 border mb-4">
+        <div className="flex gap-1 rounded-lg p-1 border mb-4" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
@@ -211,8 +211,9 @@ export default function AccountantApprovals() {
               className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-indigo-600 text-white'
-                  : 'text-slate-600 hover:bg-slate-100'
+                  : ''
               }`}
+              style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : undefined}
             >
               {tab.label}
             </button>
@@ -224,31 +225,31 @@ export default function AccountantApprovals() {
           <div className="flex items-center gap-2 mb-3">
             <button
               onClick={toggleSelectAll}
-              className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900"
+              className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}
             >
               <div className={`h-4 w-4 rounded border ${
                 selectedIds.length === payments.length
                   ? 'bg-indigo-600 border-indigo-600'
-                  : 'border-slate-300'
-              } flex items-center justify-center`}>
+                  : ''
+              } flex items-center justify-center`} style={selectedIds.length !== payments.length ? { borderColor: 'var(--nm-border)' } : undefined}>
                 {selectedIds.length === payments.length && (
                   <CheckCircle2 className="h-3 w-3 text-white" />
                 )}
               </div>
               Select All
             </button>
-            <span className="text-xs text-slate-400">{payments.length} payments</span>
+            <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{payments.length} payments</span>
           </div>
         )}
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
           </div>
         ) : payments.length === 0 ? (
           <Card className="p-8 text-center">
-            <Clock className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No {activeTab.replace('_', ' ')} payments</p>
+            <Clock className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p style={{ color: 'var(--nm-text-secondary)' }}>No {activeTab.replace('_', ' ')} payments</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -265,8 +266,9 @@ export default function AccountantApprovals() {
                         <button
                           onClick={() => toggleSelect(p.ledger_id)}
                           className={`h-5 w-5 rounded border shrink-0 flex items-center justify-center ${
-                            isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'
+                            isSelected ? 'bg-indigo-600 border-indigo-600' : ''
                           }`}
+                          style={!isSelected ? { borderColor: 'var(--nm-border)' } : undefined}
                         >
                           {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
                         </button>
@@ -278,21 +280,21 @@ export default function AccountantApprovals() {
                         onClick={() => setExpandedId(isExpanded ? null : p.ledger_id)}
                       >
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-slate-900 truncate">{p.member_name}</h3>
+                          <h3 className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{p.member_name}</h3>
                           <Badge className={`text-[10px] ${STATUS_COLORS[p.status] || ''}`}>
                             {p.status?.replace('_', ' ')}
                           </Badge>
                         </div>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                           {p.chapter_name} | {p.description} | UTR: {p.utr_number || 'N/A'}
                         </p>
                       </div>
 
                       {/* Amount */}
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-bold text-slate-900">{formatCurrency(p.amount)}</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(p.amount)}</span>
                         <button onClick={() => setExpandedId(isExpanded ? null : p.ledger_id)}>
-                          {isExpanded ? <ChevronUp className="h-4 w-4 text-slate-400" /> : <ChevronDown className="h-4 w-4 text-slate-400" />}
+                          {isExpanded ? <ChevronUp className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} /> : <ChevronDown className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />}
                         </button>
                       </div>
                     </div>
@@ -321,10 +323,10 @@ export default function AccountantApprovals() {
 
                   {/* Expanded */}
                   {isExpanded && (
-                    <div className="border-t border-slate-100 p-3 md:p-4 bg-slate-50 space-y-3">
+                    <div className="border-t p-3 md:p-4 space-y-3" style={{ borderColor: 'var(--nm-border)', background: 'var(--nm-surface)' }}>
                       {p.proof_file && (
                         <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1">Payment Screenshot</p>
+                          <p className="text-xs font-medium mb-1" style={{ color: 'var(--nm-text-secondary)' }}>Payment Screenshot</p>
                           <img
                             src={`${apiBase}/uploads/${p.proof_file}`}
                             alt="Proof"
@@ -334,19 +336,19 @@ export default function AccountantApprovals() {
                         </div>
                       )}
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div><span className="text-slate-400">Fee Type:</span> <span className="font-medium">{p.fee_type}</span></div>
-                        <div><span className="text-slate-400">Method:</span> <span className="font-medium">{p.payment_method}</span></div>
-                        <div><span className="text-slate-400">UTR:</span> <span className="font-medium">{p.utr_number || 'N/A'}</span></div>
-                        <div><span className="text-slate-400">Date:</span> <span className="font-medium">{p.payment_date || 'N/A'}</span></div>
-                        <div><span className="text-slate-400">Chapter:</span> <span className="font-medium">{p.chapter_name}</span></div>
+                        <div><span style={{ color: 'var(--nm-text-muted)' }}>Fee Type:</span> <span className="font-medium">{p.fee_type}</span></div>
+                        <div><span style={{ color: 'var(--nm-text-muted)' }}>Method:</span> <span className="font-medium">{p.payment_method}</span></div>
+                        <div><span style={{ color: 'var(--nm-text-muted)' }}>UTR:</span> <span className="font-medium">{p.utr_number || 'N/A'}</span></div>
+                        <div><span style={{ color: 'var(--nm-text-muted)' }}>Date:</span> <span className="font-medium">{p.payment_date || 'N/A'}</span></div>
+                        <div><span style={{ color: 'var(--nm-text-muted)' }}>Chapter:</span> <span className="font-medium">{p.chapter_name}</span></div>
                       </div>
                       {/* Timeline */}
                       {p.timeline && p.timeline.length > 0 && (
                         <div>
-                          <p className="text-xs font-medium text-slate-500 mb-1">Timeline</p>
+                          <p className="text-xs font-medium mb-1" style={{ color: 'var(--nm-text-secondary)' }}>Timeline</p>
                           {p.timeline.map((e, i) => (
-                            <div key={i} className="text-[11px] text-slate-400 py-0.5">
-                              <span className="font-medium text-slate-600 capitalize">{e.action?.replace('_', ' ')}</span>
+                            <div key={i} className="text-[11px] py-0.5" style={{ color: 'var(--nm-text-muted)' }}>
+                              <span className="font-medium capitalize" style={{ color: 'var(--nm-text-secondary)' }}>{e.action?.replace('_', ' ')}</span>
                               {' '}{e.note && `- ${e.note}`}
                               {' | '}{new Date(e.at).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}
                             </div>
@@ -370,7 +372,7 @@ export default function AccountantApprovals() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-slate-600 mb-2">Reason (required)</p>
+              <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Reason (required)</p>
               <Textarea
                 value={rejectReason}
                 onChange={e => setRejectReason(e.target.value)}
@@ -396,10 +398,10 @@ export default function AccountantApprovals() {
 
           <div className="space-y-4">
             <div>
-              <p className="text-sm text-slate-600 mb-2">
+              <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                 Upload a CSV bank statement. We'll match UTR/reference numbers against pending payments.
               </p>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center">
+              <div className="border-2 border-dashed rounded-lg p-6 text-center" style={{ borderColor: 'var(--nm-border)' }}>
                 <input
                   ref={fileRef}
                   type="file"
@@ -412,8 +414,8 @@ export default function AccountantApprovals() {
                   htmlFor="statement-upload"
                   className="cursor-pointer flex flex-col items-center gap-2"
                 >
-                  <Upload className="h-8 w-8 text-slate-400" />
-                  <span className="text-sm text-slate-600">
+                  <Upload className="h-8 w-8" style={{ color: 'var(--nm-text-muted)' }} />
+                  <span className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                     {uploading ? 'Processing...' : 'Click to upload CSV'}
                   </span>
                 </label>
@@ -424,9 +426,9 @@ export default function AccountantApprovals() {
             {statementResults && (
               <div className="space-y-3 flex-1 overflow-y-auto">
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-slate-100 rounded-lg p-3 text-center">
-                    <p className="text-lg font-bold text-slate-700">{statementResults.total_rows}</p>
-                    <p className="text-xs text-slate-500">Total Rows</p>
+                  <div className="rounded-lg p-3 text-center" style={{ background: 'var(--nm-surface)' }}>
+                    <p className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{statementResults.total_rows}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Total Rows</p>
                   </div>
                   <div className="bg-emerald-100 rounded-lg p-3 text-center">
                     <p className="text-lg font-bold text-emerald-700">{statementResults.matched}</p>
@@ -440,13 +442,13 @@ export default function AccountantApprovals() {
 
                 {statementResults.matches.length > 0 && (
                   <div>
-                    <p className="text-sm font-medium text-slate-700 mb-2">Matched Payments:</p>
+                    <p className="text-sm font-medium mb-2" style={{ color: 'var(--nm-text-primary)' }}>Matched Payments:</p>
                     <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
                       {statementResults.matches.map((m, i) => (
                         <div key={i} className="px-3 py-2 flex items-center justify-between text-sm">
                           <div>
-                            <p className="font-medium text-slate-900">{m.member_name}</p>
-                            <p className="text-xs text-slate-400">UTR: {m.utr_number} | {m.fee_type}</p>
+                            <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{m.member_name}</p>
+                            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>UTR: {m.utr_number} | {m.fee_type}</p>
                           </div>
                           <div className="text-right">
                             <p className="font-bold">{formatCurrency(m.payment_amount)}</p>

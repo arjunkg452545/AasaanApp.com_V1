@@ -242,7 +242,7 @@ export default function DeveloperSubscriptions() {
       <div className="flex items-center justify-center py-32">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading subscriptions...</p>
+          <p style={{ color: 'var(--nm-text-secondary)' }}>Loading subscriptions...</p>
         </div>
       </div>
     );
@@ -253,10 +253,10 @@ export default function DeveloperSubscriptions() {
       {/* Title and action */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Subscriptions</h2>
-          <p className="text-slate-500 mt-1">Manage ED subscription plans, billing and renewals</p>
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Subscriptions</h2>
+          <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Manage ED subscription plans, billing and renewals</p>
         </div>
-        <Button onClick={openActivateDialog} className="bg-[#CF2030] hover:bg-[#A61926] shrink-0">
+        <Button onClick={openActivateDialog} className="shrink-0">
           <Plus className="h-4 w-4 mr-2" />
           Activate Subscription
         </Button>
@@ -264,21 +264,21 @@ export default function DeveloperSubscriptions() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
         <Input
           placeholder="Search by ED name, mobile, status, plan type..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-white"
+          className="pl-10"
         />
       </div>
 
       {/* Empty state */}
       {filtered.length === 0 ? (
         <Card className="p-12 text-center">
-          <CreditCard className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-slate-700">No Subscriptions Found</h3>
-          <p className="text-slate-500 mt-1">
+          <CreditCard className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+          <h3 className="text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>No Subscriptions Found</h3>
+          <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>
             {searchQuery ? 'Try a different search term' : 'Activate a subscription for an Executive Director to get started'}
           </p>
         </Card>
@@ -289,32 +289,32 @@ export default function DeveloperSubscriptions() {
             <Card className="overflow-hidden">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-slate-50">
-                    <TableHead className="font-semibold text-slate-700">ED Name</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Mobile</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Chapters</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Plan Type</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Billing Cycle</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Status</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Expiry Date</TableHead>
-                    <TableHead className="font-semibold text-slate-700">Amount</TableHead>
-                    <TableHead className="font-semibold text-slate-700 text-right">Actions</TableHead>
+                  <TableRow style={{ background: 'var(--nm-bg)' }}>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>ED Name</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Mobile</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Chapters</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Plan Type</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Billing Cycle</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Status</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Expiry Date</TableHead>
+                    <TableHead className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Amount</TableHead>
+                    <TableHead className="font-semibold text-right" style={{ color: 'var(--nm-text-primary)' }}>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filtered.map((sub) => (
                     <TableRow key={sub.subscription_id}>
-                      <TableCell className="font-medium text-slate-900">{sub.ed_name || '-'}</TableCell>
-                      <TableCell className="text-slate-600">{sub.ed_mobile || '-'}</TableCell>
-                      <TableCell className="text-slate-600">
+                      <TableCell className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{sub.ed_name || '-'}</TableCell>
+                      <TableCell style={{ color: 'var(--nm-text-secondary)' }}>{sub.ed_mobile || '-'}</TableCell>
+                      <TableCell style={{ color: 'var(--nm-text-secondary)' }}>
                         <span className="font-semibold">{sub.chapters_used}</span>
-                        <span className="text-slate-400"> / {sub.chapters_allowed}</span>
+                        <span style={{ color: 'var(--nm-text-muted)' }}> / {sub.chapters_allowed}</span>
                       </TableCell>
-                      <TableCell className="capitalize text-slate-600">{sub.plan_type || '-'}</TableCell>
-                      <TableCell className="text-slate-600">{formatBillingCycle(sub.billing_cycle)}</TableCell>
+                      <TableCell className="capitalize" style={{ color: 'var(--nm-text-secondary)' }}>{sub.plan_type || '-'}</TableCell>
+                      <TableCell style={{ color: 'var(--nm-text-secondary)' }}>{formatBillingCycle(sub.billing_cycle)}</TableCell>
                       <TableCell>{getStatusBadge(sub.status, sub.plan_type)}</TableCell>
-                      <TableCell className="text-slate-600">{formatDate(sub.end_date)}</TableCell>
-                      <TableCell className="text-slate-600">{formatCurrency(sub.amount_paid)}</TableCell>
+                      <TableCell style={{ color: 'var(--nm-text-secondary)' }}>{formatDate(sub.end_date)}</TableCell>
+                      <TableCell style={{ color: 'var(--nm-text-secondary)' }}>{formatCurrency(sub.amount_paid)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {sub.status === 'active' && (
@@ -351,7 +351,7 @@ export default function DeveloperSubscriptions() {
                             </Button>
                           )}
                           {sub.status === 'cancelled' && (
-                            <span className="text-xs text-slate-400">No actions</span>
+                            <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>No actions</span>
                           )}
                         </div>
                       </TableCell>
@@ -368,38 +368,38 @@ export default function DeveloperSubscriptions() {
               <Card key={sub.subscription_id} className="p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="font-semibold text-slate-900">{sub.ed_name || '-'}</h3>
-                    <p className="text-sm text-slate-500">{sub.ed_mobile || '-'}</p>
+                    <h3 className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{sub.ed_name || '-'}</h3>
+                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{sub.ed_mobile || '-'}</p>
                   </div>
                   {getStatusBadge(sub.status, sub.plan_type)}
                 </div>
 
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-4">
                   <div>
-                    <span className="text-slate-400">Chapters</span>
-                    <p className="font-medium text-slate-700">
+                    <span style={{ color: 'var(--nm-text-muted)' }}>Chapters</span>
+                    <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                       {sub.chapters_used} / {sub.chapters_allowed}
                     </p>
                   </div>
                   <div>
-                    <span className="text-slate-400">Plan</span>
+                    <span style={{ color: 'var(--nm-text-muted)' }}>Plan</span>
                     <p className="font-medium text-slate-700 capitalize">{sub.plan_type || '-'}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">Billing</span>
-                    <p className="font-medium text-slate-700">{formatBillingCycle(sub.billing_cycle)}</p>
+                    <span style={{ color: 'var(--nm-text-muted)' }}>Billing</span>
+                    <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{formatBillingCycle(sub.billing_cycle)}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">Expiry</span>
-                    <p className="font-medium text-slate-700">{formatDate(sub.end_date)}</p>
+                    <span style={{ color: 'var(--nm-text-muted)' }}>Expiry</span>
+                    <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{formatDate(sub.end_date)}</p>
                   </div>
                   <div>
-                    <span className="text-slate-400">Amount</span>
-                    <p className="font-medium text-slate-700">{formatCurrency(sub.amount_paid)}</p>
+                    <span style={{ color: 'var(--nm-text-muted)' }}>Amount</span>
+                    <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(sub.amount_paid)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 pt-3 border-t" style={{ borderColor: 'var(--nm-border)' }}>
                   {sub.status === 'active' && (
                     <>
                       <Button
@@ -434,7 +434,7 @@ export default function DeveloperSubscriptions() {
                     </Button>
                   )}
                   {sub.status === 'cancelled' && (
-                    <p className="text-xs text-slate-400 w-full text-center">No actions available</p>
+                    <p className="text-xs w-full text-center" style={{ color: 'var(--nm-text-muted)' }}>No actions available</p>
                   )}
                 </div>
               </Card>
@@ -452,7 +452,7 @@ export default function DeveloperSubscriptions() {
           <form onSubmit={handleActivate} className="space-y-4 mt-2">
             {/* Select ED */}
             <div>
-              <Label className="text-slate-700 font-medium">
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Executive Director <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -474,7 +474,7 @@ export default function DeveloperSubscriptions() {
 
             {/* Billing cycle */}
             <div>
-              <Label className="text-slate-700 font-medium">
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Billing Cycle <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -497,7 +497,7 @@ export default function DeveloperSubscriptions() {
             {/* Chapters allowed & Amount */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-slate-700 font-medium">
+                <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Chapters Allowed <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -511,7 +511,7 @@ export default function DeveloperSubscriptions() {
                 />
               </div>
               <div>
-                <Label className="text-slate-700 font-medium">Amount Received (Rs.)</Label>
+                <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>Amount Received (Rs.)</Label>
                 <Input
                   type="number"
                   min="0"
@@ -525,7 +525,7 @@ export default function DeveloperSubscriptions() {
 
             {/* Payment method */}
             <div>
-              <Label className="text-slate-700 font-medium">
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Payment Method <span className="text-red-500">*</span>
               </Label>
               <Select
@@ -547,7 +547,7 @@ export default function DeveloperSubscriptions() {
 
             {/* Payment reference */}
             <div>
-              <Label className="text-slate-700 font-medium">Payment Reference</Label>
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>Payment Reference</Label>
               <Input
                 placeholder="Transaction ID, receipt no., etc."
                 value={activateForm.payment_ref}
@@ -560,7 +560,7 @@ export default function DeveloperSubscriptions() {
               <Button
                 type="submit"
                 disabled={activateLoading}
-                className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+                className="w-full"
               >
                 {activateLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {activateLoading ? 'Activating...' : 'Activate Subscription'}
@@ -579,16 +579,16 @@ export default function DeveloperSubscriptions() {
             </DialogTitle>
           </DialogHeader>
           {extendSub && (
-            <div className="mb-2 p-3 bg-slate-50 rounded-lg text-sm">
-              <p className="font-medium text-slate-900">{extendSub.ed_name}</p>
-              <p className="text-slate-500">
+            <div className="mb-2 p-3 rounded-lg text-sm" style={{ background: 'var(--nm-bg)' }}>
+              <p className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{extendSub.ed_name}</p>
+              <p style={{ color: 'var(--nm-text-secondary)' }}>
                 Current expiry: {formatDate(extendSub.end_date)} &middot; {formatBillingCycle(extendSub.billing_cycle)}
               </p>
             </div>
           )}
           <form onSubmit={handleExtend} className="space-y-4">
             <div>
-              <Label className="text-slate-700 font-medium">
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Additional Months <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -602,7 +602,7 @@ export default function DeveloperSubscriptions() {
               />
             </div>
             <div>
-              <Label className="text-slate-700 font-medium">Amount Paid (Rs.)</Label>
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>Amount Paid (Rs.)</Label>
               <Input
                 type="number"
                 min="0"
@@ -613,7 +613,7 @@ export default function DeveloperSubscriptions() {
               />
             </div>
             <div>
-              <Label className="text-slate-700 font-medium">Payment Reference</Label>
+              <Label className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>Payment Reference</Label>
               <Input
                 placeholder="Transaction ID, receipt no., etc."
                 value={extendForm.payment_ref}
@@ -625,7 +625,7 @@ export default function DeveloperSubscriptions() {
               <Button
                 type="submit"
                 disabled={extendLoading}
-                className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+                className="w-full"
               >
                 {extendLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {extendLoading
@@ -646,7 +646,7 @@ export default function DeveloperSubscriptions() {
             <AlertDialogTitle>Cancel Subscription</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to cancel the subscription for{' '}
-              <span className="font-semibold text-slate-700">{cancelSub?.ed_name}</span>?
+              <span className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{cancelSub?.ed_name}</span>?
               This action cannot be undone. The ED will lose access at the end of the current period.
             </AlertDialogDescription>
           </AlertDialogHeader>

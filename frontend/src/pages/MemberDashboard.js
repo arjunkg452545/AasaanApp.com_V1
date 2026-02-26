@@ -59,7 +59,7 @@ export default function MemberDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -70,10 +70,10 @@ export default function MemberDashboard() {
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Welcome */}
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+        <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
           Welcome, {data.member_name}
         </h1>
-        <p className="text-sm text-slate-500">{data.chapter_name}</p>
+        <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{data.chapter_name}</p>
       </div>
 
       {/* Stats Cards */}
@@ -85,30 +85,30 @@ export default function MemberDashboard() {
         >
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="h-4 w-4 text-red-500" />
-            <span className="text-xs text-slate-500 font-medium">Pending</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Pending</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-red-600">{formatCurrency(data.pending_total)}</p>
-          <p className="text-xs text-slate-400">{data.pending_count} fees due</p>
+          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{data.pending_count} fees due</p>
         </Card>
 
         {/* In Progress */}
         <Card className="p-4 border-l-4 border-l-blue-500">
           <div className="flex items-center gap-2 mb-2">
             <Clock className="h-4 w-4 text-blue-500" />
-            <span className="text-xs text-slate-500 font-medium">In Progress</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>In Progress</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-blue-600">{formatCurrency(data.submitted_total)}</p>
-          <p className="text-xs text-slate-400">{data.submitted_count} awaiting</p>
+          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{data.submitted_count} awaiting</p>
         </Card>
 
         {/* Paid This Year */}
         <Card className="p-4 border-l-4 border-l-green-500 col-span-2 md:col-span-1">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
-            <span className="text-xs text-slate-500 font-medium">Paid This Year</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Paid This Year</span>
           </div>
           <p className="text-lg md:text-xl font-bold text-green-600">{formatCurrency(data.paid_this_year)}</p>
-          <p className="text-xs text-slate-400">{data.paid_count_this_year} payments</p>
+          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{data.paid_count_this_year} payments</p>
         </Card>
       </div>
 
@@ -120,10 +120,10 @@ export default function MemberDashboard() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-900">Next Due: {data.next_due.description}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Next Due: {data.next_due.description}</p>
               <p className="text-lg font-bold text-amber-600">{formatCurrency(data.next_due.amount)}</p>
             </div>
-            <Button size="sm" className="bg-[#CF2030] hover:bg-[#A61926]">
+            <Button size="sm">
               Pay Now <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
@@ -133,7 +133,7 @@ export default function MemberDashboard() {
       {/* Recent Payments */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-slate-900">Recent Payments</h2>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Recent Payments</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -146,8 +146,8 @@ export default function MemberDashboard() {
 
         {data.recent_payments.length === 0 ? (
           <Card className="p-6 text-center">
-            <Wallet className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">No payment activity yet</p>
+            <Wallet className="h-10 w-10 mx-auto mb-2" style={{ color: 'var(--nm-text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No payment activity yet</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -159,8 +159,8 @@ export default function MemberDashboard() {
               >
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 truncate">{fee.description}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{fee.description}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       {fee.fee_type?.replace('_', ' ')} {fee.month && fee.year ? `- ${fee.month}/${fee.year}` : ''}
                     </p>
                   </div>
@@ -168,7 +168,7 @@ export default function MemberDashboard() {
                     <Badge className={`text-[10px] ${STATUS_COLORS[fee.status] || ''}`}>
                       {STATUS_LABELS[fee.status] || fee.status}
                     </Badge>
-                    <span className="text-sm font-semibold text-slate-900">{formatCurrency(fee.amount)}</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(fee.amount)}</span>
                   </div>
                 </div>
               </Card>

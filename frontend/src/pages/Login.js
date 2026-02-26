@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { Settings, Mail, Lock, Phone, ArrowLeft } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
   const [mobile, setMobile] = useState('');
@@ -147,20 +148,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2" style={{ background: 'var(--nm-bg)' }}>
+      {/* Left hero panel */}
       <div
-        className="hidden lg:flex flex-col justify-between bg-[#CF2030] p-12 text-white relative overflow-hidden"
+        className="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden"
         style={{
           backgroundImage: 'url(https://images.unsplash.com/photo-1763739530672-4aadafbd81ff?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxidXNpbmVzcyUyMG5ldHdvcmtpbmclMjBtZWV0aW5nJTIwcHJvZmVzc2lvbmFsfGVufDB8fHx8MTc2NDg1ODg4OHww&ixlib=rb-4.1.0&q=85)',
           backgroundSize: 'cover',
           backgroundPosition: 'center'
         }}
       >
-        <div className="absolute inset-0 bg-[#CF2030]/90"></div>
+        <div className="absolute inset-0 bg-[#CF2030]/85 backdrop-blur-sm"></div>
         <div className="relative z-10 flex items-center gap-4">
-          <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-20 w-auto rounded-lg shadow-lg" />
+          <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-20 w-auto rounded-xl" style={{ boxShadow: '6px 6px 12px rgba(0,0,0,0.3), -6px -6px 12px rgba(255,255,255,0.1)' }} />
           <div>
-            <h1 className="text-4xl font-bold">Aasaan App</h1>
+            <h1 className="text-4xl font-bold" style={{ fontFamily: 'Outfit, sans-serif' }}>Aasaan App</h1>
             <p className="text-lg opacity-90">BNI Management System</p>
           </div>
         </div>
@@ -172,45 +174,59 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center p-8 bg-slate-50 relative">
+      {/* Right login panel */}
+      <div className="flex flex-col items-center justify-center p-8 relative" style={{ background: 'var(--nm-bg)' }}>
+        {/* Theme toggle */}
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
         <div className="w-full max-w-md">
-          {/* Mobile Logo - visible on small screens */}
+          {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <div className="text-center">
-              <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-24 w-auto mx-auto rounded-lg shadow-md" />
-              <h1 className="text-2xl font-bold text-[#CF2030] mt-3">Aasaan App</h1>
-              <p className="text-slate-600 text-sm">BNI Management System</p>
+              <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-24 w-auto mx-auto rounded-xl nm-raised p-1" />
+              <h1 className="text-2xl font-bold mt-3" style={{ color: 'var(--nm-accent)', fontFamily: 'Outfit, sans-serif' }}>Aasaan App</h1>
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>BNI Management System</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-slate-100">
-            <h2 className="text-3xl font-bold mb-2 text-slate-900">Welcome Back</h2>
-            <p className="text-slate-600 mb-8">Sign in to manage your chapter</p>
+          {/* Main login card */}
+          <div className="nm-raised rounded-2xl p-8">
+            <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--nm-text-primary)', fontFamily: 'Outfit, sans-serif' }}>Welcome Back</h2>
+            <p className="mb-8" style={{ color: 'var(--nm-text-secondary)' }}>Sign in to manage your chapter</p>
 
-            <div className="flex gap-2 mb-6">
-              <Button
+            {/* Role toggle tabs */}
+            <div className="flex gap-2 mb-6 p-1 nm-inset rounded-xl">
+              <button
                 data-testid="role-admin-btn"
                 type="button"
-                variant={role === 'admin' ? 'default' : 'outline'}
                 onClick={() => setRole('admin')}
-                className="flex-1"
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  role === 'admin'
+                    ? 'nm-btn-primary text-white'
+                    : 'text-[var(--nm-text-secondary)] hover:text-[var(--nm-text-primary)]'
+                }`}
               >
                 Chapter Admin
-              </Button>
-              <Button
+              </button>
+              <button
                 data-testid="role-superadmin-btn"
                 type="button"
-                variant={role === 'superadmin' ? 'default' : 'outline'}
                 onClick={() => setRole('superadmin')}
-                className="flex-1"
+                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  role === 'superadmin'
+                    ? 'nm-btn-primary text-white'
+                    : 'text-[var(--nm-text-secondary)] hover:text-[var(--nm-text-primary)]'
+                }`}
               >
                 Super Admin
-              </Button>
+              </button>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-5">
               <div>
-                <Label htmlFor="mobile" className="text-slate-700 font-medium">
+                <Label htmlFor="mobile" style={{ color: 'var(--nm-text-primary)' }} className="font-medium">
                   Login ID
                 </Label>
                 <Input
@@ -221,12 +237,12 @@ export default function Login() {
                   onChange={(e) => setMobile(e.target.value)}
                   placeholder="Enter Login ID"
                   required
-                  className="mt-2 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                  className="mt-2 h-11"
                 />
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Label htmlFor="password" style={{ color: 'var(--nm-text-primary)' }} className="font-medium">
                   Password
                 </Label>
                 <Input
@@ -237,7 +253,7 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
                   required
-                  className="mt-2 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                  className="mt-2 h-11"
                 />
               </div>
 
@@ -245,7 +261,7 @@ export default function Login() {
                 data-testid="login-submit-btn"
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-[#CF2030] hover:bg-[#A61926] text-white font-medium"
+                className="w-full h-11 text-white font-medium"
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -254,39 +270,41 @@ export default function Login() {
 
           {/* Member / Accountant Login Links */}
           {!memberMode && !accountantMode ? (
-            <div className="flex items-center justify-center gap-4 mt-4">
+            <div className="flex items-center justify-center gap-4 mt-5">
               <button
                 onClick={() => setMemberMode(true)}
-                className="text-sm text-[#CF2030] hover:text-[#A61926] font-medium py-2 transition-colors"
+                className="text-sm font-medium py-2 transition-colors"
+                style={{ color: 'var(--nm-accent)' }}
               >
                 Member Login
               </button>
-              <span className="text-slate-300">|</span>
+              <span style={{ color: 'var(--nm-text-muted)' }}>|</span>
               <button
                 onClick={() => setAccountantMode(true)}
-                className="text-sm text-indigo-600 hover:text-indigo-800 font-medium py-2 transition-colors"
+                className="text-sm text-indigo-500 hover:text-indigo-700 font-medium py-2 transition-colors"
               >
                 Accountant Login
               </button>
             </div>
           ) : memberMode ? (
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100 mt-4">
+            <div className="nm-raised rounded-2xl p-6 mt-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-slate-900">Member Login</h3>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Member Login</h3>
                 <button
                   onClick={() => { setMemberMode(false); setMemberMobile(''); setMemberPassword(''); }}
-                  className="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-sm"
+                  className="flex items-center gap-1 text-sm"
+                  style={{ color: 'var(--nm-text-muted)' }}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Admin Login
                 </button>
               </div>
               <form onSubmit={handleMemberLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="member-mobile" className="text-slate-700 text-sm font-medium">
+                  <Label htmlFor="member-mobile" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">
                     Mobile Number
                   </Label>
                   <div className="relative mt-1.5">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="member-mobile"
                       type="text"
@@ -294,16 +312,16 @@ export default function Login() {
                       onChange={(e) => setMemberMobile(e.target.value)}
                       placeholder="Enter your mobile number"
                       required
-                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="member-password" className="text-slate-700 text-sm font-medium">
+                  <Label htmlFor="member-password" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">
                     Password
                   </Label>
                   <div className="relative mt-1.5">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="member-password"
                       type="password"
@@ -311,37 +329,38 @@ export default function Login() {
                       onChange={(e) => setMemberPassword(e.target.value)}
                       placeholder="Enter password"
                       required
-                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-[#CF2030] focus:ring-[#CF2030]/20"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </div>
                 <Button
                   type="submit"
                   disabled={memberLoading}
-                  className="w-full h-11 bg-[#CF2030] hover:bg-[#A61926] text-white font-medium"
+                  className="w-full h-11 text-white font-medium"
                 >
                   {memberLoading ? 'Signing in...' : 'Sign In as Member'}
                 </Button>
               </form>
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-slate-100 mt-4">
+            <div className="nm-raised rounded-2xl p-6 mt-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-indigo-900">Accountant Login</h3>
+                <h3 className="text-lg font-semibold text-indigo-400">Accountant Login</h3>
                 <button
                   onClick={() => { setAccountantMode(false); setAccMobile(''); setAccPassword(''); }}
-                  className="text-slate-400 hover:text-slate-600 flex items-center gap-1 text-sm"
+                  className="flex items-center gap-1 text-sm"
+                  style={{ color: 'var(--nm-text-muted)' }}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" /> Admin Login
                 </button>
               </div>
               <form onSubmit={handleAccountantLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="acc-mobile" className="text-slate-700 text-sm font-medium">
+                  <Label htmlFor="acc-mobile" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">
                     Mobile Number
                   </Label>
                   <div className="relative mt-1.5">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="acc-mobile"
                       type="text"
@@ -349,16 +368,16 @@ export default function Login() {
                       onChange={(e) => setAccMobile(e.target.value)}
                       placeholder="Enter your mobile number"
                       required
-                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="acc-password" className="text-slate-700 text-sm font-medium">
+                  <Label htmlFor="acc-password" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">
                     Password
                   </Label>
                   <div className="relative mt-1.5">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="acc-password"
                       type="password"
@@ -366,7 +385,7 @@ export default function Login() {
                       onChange={(e) => setAccPassword(e.target.value)}
                       placeholder="Enter password"
                       required
-                      className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-indigo-500 focus:ring-indigo-500/20"
+                      className="pl-10 h-11"
                     />
                   </div>
                 </div>
@@ -381,10 +400,10 @@ export default function Login() {
             </div>
           )}
 
-          <p className="text-center text-sm text-slate-500 mt-4">An SIPL Product</p>
+          <p className="text-center text-sm mt-5" style={{ color: 'var(--nm-text-muted)' }}>An SIPL Product</p>
         </div>
 
-        {/* Hidden developer access gear icon - nearly invisible */}
+        {/* Hidden developer access gear icon */}
         <button
           onClick={() => setDevModalOpen(true)}
           className="absolute bottom-4 right-4 p-1 rounded-full transition-opacity duration-300 cursor-default"
@@ -394,29 +413,28 @@ export default function Login() {
           aria-label="Settings"
           tabIndex={-1}
         >
-          <Settings className="text-slate-400" style={{ width: 14, height: 14 }} />
+          <Settings style={{ width: 14, height: 14, color: 'var(--nm-text-muted)' }} />
         </button>
 
-        {/* Developer Login Modal - Overlay */}
+        {/* Developer Login Modal */}
         {devModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               onClick={() => { setDevModalOpen(false); setDevEmail(''); setDevPassword(''); }}
             />
-            {/* Modal */}
-            <div className="relative bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm mx-4 border border-slate-200">
+            <div className="relative nm-raised-lg rounded-2xl p-6 w-full max-w-sm mx-4">
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-md bg-slate-900 flex items-center justify-center">
-                    <Settings className="h-3.5 w-3.5 text-white" />
+                  <div className="h-7 w-7 rounded-lg nm-pressed flex items-center justify-center" style={{ background: 'var(--nm-surface)' }}>
+                    <Settings className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-primary)' }} />
                   </div>
-                  <span className="text-sm font-semibold text-slate-800">System Access</span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>System Access</span>
                 </div>
                 <button
                   onClick={() => { setDevModalOpen(false); setDevEmail(''); setDevPassword(''); }}
-                  className="text-slate-400 hover:text-slate-600 text-lg leading-none"
+                  className="text-lg leading-none"
+                  style={{ color: 'var(--nm-text-muted)' }}
                 >
                   &times;
                 </button>
@@ -424,9 +442,9 @@ export default function Login() {
 
               <form onSubmit={handleDevLogin} className="space-y-4">
                 <div>
-                  <Label htmlFor="dev-email" className="text-slate-700 text-sm font-medium">Email</Label>
+                  <Label htmlFor="dev-email" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">Email</Label>
                   <div className="relative mt-1.5">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="dev-email"
                       type="email"
@@ -434,14 +452,14 @@ export default function Login() {
                       onChange={(e) => setDevEmail(e.target.value)}
                       placeholder="Enter email"
                       required
-                      className="pl-9 h-10 text-sm bg-slate-50 border-slate-200 focus:border-slate-900 focus:ring-slate-900/20"
+                      className="pl-9 h-10 text-sm"
                     />
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="dev-password" className="text-slate-700 text-sm font-medium">Password</Label>
+                  <Label htmlFor="dev-password" style={{ color: 'var(--nm-text-primary)' }} className="text-sm font-medium">Password</Label>
                   <div className="relative mt-1.5">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
                     <Input
                       id="dev-password"
                       type="password"
@@ -449,14 +467,14 @@ export default function Login() {
                       onChange={(e) => setDevPassword(e.target.value)}
                       placeholder="Enter password"
                       required
-                      className="pl-9 h-10 text-sm bg-slate-50 border-slate-200 focus:border-slate-900 focus:ring-slate-900/20"
+                      className="pl-9 h-10 text-sm"
                     />
                   </div>
                 </div>
                 <Button
                   type="submit"
                   disabled={devLoading}
-                  className="w-full h-10 bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium"
+                  className="w-full h-10 text-white text-sm font-medium"
                 >
                   {devLoading ? 'Verifying...' : 'Authenticate'}
                 </Button>

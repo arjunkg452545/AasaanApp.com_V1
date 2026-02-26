@@ -45,7 +45,7 @@ export default function AccountantDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -53,10 +53,10 @@ export default function AccountantDashboard() {
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900">
+        <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
           Welcome, {accountantName}
         </h1>
-        <p className="text-sm text-slate-500">Payment Verification Dashboard</p>
+        <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Payment Verification Dashboard</p>
       </div>
 
       {/* Stats */}
@@ -68,37 +68,37 @@ export default function AccountantDashboard() {
           >
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-indigo-500" />
-              <span className="text-xs text-slate-500 font-medium">Awaiting</span>
+              <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Awaiting</span>
             </div>
             <p className="text-lg md:text-xl font-bold text-indigo-600">{summary.admin_confirmed_count}</p>
-            <p className="text-xs text-slate-400">{formatCurrency(summary.admin_confirmed_total)}</p>
+            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{formatCurrency(summary.admin_confirmed_total)}</p>
           </Card>
 
           <Card className="p-4 border-l-4 border-l-emerald-500">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs text-slate-500 font-medium">Verified</span>
+              <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Verified</span>
             </div>
             <p className="text-lg md:text-xl font-bold text-emerald-600">{summary.verified_count}</p>
-            <p className="text-xs text-slate-400">{formatCurrency(summary.verified_total)}</p>
+            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{formatCurrency(summary.verified_total)}</p>
           </Card>
 
           <Card className="p-4 border-l-4 border-l-red-500">
             <div className="flex items-center gap-2 mb-2">
               <XCircle className="h-4 w-4 text-red-500" />
-              <span className="text-xs text-slate-500 font-medium">Rejected</span>
+              <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Rejected</span>
             </div>
             <p className="text-lg md:text-xl font-bold text-red-600">{summary.rejected_count}</p>
-            <p className="text-xs text-slate-400">{formatCurrency(summary.rejected_total)}</p>
+            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{formatCurrency(summary.rejected_total)}</p>
           </Card>
 
           <Card className="p-4 border-l-4 border-l-amber-500">
             <div className="flex items-center gap-2 mb-2">
               <IndianRupee className="h-4 w-4 text-amber-500" />
-              <span className="text-xs text-slate-500 font-medium">Pending</span>
+              <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Pending</span>
             </div>
             <p className="text-lg md:text-xl font-bold text-amber-600">{summary.pending_count}</p>
-            <p className="text-xs text-slate-400">{formatCurrency(summary.pending_total)}</p>
+            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{formatCurrency(summary.pending_total)}</p>
           </Card>
         </div>
       )}
@@ -129,7 +129,7 @@ export default function AccountantDashboard() {
       {/* Recent confirmed payments */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-slate-900">Awaiting Approval</h2>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Awaiting Approval</h2>
           <Button
             variant="ghost"
             size="sm"
@@ -142,8 +142,8 @@ export default function AccountantDashboard() {
 
         {recentPayments.length === 0 ? (
           <Card className="p-8 text-center">
-            <ShieldCheck className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-            <p className="text-sm text-slate-500">No payments awaiting approval</p>
+            <ShieldCheck className="h-10 w-10 mx-auto mb-2" style={{ color: 'var(--nm-text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No payments awaiting approval</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -151,12 +151,12 @@ export default function AccountantDashboard() {
               <Card key={p.ledger_id} className="p-3 hover:shadow-sm transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 truncate">{p.member_name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{p.member_name}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       {p.chapter_name} | {p.fee_type?.replace('_', ' ')} | UTR: {p.utr_number || 'N/A'}
                     </p>
                   </div>
-                  <span className="text-sm font-bold text-slate-900 shrink-0">{formatCurrency(p.amount)}</span>
+                  <span className="text-sm font-bold shrink-0" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(p.amount)}</span>
                 </div>
               </Card>
             ))}

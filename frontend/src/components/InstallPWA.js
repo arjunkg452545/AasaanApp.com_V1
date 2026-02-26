@@ -15,7 +15,7 @@ export default function InstallPWA() {
     setIsIOS(iOS);
 
     // Check if already installed (standalone mode)
-    const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+    const standalone = window.matchMedia('(display-mode: standalone)').matches ||
                        window.navigator.standalone === true;
     setIsStandalone(standalone);
 
@@ -70,11 +70,11 @@ export default function InstallPWA() {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      
+
       if (outcome === 'accepted') {
         console.log('PWA installed successfully');
       }
-      
+
       setDeferredPrompt(null);
       setShowInstall(false);
     }
@@ -92,35 +92,35 @@ export default function InstallPWA() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black/20 to-transparent">
-      <Card className="max-w-md mx-auto p-4 shadow-2xl border-2 border-[#CF2030] bg-white">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.2), transparent)' }}>
+      <Card className="max-w-md mx-auto p-4 border-2 border-[#CF2030]">
         <div className="flex items-start gap-3">
           {/* App Icon - Using Aasaan App Logo */}
-          <img 
-            src="/icons/icon-72x72.png" 
-            alt="Aasaan App" 
+          <img
+            src="/icons/icon-72x72.png"
+            alt="Aasaan App"
             className="h-14 w-14 rounded-xl flex-shrink-0 shadow-lg"
           />
-          
+
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-slate-900 text-lg">📲 Aasaan App Install करें</h3>
-            
+            <h3 className="font-bold text-lg" style={{ color: 'var(--nm-text-primary)' }}>📲 Aasaan App Install करें</h3>
+
             {isIOS ? (
               // iOS Instructions
               <div className="mt-2">
-                <p className="text-sm text-slate-600 mb-2">
+                <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                   iPhone/iPad पर Install करने के लिए:
                 </p>
-                <div className="bg-blue-50 rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
+                <div className="nm-inset rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
                     <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">1</div>
                     <span>नीचे <Share className="inline h-4 w-4" /> Share बटन दबाएं</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
                     <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">2</div>
                     <span>"Add to Home Screen" चुनें</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
                     <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">3</div>
                     <span>"Add" दबाएं ✓</span>
                   </div>
@@ -129,7 +129,7 @@ export default function InstallPWA() {
             ) : deferredPrompt ? (
               // Android/Chrome with native prompt
               <div className="mt-2">
-                <p className="text-sm text-slate-600 mb-3">
+                <p className="text-sm mb-3" style={{ color: 'var(--nm-text-secondary)' }}>
                   तेज़ access के लिए Home Screen पर Add करें
                 </p>
                 <Button
@@ -143,29 +143,30 @@ export default function InstallPWA() {
             ) : (
               // Generic fallback instructions
               <div className="mt-2">
-                <p className="text-sm text-slate-600 mb-2">
+                <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                   App Install करने के लिए:
                 </p>
-                <div className="bg-slate-50 rounded-lg p-3 text-sm text-slate-700">
+                <div className="nm-inset rounded-lg p-3 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
                   Browser menu (⋮) में जाकर <strong>"Add to Home Screen"</strong> या <strong>"Install App"</strong> चुनें
                 </div>
               </div>
             )}
           </div>
-          
+
           {/* Close button */}
           <button
             onClick={handleDismiss}
-            className="text-slate-400 hover:text-slate-600 flex-shrink-0 p-1"
+            className="flex-shrink-0 p-1 nm-btn rounded-full"
+            style={{ color: 'var(--nm-text-muted)' }}
             aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         {/* Footer */}
-        <div className="mt-3 pt-3 border-t border-slate-100 text-center">
-          <p className="text-xs text-slate-500">
+        <div className="mt-3 pt-3 text-center" style={{ borderTop: '1px solid var(--nm-border)' }}>
+          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
             🔒 Safe & Secure • No storage needed • Works offline
           </p>
         </div>

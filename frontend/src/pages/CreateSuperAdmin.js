@@ -41,7 +41,7 @@ export default function CreateSuperAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
       <div className="bg-slate-900 text-white px-6 py-4 flex items-center gap-4 shadow-lg">
         <Button
@@ -67,15 +67,15 @@ export default function CreateSuperAdmin() {
               <UserPlus className="h-6 w-6 text-[#CF2030]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">ED Details</h2>
-              <p className="text-sm text-slate-500">Fill in the details for the new Executive Director</p>
+              <h2 className="text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>ED Details</h2>
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Fill in the details for the new Executive Director</p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Name */}
             <div>
-              <Label htmlFor="name" className="text-slate-700 font-medium">
+              <Label htmlFor="name" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Full Name <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -91,7 +91,7 @@ export default function CreateSuperAdmin() {
             {/* Email & Mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="email" className="text-slate-700 font-medium">
+                <Label htmlFor="email" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Email Address <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -105,7 +105,7 @@ export default function CreateSuperAdmin() {
                 />
               </div>
               <div>
-                <Label htmlFor="mobile" className="text-slate-700 font-medium">
+                <Label htmlFor="mobile" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Mobile Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -121,7 +121,7 @@ export default function CreateSuperAdmin() {
 
             {/* Password */}
             <div>
-              <Label htmlFor="password" className="text-slate-700 font-medium">
+              <Label htmlFor="password" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                 Password <span className="text-red-500">*</span>
               </Label>
               <div className="relative mt-2">
@@ -137,18 +137,19 @@ export default function CreateSuperAdmin() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-80"
+                  style={{ color: 'var(--nm-text-muted)' }}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-slate-500 mt-1">This will be used for Super Admin login (Login ID = mobile number)</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--nm-text-secondary)' }}>This will be used for Super Admin login (Login ID = mobile number)</p>
             </div>
 
             {/* Region & State */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="region" className="text-slate-700 font-medium">
+                <Label htmlFor="region" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Region
                 </Label>
                 <Input
@@ -160,7 +161,7 @@ export default function CreateSuperAdmin() {
                 />
               </div>
               <div>
-                <Label htmlFor="state" className="text-slate-700 font-medium">
+                <Label htmlFor="state" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   State
                 </Label>
                 <Input
@@ -174,7 +175,7 @@ export default function CreateSuperAdmin() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-slate-200 pt-6">
+            <div className="border-t pt-6" style={{ borderColor: 'var(--nm-border)' }}>
               <div className="flex gap-3">
                 <Button
                   type="button"
@@ -187,7 +188,7 @@ export default function CreateSuperAdmin() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-[#CF2030] hover:bg-[#A61926]"
+                  className="flex-1"
                 >
                   {loading ? 'Creating...' : 'Create Executive Director'}
                 </Button>

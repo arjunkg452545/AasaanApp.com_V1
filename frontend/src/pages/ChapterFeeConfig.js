@@ -96,26 +96,26 @@ export default function ChapterFeeConfig() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Chapter Fee Configuration</h1>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Chapter Fee Configuration</h1>
       </div>
 
       <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
         {/* Fee Amounts */}
         <Card className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
               <IndianRupee className="h-5 w-5 text-[#CF2030]" /> Fee Amounts
             </h2>
             {config?.is_override && (
@@ -165,7 +165,7 @@ export default function ChapterFeeConfig() {
             </div>
           </div>
           {!isAdmin && (
-            <Button onClick={handleSave} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
+            <Button onClick={handleSave} disabled={saving}>
               <Save className="h-4 w-4 mr-2" />
               {saving ? 'Saving...' : 'Save Fee Config'}
             </Button>
@@ -175,10 +175,10 @@ export default function ChapterFeeConfig() {
         {/* Generate Monthly Fees */}
         {isAdmin && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
               <Calendar className="h-5 w-5 text-[#005596]" /> Generate Monthly Fees
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               Generate kitty and meeting fee entries for all active members.
               Existing entries will be skipped (idempotent).
             </p>

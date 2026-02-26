@@ -751,36 +751,36 @@ export default function FundReports() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
+      <header className="nm-header">
         <div className="max-w-4xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')} data-testid="back-btn">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-slate-800">Fund Reports</h1>
-              <p className="text-xs md:text-sm text-slate-500">Download fund reports</p>
+              <h1 className="text-lg md:text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Fund Reports</h1>
+              <p className="text-xs md:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Download fund reports</p>
             </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-8">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6" data-testid="fund-reports-card">
+        <div className="rounded-2xl shadow-sm border p-4 md:p-6" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }} data-testid="fund-reports-card">
           
           {/* Filters */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
             {/* Duration Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                 Select Duration
               </label>
               <select
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                className="nm-input w-full px-4 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                 data-testid="duration-select"
               >
                 {durationOptions.map((opt) => (
@@ -793,7 +793,7 @@ export default function FundReports() {
 
             {/* Category Dropdown */}
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                 Select Category
               </label>
               <select
@@ -802,7 +802,7 @@ export default function FundReports() {
                   setCategory(e.target.value);
                   setSelectedEvent('');
                 }}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                className="nm-input w-full px-4 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                 data-testid="category-select"
               >
                 {categoryOptions.map((opt) => (
@@ -817,13 +817,13 @@ export default function FundReports() {
           {/* Event Dropdown - Only for Events category */}
           {category === 'events' && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-slate-600 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                 Select Event
               </label>
               <select
                 value={selectedEvent}
                 onChange={(e) => setSelectedEvent(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
+                className="nm-input w-full px-4 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all cursor-pointer"
                 data-testid="event-select"
               >
                 <option value="">-- Select Event --</option>
@@ -841,14 +841,14 @@ export default function FundReports() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
               {/* From Month/Year */}
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                   From Month
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     value={customFromMonth}
                     onChange={(e) => setCustomFromMonth(parseInt(e.target.value))}
-                    className="px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                    className="nm-input px-3 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                     data-testid="custom-from-month"
                   >
                     {monthOptions.map(m => (
@@ -858,7 +858,7 @@ export default function FundReports() {
                   <select
                     value={customFromYear}
                     onChange={(e) => setCustomFromYear(parseInt(e.target.value))}
-                    className="px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                    className="nm-input px-3 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                     data-testid="custom-from-year"
                   >
                     {yearOptions.map(y => (
@@ -870,14 +870,14 @@ export default function FundReports() {
               
               {/* To Month/Year */}
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                   To Month
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     value={customToMonth}
                     onChange={(e) => setCustomToMonth(parseInt(e.target.value))}
-                    className="px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                    className="nm-input px-3 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                     data-testid="custom-to-month"
                   >
                     {monthOptions.map(m => (
@@ -887,7 +887,7 @@ export default function FundReports() {
                   <select
                     value={customToYear}
                     onChange={(e) => setCustomToYear(parseInt(e.target.value))}
-                    className="px-3 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
+                    className="nm-input px-3 py-3 rounded-xl font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all cursor-pointer"
                     data-testid="custom-to-year"
                   >
                     {yearOptions.map(y => (
@@ -900,7 +900,7 @@ export default function FundReports() {
           )}
 
           {/* Divider */}
-          <div className="border-t border-slate-200 my-6"></div>
+          <div className="border-t my-6" style={{ borderColor: 'var(--nm-border)' }}></div>
 
           {/* Preview Button */}
           <button

@@ -94,20 +94,20 @@ export default function SuperAdminMembers() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/superadmin/dashboard')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
         <div className="flex items-center gap-3">
-          <h1 className="text-lg md:text-2xl font-bold text-slate-900">All Members</h1>
+          <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>All Members</h1>
           <Badge variant="outline">{filteredMembers.length} of {members.length}</Badge>
         </div>
       </div>
@@ -116,7 +116,7 @@ export default function SuperAdminMembers() {
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
             <Input
               placeholder="Search name, mobile, business..."
               value={searchQuery}
@@ -154,8 +154,8 @@ export default function SuperAdminMembers() {
         {/* Member List */}
         {filteredMembers.length === 0 ? (
           <Card className="p-8 text-center">
-            <Users className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No members found</p>
+            <Users className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p style={{ color: 'var(--nm-text-secondary)' }}>No members found</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -163,17 +163,17 @@ export default function SuperAdminMembers() {
               <Card key={member.member_id} className="p-3 md:p-4 hover:shadow-sm transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-semibold text-slate-600">{member.unique_member_id}</span>
+                    <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--nm-surface)' }}>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--nm-text-secondary)' }}>{member.unique_member_id}</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm text-slate-900 truncate">{member.full_name}</h3>
+                        <h3 className="font-medium text-sm truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h3>
                         <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                         <span>{member.primary_mobile}</span>
                         <span>&middot;</span>
                         <Building2 className="h-3 w-3" />
@@ -206,10 +206,10 @@ export default function SuperAdminMembers() {
             <DialogTitle>Transfer Member</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               Transferring: <strong>{selectedMember?.full_name}</strong>
               {selectedMember?.chapter_name && (
-                <span className="text-slate-400"> from {selectedMember.chapter_name}</span>
+                <span style={{ color: 'var(--nm-text-muted)' }}> from {selectedMember.chapter_name}</span>
               )}
             </p>
             <div>

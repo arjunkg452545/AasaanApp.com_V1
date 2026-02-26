@@ -1,8 +1,9 @@
-/* BNI QR Attendance System - Professional Corporate Theme */
+/* BNI AasaanApp — Neumorphic Theme */
 
 .App {
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: var(--nm-bg);
+  color: var(--nm-text-primary);
 }
 
 /* Custom animations */
@@ -28,6 +29,20 @@
   }
 }
 
+@keyframes nm-glow {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--nm-accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 16px var(--nm-accent-glow);
+  }
+}
+
+@keyframes theme-toggle-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out;
 }
@@ -36,11 +51,18 @@
   animation: pulse-ring 2s infinite;
 }
 
-/* Smooth transitions */
+.animate-nm-glow {
+  animation: nm-glow 2s ease-in-out infinite;
+}
+
+/* Smooth transitions for interactive elements */
 button,
 input,
-.card {
-  transition-property: background-color, border-color, box-shadow, transform;
+textarea,
+select,
+.card,
+a {
+  transition-property: background-color, border-color, box-shadow, transform, color;
   transition-duration: 200ms;
   transition-timing-function: ease-in-out;
 }
@@ -49,21 +71,40 @@ button:active {
   transform: scale(0.98);
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — Light */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F1F5F9;
+  background: var(--nm-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: var(--nm-shadow-dark);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: var(--nm-text-muted);
+}
+
+/* Dark scrollbar override */
+.dark ::-webkit-scrollbar-track {
+  background: #0F0F1A;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2A2A3E;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3A3A50;
+}
+
+/* Selection color */
+::selection {
+  background: var(--nm-accent);
+  color: white;
 }

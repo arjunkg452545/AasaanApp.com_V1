@@ -61,11 +61,11 @@ export default function MemberPayments() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
-      <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">My Payments</h1>
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" style={{ background: 'var(--nm-bg)' }}>
+      <h1 className="text-xl md:text-2xl font-bold mb-4" style={{ color: 'var(--nm-text-primary)' }}>My Payments</h1>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white rounded-lg p-1 border mb-4 overflow-x-auto">
+      <div className="flex gap-1 rounded-lg p-1 border mb-4 overflow-x-auto" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
         {TABS.map(tab => (
           <button
             key={tab.id}
@@ -73,8 +73,9 @@ export default function MemberPayments() {
             className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.id
                 ? 'bg-[#CF2030] text-white'
-                : 'text-slate-600 hover:bg-slate-100'
+                : ''
             }`}
+            style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : undefined}
           >
             {tab.label}
           </button>
@@ -83,12 +84,12 @@ export default function MemberPayments() {
 
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
         </div>
       ) : fees.length === 0 ? (
         <Card className="p-8 text-center">
-          <Wallet className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No payments found</p>
+          <Wallet className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+          <p style={{ color: 'var(--nm-text-secondary)' }}>No payments found</p>
         </Card>
       ) : (
         <div className="space-y-2">
@@ -100,27 +101,27 @@ export default function MemberPayments() {
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900 truncate">{fee.description}</p>
+                  <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{fee.description}</p>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       {fee.fee_type?.replace('_', ' ')}
                     </span>
                     {fee.due_date && (
                       <>
-                        <span className="text-xs text-slate-300">&middot;</span>
-                        <span className="text-xs text-slate-400">Due: {fee.due_date}</span>
+                        <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>&middot;</span>
+                        <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Due: {fee.due_date}</span>
                       </>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="text-right">
-                    <p className="text-sm font-bold text-slate-900">{formatCurrency(fee.amount)}</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(fee.amount)}</p>
                     <Badge className={`text-[10px] ${STATUS_COLORS[fee.status] || ''}`}>
                       {STATUS_LABELS[fee.status] || fee.status}
                     </Badge>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-slate-300" />
+                  <ChevronRight className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                 </div>
               </div>
             </Card>

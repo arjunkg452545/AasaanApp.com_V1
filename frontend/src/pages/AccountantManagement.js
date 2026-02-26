@@ -73,7 +73,7 @@ export default function AccountantManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function AccountantManagement() {
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Accountants</h1>
+        <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Accountants</h1>
         <Button onClick={() => setCreateOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
           <Plus className="h-4 w-4 mr-2" /> Add Accountant
         </Button>
@@ -89,9 +89,9 @@ export default function AccountantManagement() {
 
       {accountants.length === 0 ? (
         <Card className="p-8 text-center">
-          <Calculator className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No accountants yet</p>
-          <p className="text-xs text-slate-400 mt-1">Create an accountant to help with payment verification</p>
+          <Calculator className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+          <p style={{ color: 'var(--nm-text-secondary)' }}>No accountants yet</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--nm-text-muted)' }}>Create an accountant to help with payment verification</p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -105,8 +105,8 @@ export default function AccountantManagement() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{acc.name}</p>
-                    <div className="flex items-center gap-3 text-xs text-slate-400">
+                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{acc.name}</p>
+                    <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       <span className="flex items-center gap-1">
                         <Phone className="h-3 w-3" /> {acc.mobile}
                       </span>

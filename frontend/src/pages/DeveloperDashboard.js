@@ -73,8 +73,8 @@ export default function DeveloperDashboard() {
     return (
       <div className="flex items-center justify-center py-32">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto mb-4" />
-          <p className="text-slate-500 text-sm">Loading dashboard...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" style={{ color: 'var(--nm-text-muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Loading dashboard...</p>
         </div>
       </div>
     );
@@ -92,8 +92,8 @@ export default function DeveloperDashboard() {
     <div className="space-y-8">
       {/* Page Title */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Overview of your platform</p>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Dashboard</h1>
+        <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Overview of your platform</p>
       </div>
 
       {/* Stats Grid — explicit classes for Tailwind JIT */}
@@ -101,8 +101,8 @@ export default function DeveloperDashboard() {
         <Card className="p-5 border-l-4 border-l-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500 font-medium">Total EDs</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1">{stats.total_eds}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total EDs</p>
+              <p className="text-3xl font-bold mt-1" style={{ color: 'var(--nm-text-primary)' }}>{stats.total_eds}</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center">
               <UserCheck className="h-6 w-6 text-blue-500" />
@@ -112,8 +112,8 @@ export default function DeveloperDashboard() {
         <Card className="p-5 border-l-4 border-l-emerald-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500 font-medium">Total Chapters</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1">{stats.total_chapters}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total Chapters</p>
+              <p className="text-3xl font-bold mt-1" style={{ color: 'var(--nm-text-primary)' }}>{stats.total_chapters}</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-emerald-50 flex items-center justify-center">
               <Building2 className="h-6 w-6 text-emerald-500" />
@@ -123,8 +123,8 @@ export default function DeveloperDashboard() {
         <Card className="p-5 border-l-4 border-l-violet-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500 font-medium">Total Members</p>
-              <p className="text-3xl font-bold text-slate-900 mt-1">{stats.total_members}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total Members</p>
+              <p className="text-3xl font-bold mt-1" style={{ color: 'var(--nm-text-primary)' }}>{stats.total_members}</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-violet-50 flex items-center justify-center">
               <Users className="h-6 w-6 text-violet-500" />
@@ -134,8 +134,8 @@ export default function DeveloperDashboard() {
         <Card className="p-5 border-l-4 border-l-amber-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-500 font-medium">Total Revenue</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{formatCurrency(stats.total_revenue)}</p>
+              <p className="text-sm font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total Revenue</p>
+              <p className="text-2xl font-bold mt-1" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(stats.total_revenue)}</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-amber-50 flex items-center justify-center">
               <IndianRupee className="h-6 w-6 text-amber-500" />
@@ -147,11 +147,10 @@ export default function DeveloperDashboard() {
       {/* Recent Subscriptions */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Recent Subscriptions</h2>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Recent Subscriptions</h2>
           <Button
             variant="ghost"
             size="sm"
-            className="text-slate-500 hover:text-slate-900"
             onClick={() => navigate('/developer/subscriptions')}
           >
             View All
@@ -161,7 +160,7 @@ export default function DeveloperDashboard() {
 
         {recentSubs.length === 0 ? (
           <Card className="p-8 text-center">
-            <p className="text-slate-500 text-sm">No subscriptions yet.</p>
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No subscriptions yet.</p>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -169,14 +168,14 @@ export default function DeveloperDashboard() {
               <Card key={sub.id || idx} className="p-4 hover:shadow-sm transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-lg bg-slate-100 flex items-center justify-center shrink-0">
-                      <UserCheck className="h-4 w-4 text-slate-500" />
+                    <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--nm-surface)' }}>
+                      <UserCheck className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="font-medium text-slate-900 truncate">
+                      <p className="font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>
                         {sub.ed_name || sub.superadmin_name || 'Unknown ED'}
                       </p>
-                      <p className="text-xs text-slate-400">
+                      <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                         Expires {formatDate(sub.expiry_date || sub.end_date)}
                       </p>
                     </div>
@@ -198,16 +197,16 @@ export default function DeveloperDashboard() {
 
       {/* Quick Links */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Quick Links</h2>
+        <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Quick Links</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {quickLinks.map((link) => (
             <Link key={link.path} to={link.path} className="block">
               <Card className="p-5 hover:shadow-md transition-all group cursor-pointer">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-slate-700 group-hover:text-slate-900">
+                  <span className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                     {link.label}
                   </span>
-                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                  <ArrowRight className="h-4 w-4 transition-colors" style={{ color: 'var(--nm-text-muted)' }} />
                 </div>
               </Card>
             </Link>

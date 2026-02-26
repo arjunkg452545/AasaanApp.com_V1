@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "./components/ui/sonner";
 
 import Login from "./pages/Login";
@@ -88,6 +89,7 @@ function App() {
   }, []);
 
   return (
+    <ThemeProvider attribute="class" defaultTheme="light" storageKey="aasaan-theme" enableSystem={false}>
     <div className="App">
       <BrowserRouter>
         <Routes>
@@ -367,6 +369,7 @@ function App() {
       {!window.location.pathname.startsWith('/attendance') && <InstallPWA />}
       <Toaster position="top-right" />
     </div>
+    </ThemeProvider>
   );
 }
 

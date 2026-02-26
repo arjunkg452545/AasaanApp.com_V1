@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { LogOut, Users, ClipboardList, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function ChapterAdminDashboard() {
   const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0, expiringSoon: 0, pendingVerifications: 0 });
@@ -52,24 +53,27 @@ export default function ChapterAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header - Mobile optimized */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-6 lg:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="nm-header px-4 md:px-6 lg:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
           <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-10 md:h-12 w-auto rounded-lg" />
           <div>
-            <h1 className="text-xl md:text-2xl lg:text-[28px] font-bold text-slate-900 truncate max-w-[180px] md:max-w-none">{chapterName}</h1>
-            <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">Chapter Admin Dashboard</p>
+            <h1 className="text-xl md:text-2xl lg:text-[28px] font-bold truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-primary)' }}>{chapterName}</h1>
+            <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Chapter Admin Dashboard</p>
           </div>
         </div>
-        <Button data-testid="logout-btn" variant="outline" onClick={handleLogout} size="sm" className="min-w-[48px] min-h-[48px] md:min-w-0 md:min-h-0">
-          <LogOut className="h-4 w-4 md:mr-2" />
-          <span className="hidden md:inline">Logout</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button data-testid="logout-btn" variant="outline" onClick={handleLogout} size="sm" className="min-w-[48px] min-h-[48px] md:min-w-0 md:min-h-0">
+            <LogOut className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Logout</span>
+          </Button>
+        </div>
       </div>
 
       <div className="px-4 md:px-6 lg:px-8 py-5 md:py-7 lg:py-9 max-w-full md:max-w-[720px] lg:max-w-[1200px] mx-auto">
-        <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold text-slate-900 mb-5 md:mb-7 lg:mb-9">Welcome Back</h2>
+        <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-5 md:mb-7 lg:mb-9" style={{ color: 'var(--nm-text-primary)' }}>Welcome Back</h2>
 
         {/* Main Cards - Responsive Grid */}
         {/* Verification Banner */}
@@ -105,11 +109,11 @@ export default function ChapterAdminDashboard() {
                 <Users className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-[#CF2030]" />
               </div>
               <div className="flex-1 md:flex-none">
-                <h3 className="text-base md:text-lg lg:text-xl font-semibold text-slate-900">Members</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Manage members</p>
+                <h3 className="text-base md:text-lg lg:text-xl font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Members</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm mb-1 md:mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Manage members</p>
                 <div className="inline-flex items-center gap-1 md:gap-2 bg-[#CF2030]/10 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
                   <span className="text-sm md:text-base lg:text-lg font-bold text-[#CF2030]">{stats.members}</span>
-                  <span className="text-xs md:text-[13px] text-slate-600">Total</span>
+                  <span className="text-xs md:text-[13px]" style={{ color: 'var(--nm-text-secondary)' }}>Total</span>
                 </div>
               </div>
             </div>
@@ -126,11 +130,11 @@ export default function ChapterAdminDashboard() {
                 <ClipboardList className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-[#005596]" />
               </div>
               <div className="flex-1 md:flex-none">
-                <h3 className="text-base md:text-lg lg:text-xl font-semibold text-slate-900">Meeting Management</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Meetings, QR & Reports</p>
+                <h3 className="text-base md:text-lg lg:text-xl font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Management</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm mb-1 md:mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Meetings, QR & Reports</p>
                 <div className="inline-flex items-center gap-1 md:gap-2 bg-[#005596]/10 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
                   <span className="text-sm md:text-base lg:text-lg font-bold text-[#005596]">{stats.meetings}</span>
-                  <span className="text-xs md:text-[13px] text-slate-600">Meetings</span>
+                  <span className="text-xs md:text-[13px]" style={{ color: 'var(--nm-text-secondary)' }}>Meetings</span>
                 </div>
               </div>
             </div>
@@ -147,8 +151,8 @@ export default function ChapterAdminDashboard() {
                 <Wallet className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-green-600" />
               </div>
               <div className="flex-1 md:flex-none">
-                <h3 className="text-base md:text-lg lg:text-xl font-semibold text-slate-900">Fund Management</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Payments & Collections</p>
+                <h3 className="text-base md:text-lg lg:text-xl font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Fund Management</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm mb-1 md:mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Payments & Collections</p>
                 <div className="inline-flex items-center gap-1 md:gap-2 bg-green-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
                   <span className="text-sm md:text-base lg:text-lg font-bold text-green-600">{formatCurrency(stats.fundTotal)}</span>
                 </div>
@@ -167,11 +171,11 @@ export default function ChapterAdminDashboard() {
                 <AlertTriangle className="h-6 w-6 md:h-7 md:w-7 lg:h-8 lg:w-8 text-amber-600" />
               </div>
               <div className="flex-1 md:flex-none">
-                <h3 className="text-base md:text-lg lg:text-xl font-semibold text-slate-900">Renewals</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 mb-1 md:mb-2">Expiring soon</p>
+                <h3 className="text-base md:text-lg lg:text-xl font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Renewals</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm mb-1 md:mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Expiring soon</p>
                 <div className="inline-flex items-center gap-1 md:gap-2 bg-amber-100 px-2 md:px-3 py-0.5 md:py-1 rounded-full">
                   <span className="text-sm md:text-base lg:text-lg font-bold text-amber-600">{stats.expiringSoon}</span>
-                  <span className="text-xs md:text-[13px] text-slate-600">Members</span>
+                  <span className="text-xs md:text-[13px]" style={{ color: 'var(--nm-text-secondary)' }}>Members</span>
                 </div>
               </div>
             </div>

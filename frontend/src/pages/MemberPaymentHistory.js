@@ -50,7 +50,7 @@ export default function MemberPaymentHistory() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -58,13 +58,13 @@ export default function MemberPaymentHistory() {
   const grouped = groupByMonth(payments);
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
-      <h1 className="text-xl md:text-2xl font-bold text-slate-900 mb-4">Payment History</h1>
+    <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto" style={{ background: 'var(--nm-bg)' }}>
+      <h1 className="text-xl md:text-2xl font-bold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Payment History</h1>
 
       {payments.length === 0 ? (
         <Card className="p-8 text-center">
-          <History className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No completed payments yet</p>
+          <History className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+          <p style={{ color: 'var(--nm-text-secondary)' }}>No completed payments yet</p>
         </Card>
       ) : (
         <div className="space-y-6">
@@ -76,7 +76,7 @@ export default function MemberPaymentHistory() {
 
             return (
               <div key={key}>
-                <h2 className="text-sm font-semibold text-slate-500 mb-2">{label}</h2>
+                <h2 className="text-sm font-semibold mb-2" style={{ color: 'var(--nm-text-secondary)' }}>{label}</h2>
                 <div className="space-y-2">
                   {items.map(p => (
                     <Card
@@ -88,8 +88,8 @@ export default function MemberPaymentHistory() {
                         <div className="flex items-center gap-3 min-w-0">
                           <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate">{p.description}</p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{p.description}</p>
+                            <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                               {p.payment_method?.toUpperCase()} {p.payment_date ? `| ${p.payment_date}` : ''}
                             </p>
                           </div>

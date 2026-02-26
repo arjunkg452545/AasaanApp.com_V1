@@ -42,6 +42,7 @@ import {
   ChevronRight,
   UserCheck,
 } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -256,9 +257,9 @@ export default function SuperAdminDashboard() {
   const renderSubscriptionBanner = () => {
     if (!subscription) {
       return (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 flex items-center gap-3">
-          <CreditCard className="h-5 w-5 text-slate-400 shrink-0" />
-          <p className="text-sm text-slate-500">No active subscription.</p>
+        <div className="rounded-lg px-5 py-4 flex items-center gap-3" style={{ borderColor: 'var(--nm-border)', borderWidth: '1px', borderStyle: 'solid', background: 'var(--nm-surface)' }}>
+          <CreditCard className="h-5 w-5 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No active subscription.</p>
         </div>
       );
     }
@@ -324,7 +325,7 @@ export default function SuperAdminDashboard() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* ===== Header ===== */}
       <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -346,6 +347,7 @@ export default function SuperAdminDashboard() {
                 ED: <span className="font-medium text-white">{edMobile}</span>
               </span>
             )}
+            <ThemeToggle />
             <Button
               data-testid="logout-btn"
               variant="ghost"
@@ -374,8 +376,8 @@ export default function SuperAdminDashboard() {
                 <Building2 className="h-5 w-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Total Chapters</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.total_chapters}</p>
+                <p className="text-xs uppercase tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total Chapters</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{stats.total_chapters}</p>
               </div>
             </div>
           </Card>
@@ -387,8 +389,8 @@ export default function SuperAdminDashboard() {
                 <Users className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Total Members</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.total_members}</p>
+                <p className="text-xs uppercase tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Total Members</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{stats.total_members}</p>
               </div>
             </div>
           </Card>
@@ -400,8 +402,8 @@ export default function SuperAdminDashboard() {
                 <CheckCircle className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Active Chapters</p>
-                <p className="text-2xl font-bold text-slate-900">{stats.active_chapters}</p>
+                <p className="text-xs uppercase tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Active Chapters</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{stats.active_chapters}</p>
               </div>
             </div>
           </Card>
@@ -413,8 +415,8 @@ export default function SuperAdminDashboard() {
                 <IndianRupee className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">This Month</p>
-                <p className="text-2xl font-bold text-slate-900">
+                <p className="text-xs uppercase tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>This Month</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
                   {formatINR(stats.this_month_collection)}
                 </p>
               </div>
@@ -443,12 +445,11 @@ export default function SuperAdminDashboard() {
           <Button
             data-testid="create-chapter-btn"
             onClick={() => setCreateOpen(true)}
-            className="bg-[#CF2030] hover:bg-[#A61926]"
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Chapter
           </Button>
-          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/members/pending')}>
+          <Button variant="outline" onClick={() => navigate('/superadmin/members/pending')}>
             <UserCheck className="h-4 w-4 mr-2" />
             Pending Approvals
             {stats.pending_members > 0 && (
@@ -457,19 +458,19 @@ export default function SuperAdminDashboard() {
               </span>
             )}
           </Button>
-          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/members')}>
+          <Button variant="outline" onClick={() => navigate('/superadmin/members')}>
             <Users className="h-4 w-4 mr-2" />
             All Members
           </Button>
-          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/payment-config')}>
+          <Button variant="outline" onClick={() => navigate('/superadmin/payment-config')}>
             <CreditCard className="h-4 w-4 mr-2" />
             Payment Config
           </Button>
-          <Button variant="outline" className="text-slate-600" onClick={() => navigate('/superadmin/accountants')}>
+          <Button variant="outline" onClick={() => navigate('/superadmin/accountants')}>
             <UserCheck className="h-4 w-4 mr-2" />
             Accountants
           </Button>
-          <Button variant="outline" className="text-slate-600">
+          <Button variant="outline">
             <Settings className="h-4 w-4 mr-2" />
             Manage Admins
           </Button>
@@ -478,7 +479,7 @@ export default function SuperAdminDashboard() {
         {/* --- Search & Filter --- */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
             <Input
               data-testid="search-input"
               placeholder="Search by chapter name, city, or region..."
@@ -502,11 +503,11 @@ export default function SuperAdminDashboard() {
 
         {/* --- Chapter Cards Grid --- */}
         {loading ? (
-          <div className="text-center py-16 text-slate-500">Loading dashboard...</div>
+          <div className="text-center py-16" style={{ color: 'var(--nm-text-secondary)' }}>Loading dashboard...</div>
         ) : filteredChapters.length === 0 ? (
           <div className="text-center py-16">
-            <Building2 className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">
+            <Building2 className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p style={{ color: 'var(--nm-text-secondary)' }}>
               {chapters.length === 0
                 ? 'No chapters yet. Create your first chapter to get started.'
                 : 'No chapters match your search or filter.'}
@@ -531,8 +532,8 @@ export default function SuperAdminDashboard() {
                         <Building2 className="h-5 w-5 text-[#CF2030]" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-slate-900 truncate">{chapter.name}</h3>
-                        <p className="text-xs text-slate-400">ID: {chapter.chapter_id}</p>
+                        <h3 className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{chapter.name}</h3>
+                        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>ID: {chapter.chapter_id}</p>
                       </div>
                     </div>
                     <Badge
@@ -543,19 +544,19 @@ export default function SuperAdminDashboard() {
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-2 text-sm text-slate-600">
+                  <div className="space-y-2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-slate-400 shrink-0" />
+                      <Users className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
                       <span>{chapter.member_count ?? 0} Members</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
+                      <ShieldAlert className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
                       <span className="truncate">Admin: {chapter.admin_mobile || 'N/A'}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-slate-400 shrink-0" />
+                      <CalendarDays className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
                       <span>
                         {chapter.last_meeting_date
                           ? `Last meeting: ${formatDate(chapter.last_meeting_date)}`
@@ -565,7 +566,7 @@ export default function SuperAdminDashboard() {
 
                     {(chapter.region || chapter.city || chapter.state) && (
                       <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                        <MapPin className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
                         <span className="truncate">
                           {[chapter.city, chapter.state, chapter.region].filter(Boolean).join(', ')}
                         </span>
@@ -656,7 +657,8 @@ export default function SuperAdminDashboard() {
                 />
                 <button
                   type="button"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--nm-text-muted)' }}
                   onClick={() => setShowCreatePassword(!showCreatePassword)}
                   tabIndex={-1}
                 >
@@ -699,7 +701,7 @@ export default function SuperAdminDashboard() {
             <Button
               data-testid="submit-chapter-btn"
               type="submit"
-              className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+              className="w-full"
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Chapter
@@ -715,7 +717,7 @@ export default function SuperAdminDashboard() {
             <DialogTitle>
               Update Credentials
               {selectedChapter && (
-                <span className="block text-sm font-normal text-slate-500 mt-1">
+                <span className="block text-sm font-normal mt-1" style={{ color: 'var(--nm-text-secondary)' }}>
                   {selectedChapter.name}
                 </span>
               )}
@@ -749,7 +751,8 @@ export default function SuperAdminDashboard() {
                 />
                 <button
                   type="button"
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--nm-text-muted)' }}
                   onClick={() => setShowEditPassword(!showEditPassword)}
                   tabIndex={-1}
                 >
@@ -761,7 +764,7 @@ export default function SuperAdminDashboard() {
             <Button
               data-testid="update-credentials-btn"
               type="submit"
-              className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+              className="w-full"
             >
               Update Credentials
             </Button>

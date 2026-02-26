@@ -39,20 +39,20 @@ export default function PaymentGatewaySetup() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Payment Gateways</h1>
-        <p className="text-sm text-slate-500">Online payment gateway integrations</p>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Gateways</h1>
+        <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Online payment gateway integrations</p>
       </div>
 
       <div className="p-4 md:p-8 max-w-3xl mx-auto">
@@ -78,23 +78,22 @@ export default function PaymentGatewaySetup() {
               className="p-5 md:p-6 opacity-60 cursor-not-allowed"
             >
               <div className="flex items-center gap-4">
-                <div className="h-14 w-14 rounded-xl bg-slate-100 flex items-center justify-center text-2xl shrink-0">
+                <div className="h-14 w-14 rounded-xl flex items-center justify-center text-2xl shrink-0" style={{ background: 'var(--nm-surface)' }}>
                   {GATEWAY_ICONS[gw.provider] || '💳'}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-lg font-semibold text-slate-900">{gw.name}</h3>
+                    <h3 className="text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{gw.name}</h3>
                     <Badge className="bg-amber-100 text-amber-700 text-[10px]">
                       <Lock className="h-2.5 w-2.5 mr-1" />
                       Coming Soon
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-500">{gw.description}</p>
+                  <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{gw.description}</p>
                 </div>
                 <Button
                   variant="outline"
                   disabled
-                  className="border-slate-300 text-slate-400"
                 >
                   <CreditCard className="h-4 w-4 mr-2" />
                   Setup
@@ -102,10 +101,10 @@ export default function PaymentGatewaySetup() {
               </div>
 
               {/* Features preview */}
-              <div className="mt-4 pt-4 border-t border-slate-100">
+              <div className="mt-4 pt-4" style={{ borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--nm-border)' }}>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {['Cards', 'UPI', 'Net Banking', 'Wallets'].map(feature => (
-                    <div key={feature} className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <div key={feature} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       <CheckCircle2 className="h-3 w-3" />
                       {feature}
                     </div>
@@ -118,7 +117,7 @@ export default function PaymentGatewaySetup() {
 
         {/* Current Payment Methods */}
         <Card className="mt-6 p-5 md:p-6 border-l-4 border-l-emerald-500">
-          <h3 className="text-base font-semibold text-slate-900 mb-3">Currently Available Methods</h3>
+          <h3 className="text-base font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Currently Available Methods</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg">
               <span className="text-xl">📱</span>

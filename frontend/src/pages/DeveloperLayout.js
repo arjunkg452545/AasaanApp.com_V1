@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, CreditCard, Settings,
   LogOut, Menu, X, Code2
 } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 const navItems = [
   { label: 'Dashboard', path: '/developer/dashboard', icon: LayoutDashboard },
@@ -39,11 +40,12 @@ export default function DeveloperLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex" style={{ background: 'var(--nm-bg)' }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: 'var(--nm-overlay)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -51,14 +53,14 @@ export default function DeveloperLayout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col
+          fixed inset-y-0 left-0 z-50 w-64 nm-sidebar flex flex-col
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0 lg:static lg:z-auto
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Logo area */}
-        <div className="px-5 py-5 border-b border-slate-800">
+        <div className="px-5 py-5" style={{ borderBottom: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
@@ -67,20 +69,21 @@ export default function DeveloperLayout() {
                 className="h-9 w-auto rounded-lg"
               />
               <div>
-                <h1 className="text-base font-bold leading-tight">Developer Console</h1>
+                <h1 className="text-base font-bold leading-tight" style={{ color: 'var(--nm-text-primary)' }}>Developer Console</h1>
                 <Badge
                   variant="outline"
-                  className="text-[10px] border-slate-600 text-slate-300 mt-1"
+                  className="text-[10px] mt-1"
+                  style={{ color: 'var(--nm-text-secondary)', borderColor: 'var(--nm-border)' }}
                 >
                   <Code2 className="h-3 w-3 mr-1" />
                   Admin
                 </Badge>
               </div>
             </div>
-            {/* Close button on mobile */}
             <button
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white"
+              className="lg:hidden p-1 rounded-lg nm-btn"
+              style={{ color: 'var(--nm-text-muted)' }}
             >
               <X className="h-5 w-5" />
             </button>
@@ -88,7 +91,7 @@ export default function DeveloperLayout() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -98,10 +101,10 @@ export default function DeveloperLayout() {
                 onClick={() => handleNavClick(item.path)}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  transition-colors duration-150
+                  transition-all duration-200
                   ${active
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                    ? 'nm-sidebar-item-active'
+                    : 'nm-sidebar-item'
                   }
                 `}
               >
@@ -112,21 +115,25 @@ export default function DeveloperLayout() {
           })}
         </nav>
 
-        {/* Bottom: Developer info + Logout */}
-        <div className="px-4 py-4 border-t border-slate-800">
+        {/* Bottom: Dev info + Theme + Logout */}
+        <div className="px-4 py-4" style={{ borderTop: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-white truncate">{devName}</p>
-              <p className="text-xs text-slate-500">Developer</p>
+              <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{devName}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Developer</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="shrink-0 text-slate-400 hover:text-white hover:bg-slate-800"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="shrink-0"
+                style={{ color: 'var(--nm-text-muted)' }}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </aside>
@@ -134,21 +141,23 @@ export default function DeveloperLayout() {
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Mobile top bar */}
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center gap-3">
+        <div className="lg:hidden nm-header px-4 py-3 flex items-center gap-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-md hover:bg-slate-100 text-slate-600"
+            className="p-2 rounded-lg nm-btn"
+            style={{ color: 'var(--nm-text-secondary)' }}
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <img
               src="/icons/aasaan-logo.png"
               alt="Aasaan App"
               className="h-7 w-auto rounded"
             />
-            <span className="text-sm font-semibold text-slate-900">Developer Console</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Developer Console</span>
           </div>
+          <ThemeToggle />
         </div>
 
         {/* Page content */}

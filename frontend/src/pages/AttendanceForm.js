@@ -24,7 +24,7 @@ export default function AttendanceForm() {
   const [type, setType] = useState('member');
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
   const [ipAddress, setIpAddress] = useState('');
-  
+
   const [selectedMember, setSelectedMember] = useState('');
   const [selectedForMember, setSelectedForMember] = useState('');
   const [substituteName, setSubstituteName] = useState('');
@@ -33,7 +33,7 @@ export default function AttendanceForm() {
   const [visitorMobile, setVisitorMobile] = useState('');
   const [visitorCompany, setVisitorCompany] = useState('');
   const [invitedByMember, setInvitedByMember] = useState('');
-  
+
   const navigate = useNavigate();
 
   // Helper function to scroll submit button into view after dropdown selection
@@ -52,7 +52,7 @@ export default function AttendanceForm() {
       setLoading(false);
       return;
     }
-    
+
     // Check if this token was already used (localStorage check)
     const usedTokens = JSON.parse(localStorage.getItem('usedAttendanceTokens') || '[]');
     if (usedTokens.includes(token)) {
@@ -60,10 +60,10 @@ export default function AttendanceForm() {
       setLoading(false);
       return;
     }
-    
+
     // OPTIMIZED: Verify QR first (critical path), then load other things in background
     verifyQR();
-    
+
     // Non-blocking: Load fingerprint and IP in background (not needed for initial render)
     setTimeout(() => {
       initFingerprint();
@@ -98,16 +98,16 @@ export default function AttendanceForm() {
       // Step 1: Verify QR token (fast)
       const qrResponse = await axios.get(`${API}/qr/verify/${token}`);
       setMeetingInfo(qrResponse.data);
-      
+
       // Step 2: Fetch members list
       const membersRes = await axios.get(`${API}/members/${qrResponse.data.chapter_id}`);
-      
+
       // Step 3: Sort alphabetically (A-Z) - quick operation
-      const sortedMembers = [...membersRes.data].sort((a, b) => 
+      const sortedMembers = [...membersRes.data].sort((a, b) =>
         (a.full_name || '').toLowerCase().localeCompare((b.full_name || '').toLowerCase())
       );
       setMembers(sortedMembers);
-      
+
       // Done - show form immediately
       setLoading(false);
     } catch (err) {
@@ -162,7 +162,7 @@ export default function AttendanceForm() {
       }
 
       const response = await axios.post(`${API}/attendance/mark`, attendanceData);
-      
+
       // Mark token as used in localStorage to prevent resubmission
       const usedTokens = JSON.parse(localStorage.getItem('usedAttendanceTokens') || '[]');
       usedTokens.push(token);
@@ -171,10 +171,10 @@ export default function AttendanceForm() {
         usedTokens.shift();
       }
       localStorage.setItem('usedAttendanceTokens', JSON.stringify(usedTokens));
-      
+
       setSuccess(true);
       toast.success('Attendance marked successfully!');
-      
+
       // Clear URL to prevent resubmission on refresh
       window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
@@ -187,7 +187,7 @@ export default function AttendanceForm() {
   // Show loading state with fast skeleton
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
         <div className="bg-gradient-to-r from-[#CF2030] to-[#A61926] text-white p-6 rounded-b-3xl shadow-xl">
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 bg-white/30 rounded-lg animate-pulse"></div>
@@ -198,17 +198,17 @@ export default function AttendanceForm() {
           </div>
         </div>
         <div className="px-4 mt-6 space-y-4">
-          <div className="bg-white rounded-xl p-5 shadow-sm">
-            <div className="h-5 w-24 bg-slate-200 rounded animate-pulse mb-3"></div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="h-10 bg-slate-100 rounded animate-pulse"></div>
-              <div className="h-10 bg-slate-100 rounded animate-pulse"></div>
-              <div className="h-10 bg-slate-100 rounded animate-pulse"></div>
+          <div className="nm-raised rounded-xl p-5">
+            <div className="h-5 w-24 rounded animate-pulse" style={{ background: 'var(--nm-border)' }}></div>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="h-10 nm-inset rounded animate-pulse"></div>
+              <div className="h-10 nm-inset rounded animate-pulse"></div>
+              <div className="h-10 nm-inset rounded animate-pulse"></div>
             </div>
           </div>
-          <div className="bg-white rounded-xl p-5 shadow-sm">
-            <div className="h-5 w-32 bg-slate-200 rounded animate-pulse mb-3"></div>
-            <div className="h-12 bg-slate-100 rounded animate-pulse"></div>
+          <div className="nm-raised rounded-xl p-5">
+            <div className="h-5 w-32 rounded animate-pulse" style={{ background: 'var(--nm-border)' }}></div>
+            <div className="h-12 nm-inset rounded animate-pulse mt-3"></div>
           </div>
         </div>
       </div>
@@ -218,15 +218,15 @@ export default function AttendanceForm() {
   // Show error state only if error is set
   if (error || !meetingInfo) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--nm-bg)' }}>
+        <div className="nm-raised rounded-3xl p-8 max-w-md w-full text-center">
+          <div className="h-16 w-16 rounded-full nm-pressed flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
             <span className="text-4xl">❌</span>
           </div>
-          <h2 className="text-2xl font-bold text-red-600 mb-3">Invalid or Expired QR Code</h2>
-          <p className="text-slate-600 mb-4">Please scan a valid QR code from the meeting display.</p>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-800">💡 Make sure you're scanning the latest QR code from the meeting screen</p>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#CF2030' }}>Invalid or Expired QR Code</h2>
+          <p className="mb-4" style={{ color: 'var(--nm-text-secondary)' }}>Please scan a valid QR code from the meeting display.</p>
+          <div className="nm-inset rounded-lg p-3" style={{ background: 'rgba(234, 179, 8, 0.08)' }}>
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>💡 Make sure you're scanning the latest QR code from the meeting screen</p>
           </div>
         </div>
       </div>
@@ -235,21 +235,21 @@ export default function AttendanceForm() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center p-4">
-        <Card className="p-8 text-center max-w-md w-full shadow-xl">
-          <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--nm-bg)' }}>
+        <Card className="p-8 text-center max-w-md w-full">
+          <div className="h-20 w-20 rounded-full nm-pressed flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(34, 197, 94, 0.1)' }}>
             <CheckCircle2 className="h-12 w-12 text-green-600" />
           </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-3">Attendance Marked!</h2>
-          <p className="text-slate-600 mb-6">Your attendance has been recorded successfully.</p>
-          
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-blue-800 font-semibold">✓ Thank you for attending</p>
-            <p className="text-xs text-blue-600 mt-1">You may close this page now</p>
+          <h2 className="text-3xl font-bold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Attendance Marked!</h2>
+          <p className="mb-6" style={{ color: 'var(--nm-text-secondary)' }}>Your attendance has been recorded successfully.</p>
+
+          <div className="nm-inset rounded-lg p-4 mb-4" style={{ background: 'rgba(59, 130, 246, 0.08)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--nm-accent)' }}>✓ Thank you for attending</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--nm-text-muted)' }}>You may close this page now</p>
           </div>
-          
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-xs text-yellow-800">
+
+          <div className="nm-inset rounded-lg p-3" style={{ background: 'rgba(234, 179, 8, 0.08)' }}>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
               ⚠️ This QR code has been used. Scan a new QR code to mark attendance again.
             </p>
           </div>
@@ -259,7 +259,7 @@ export default function AttendanceForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pb-24">
+    <div className="min-h-screen pb-24" style={{ background: 'var(--nm-bg)' }}>
       <div className="bg-gradient-to-r from-[#CF2030] to-[#A61926] text-white p-6 rounded-b-3xl shadow-xl mb-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
         <div className="relative z-10 flex items-center gap-3">
@@ -276,7 +276,7 @@ export default function AttendanceForm() {
 
       <div className="px-4 space-y-4">
         <Card className="p-5">
-          <h2 className="text-lg font-bold text-slate-900 mb-3">Select Type</h2>
+          <h2 className="text-lg font-bold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Select Type</h2>
           <div className="grid grid-cols-3 gap-2">
             <Button
               data-testid="type-member-btn"
@@ -312,7 +312,7 @@ export default function AttendanceForm() {
           {type === 'member' && (
             <Card className="p-6 space-y-4">
               <div>
-                <Label>Select Your Name</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Select Your Name</Label>
                 <select
                   data-testid="member-select"
                   value={selectedMember}
@@ -321,7 +321,8 @@ export default function AttendanceForm() {
                     scrollToSubmitButton();
                   }}
                   required
-                  className="mt-2 w-full min-h-[44px] px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CF2030] focus:border-transparent"
+                  className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg nm-input focus:outline-none"
+                  style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)' }}
                 >
                   <option value="">-- Select Member --</option>
                   {members.map((member) => (
@@ -337,7 +338,7 @@ export default function AttendanceForm() {
           {type === 'substitute' && (
             <Card className="p-6 space-y-4">
               <div>
-                <Label>Substituting For (Member Name)</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Substituting For (Member Name)</Label>
                 <select
                   data-testid="substitute-for-select"
                   value={selectedForMember}
@@ -346,7 +347,8 @@ export default function AttendanceForm() {
                     scrollToSubmitButton();
                   }}
                   required
-                  className="mt-2 w-full min-h-[44px] px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CF2030] focus:border-transparent"
+                  className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg nm-input focus:outline-none"
+                  style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)' }}
                 >
                   <option value="">-- Select Member --</option>
                   {members.map((member) => (
@@ -357,7 +359,7 @@ export default function AttendanceForm() {
                 </select>
               </div>
               <div>
-                <Label>Substitute Name</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Substitute Name</Label>
                 <Input
                   data-testid="substitute-name-input"
                   value={substituteName}
@@ -367,7 +369,7 @@ export default function AttendanceForm() {
                 />
               </div>
               <div>
-                <Label>Substitute Mobile</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Substitute Mobile</Label>
                 <Input
                   data-testid="substitute-mobile-input"
                   type="tel"
@@ -383,7 +385,7 @@ export default function AttendanceForm() {
           {type === 'visitor' && (
             <Card className="p-6 space-y-4">
               <div>
-                <Label>Visitor Name</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Visitor Name</Label>
                 <Input
                   data-testid="visitor-name-input"
                   value={visitorName}
@@ -393,7 +395,7 @@ export default function AttendanceForm() {
                 />
               </div>
               <div>
-                <Label>Visitor Mobile</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Visitor Mobile</Label>
                 <Input
                   data-testid="visitor-mobile-input"
                   type="tel"
@@ -404,7 +406,7 @@ export default function AttendanceForm() {
                 />
               </div>
               <div>
-                <Label>Visitor Company</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Visitor Company</Label>
                 <Input
                   data-testid="visitor-company-input"
                   value={visitorCompany}
@@ -414,7 +416,7 @@ export default function AttendanceForm() {
                 />
               </div>
               <div>
-                <Label>Invited By (Member Name)</Label>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Invited By (Member Name)</Label>
                 <select
                   data-testid="invited-by-select"
                   value={invitedByMember}
@@ -423,7 +425,8 @@ export default function AttendanceForm() {
                     scrollToSubmitButton();
                   }}
                   required
-                  className="mt-2 w-full min-h-[44px] px-3 py-2 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-[#CF2030] focus:border-transparent"
+                  className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg nm-input focus:outline-none"
+                  style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)' }}
                 >
                   <option value="">-- Select Member --</option>
                   {members.map((member) => (
@@ -446,15 +449,15 @@ export default function AttendanceForm() {
           </Button>
         </form>
       </div>
-      
+
       {/* Footer - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-slate-200 py-3">
+      <div className="fixed bottom-0 left-0 right-0 nm-header backdrop-blur-sm py-3" style={{ borderTop: '1px solid var(--nm-border)' }}>
         <div className="flex items-center justify-center gap-2">
           <div className="flex items-center gap-1">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             <div className="w-2 h-2 bg-red-500 rounded-full"></div>
           </div>
-          <p className="text-sm font-semibold text-slate-700">Developed by SIPL</p>
+          <p className="text-sm font-semibold" style={{ color: 'var(--nm-text-secondary)' }}>Developed by SIPL</p>
         </div>
       </div>
     </div>

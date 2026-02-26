@@ -142,7 +142,7 @@ export default function MemberPaymentDetail() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -152,7 +152,7 @@ export default function MemberPaymentDetail() {
   const canSubmit = ['pending', 'rejected'].includes(fee.status);
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto" style={{ background: 'var(--nm-bg)' }}>
       {/* Back */}
       <Button variant="ghost" size="sm" onClick={() => navigate('/member/payments')} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Payments
@@ -161,13 +161,13 @@ export default function MemberPaymentDetail() {
       {/* Fee Header */}
       <Card className="p-4 md:p-6 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-lg font-bold text-slate-900">{fee.description}</h1>
+          <h1 className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{fee.description}</h1>
           <Badge className={`${STATUS_COLORS[fee.status] || ''}`}>
             {STATUS_LABELS[fee.status] || fee.status}
           </Badge>
         </div>
         <p className="text-2xl font-bold text-[#CF2030]">{formatCurrency(fee.amount)}</p>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs mt-1" style={{ color: 'var(--nm-text-muted)' }}>
           {fee.fee_type?.replace('_', ' ')} {fee.month && fee.year ? `| ${fee.month}/${fee.year}` : ''}
         </p>
 
@@ -189,7 +189,7 @@ export default function MemberPaymentDetail() {
       {/* Payment Options (only for pending/rejected) */}
       {canSubmit && (
         <>
-          <h2 className="text-base font-semibold text-slate-900 mb-3">Payment Options</h2>
+          <h2 className="text-base font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Payment Options</h2>
           <div className="grid grid-cols-1 gap-2 mb-4">
             {/* UPI Pay */}
             {paymentInfo?.upi_id && (
@@ -201,11 +201,11 @@ export default function MemberPaymentDetail() {
                   <div className="flex items-center gap-3">
                     <Smartphone className="h-5 w-5 text-purple-600" />
                     <div>
-                      <p className="text-sm font-medium text-slate-900">Pay via UPI</p>
-                      <p className="text-xs text-slate-400">{paymentInfo.upi_id}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>Pay via UPI</p>
+                      <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{paymentInfo.upi_id}</p>
                     </div>
                   </div>
-                  <ExternalLink className="h-4 w-4 text-slate-400" />
+                  <ExternalLink className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                 </div>
               </Card>
             )}
@@ -215,7 +215,7 @@ export default function MemberPaymentDetail() {
               <Card className="p-4 border-l-4 border-l-blue-500">
                 <div className="flex items-center gap-3 mb-3">
                   <Building2 className="h-5 w-5 text-blue-600" />
-                  <p className="text-sm font-medium text-slate-900">NEFT / IMPS Transfer</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>NEFT / IMPS Transfer</p>
                 </div>
                 <div className="space-y-2 text-xs">
                   {[
@@ -225,12 +225,12 @@ export default function MemberPaymentDetail() {
                     ['Bank', paymentInfo.bank_details.bank_name],
                     ['Branch', paymentInfo.bank_details.branch],
                   ].filter(([, v]) => v).map(([label, value]) => (
-                    <div key={label} className="flex items-center justify-between bg-slate-50 px-3 py-2 rounded">
-                      <span className="text-slate-500">{label}</span>
+                    <div key={label} className="flex items-center justify-between px-3 py-2 rounded" style={{ background: 'var(--nm-bg)' }}>
+                      <span style={{ color: 'var(--nm-text-secondary)' }}>{label}</span>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-900">{value}</span>
+                        <span className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>{value}</span>
                         <button onClick={() => copyToClipboard(value, label)}>
-                          <Copy className="h-3.5 w-3.5 text-slate-400 hover:text-slate-600" />
+                          <Copy className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
                         </button>
                       </div>
                     </div>
@@ -251,10 +251,10 @@ export default function MemberPaymentDetail() {
             {paymentInfo?.gateway_enabled === false && (
               <Card className="p-4 border-l-4 border-l-slate-300 opacity-60">
                 <div className="flex items-center gap-3">
-                  <CreditCard className="h-5 w-5 text-slate-400" />
+                  <CreditCard className="h-5 w-5" style={{ color: 'var(--nm-text-muted)' }} />
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Pay Online</p>
-                    <p className="text-xs text-slate-400">Coming Soon</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Pay Online</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Coming Soon</p>
                   </div>
                 </div>
               </Card>
@@ -266,7 +266,7 @@ export default function MemberPaymentDetail() {
       {/* Proof Submission Form */}
       {canSubmit && showProofForm && (
         <Card className="p-4 md:p-6 mb-4">
-          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <h2 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
             <Upload className="h-5 w-5 text-[#CF2030]" />
             Submit Payment Proof
           </h2>
@@ -331,11 +331,12 @@ export default function MemberPaymentDetail() {
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-[#CF2030] hover:bg-red-50/30 transition-colors"
+                    className="w-full border-2 border-dashed rounded-lg p-6 text-center hover:border-[#CF2030] hover:bg-red-50/30 transition-colors"
+                    style={{ borderColor: 'var(--nm-text-muted)', background: 'var(--nm-surface)' }}
                   >
-                    <Camera className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-                    <p className="text-sm text-slate-500">Tap to upload screenshot</p>
-                    <p className="text-xs text-slate-400">JPG, PNG (max 5MB)</p>
+                    <Camera className="h-8 w-8 mx-auto mb-2" style={{ color: 'var(--nm-text-muted)' }} />
+                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Tap to upload screenshot</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>JPG, PNG (max 5MB)</p>
                   </button>
                 )}
                 <input
@@ -353,7 +354,7 @@ export default function MemberPaymentDetail() {
             <Button
               onClick={handleSubmitProof}
               disabled={submitting}
-              className="w-full bg-[#CF2030] hover:bg-[#A61926]"
+              className="w-full"
             >
               {submitting ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -369,7 +370,7 @@ export default function MemberPaymentDetail() {
       {/* Existing Proof (for submitted/confirmed) */}
       {fee.proof_file && !canSubmit && (
         <Card className="p-4 mb-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+          <h2 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
             <ImageIcon className="h-4 w-4" /> Submitted Proof
           </h2>
           <img
@@ -379,10 +380,10 @@ export default function MemberPaymentDetail() {
             onError={(e) => { e.target.style.display = 'none'; }}
           />
           {fee.utr_number && (
-            <p className="text-xs text-slate-500 mt-2">UTR: {fee.utr_number}</p>
+            <p className="text-xs mt-2" style={{ color: 'var(--nm-text-secondary)' }}>UTR: {fee.utr_number}</p>
           )}
           {fee.payment_method && (
-            <p className="text-xs text-slate-500">Method: {fee.payment_method?.toUpperCase()}</p>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Method: {fee.payment_method?.toUpperCase()}</p>
           )}
         </Card>
       )}
@@ -390,7 +391,7 @@ export default function MemberPaymentDetail() {
       {/* Timeline */}
       {fee.timeline && fee.timeline.length > 0 && (
         <Card className="p-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Status Timeline</h2>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Status Timeline</h2>
           <div className="space-y-3">
             {fee.timeline.map((event, i) => (
               <div key={i} className="flex gap-3">
@@ -401,12 +402,12 @@ export default function MemberPaymentDetail() {
                     event.action === 'submitted' || event.action === 'resubmitted' ? 'bg-blue-500' :
                     'bg-slate-300'
                   }`} />
-                  {i < fee.timeline.length - 1 && <div className="w-px flex-1 bg-slate-200 my-1" />}
+                  {i < fee.timeline.length - 1 && <div className="w-px flex-1 my-1" style={{ background: 'var(--nm-border)' }} />}
                 </div>
                 <div className="min-w-0 pb-2">
-                  <p className="text-xs font-medium text-slate-700 capitalize">{event.action?.replace('_', ' ')}</p>
-                  {event.note && <p className="text-xs text-slate-400 truncate">{event.note}</p>}
-                  <p className="text-[10px] text-slate-300">
+                  <p className="text-xs font-medium capitalize" style={{ color: 'var(--nm-text-primary)' }}>{event.action?.replace('_', ' ')}</p>
+                  {event.note && <p className="text-xs truncate" style={{ color: 'var(--nm-text-muted)' }}>{event.note}</p>}
+                  <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>
                     {new Date(event.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>

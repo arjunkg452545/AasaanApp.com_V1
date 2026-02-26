@@ -159,16 +159,16 @@ export default function MeetingFeePayment() {
   const totalCollection = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + (p.amount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-base md:text-2xl font-bold text-slate-900">Meeting Fees</h1>
-            <p className="text-xs text-slate-600">Monthly meeting fee</p>
+            <h1 className="text-base md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Fees</h1>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Monthly meeting fee</p>
           </div>
         </div>
         <Button onClick={() => setShowSettings(!showSettings)} variant="outline" size="sm" className="text-xs md:text-sm">
@@ -194,11 +194,11 @@ export default function MeetingFeePayment() {
         <Card className="p-3 md:p-4 mb-4">
           <div className="flex flex-wrap gap-2 items-center">
             <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))} 
-              className="rounded border-slate-300 p-1.5 border text-sm w-20">
+              className="nm-input rounded p-1.5 text-sm w-20">
               {MONTHS.map((month, idx) => (<option key={idx} value={idx + 1}>{month}</option>))}
             </select>
             <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} 
-              className="rounded border-slate-300 p-1.5 border text-sm w-20">
+              className="nm-input rounded p-1.5 text-sm w-20">
               {[2024, 2025, 2026].map(year => (<option key={year} value={year}>{year}</option>))}
             </select>
             <div className="flex gap-2 ml-auto">
@@ -235,11 +235,11 @@ export default function MeetingFeePayment() {
 
         {/* Members List */}
         {loading ? (
-          <div className="p-8 text-center text-slate-500 text-sm">Loading...</div>
+          <div className="p-8 text-center text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Loading...</div>
         ) : payments.length === 0 ? (
           <Card className="p-8 text-center">
-            <Calendar className="h-10 w-10 mx-auto mb-2 text-slate-300" />
-            <p className="text-sm text-slate-500">No members found</p>
+            <Calendar className="h-10 w-10 mx-auto mb-2" style={{ color: 'var(--nm-text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No members found</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -250,9 +250,9 @@ export default function MeetingFeePayment() {
                     onChange={() => toggleMemberSelection(payment.member_id)} className="w-4 h-4" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{payment.member_name}</p>
-                    <div className="flex items-center gap-1 text-xs text-slate-500">
+                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                       {/* Amount with Edit button RIGHT NEXT TO IT */}
-                      <span className="font-semibold text-slate-700">₹{payment.amount || 0}</span>
+                      <span className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>₹{payment.amount || 0}</span>
                       <button 
                         onClick={() => { setEditPayment(payment); setEditAmount(payment.amount?.toString() || ''); }}
                         className="p-0.5 hover:bg-slate-100 rounded"

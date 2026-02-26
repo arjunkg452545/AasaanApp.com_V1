@@ -48,7 +48,7 @@ export default function QRDisplay() {
   useEffect(() => {
     loadQR();
     loadSummary();
-    
+
     const countdownInterval = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -57,7 +57,7 @@ export default function QRDisplay() {
         return prev - 1;
       });
     }, 1000);
-    
+
     const refreshInterval = setInterval(() => {
       setRefreshing(true);
       setCountdown(10);
@@ -76,7 +76,7 @@ export default function QRDisplay() {
   // Get members list for Quick View modal
   const getQuickViewMembers = () => {
     if (!summary) return [];
-    
+
     switch (quickViewModal) {
       case 'total':
         return summary.all_members || [];
@@ -116,7 +116,7 @@ export default function QRDisplay() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ background: 'linear-gradient(135deg, var(--nm-sidebar-bg) 0%, var(--nm-bg) 50%, var(--nm-sidebar-bg) 100%)' }}>
       {/* Animated background */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-96 h-96 bg-[#CF2030] rounded-full blur-3xl animate-pulse"></div>
@@ -130,14 +130,14 @@ export default function QRDisplay() {
           variant="outline"
           size="sm"
           onClick={() => navigate('/admin/meeting-hub')}
-          className="bg-white text-xs px-2 py-1 h-auto"
+          className="text-xs px-2 py-1 h-auto"
         >
           <ArrowLeft className="h-3 w-3 mr-1" />
           Back
         </Button>
-        <div className="flex items-center gap-1 bg-white/10 px-2 py-1 rounded-full">
-          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''} text-[#CF2030]`} />
-          <span className="text-xs text-white font-bold">{countdown}s</span>
+        <div className="flex items-center gap-1 px-2 py-1 rounded-full nm-flat">
+          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} style={{ color: 'var(--nm-accent)' }} />
+          <span className="text-xs font-bold" style={{ color: 'var(--nm-text-primary)' }}>{countdown}s</span>
         </div>
       </div>
 
@@ -147,11 +147,11 @@ export default function QRDisplay() {
         {summary && (summary.pending_members?.length > 0) && (
           <div className="lg:hidden w-full px-1">
             {!summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-2 bg-white/95 backdrop-blur border-l-4 border-l-red-500 mb-2">
+              <Card className="p-2 backdrop-blur border-l-4 border-l-red-500 mb-2">
                 <div className="flex items-center justify-between" onClick={() => setShowPending(!showPending)}>
                   <div className="flex items-center gap-2">
                     <UserX className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-semibold text-slate-900">Pending</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Pending</span>
                     <span className="text-sm font-bold text-red-600">({summary.pending_count})</span>
                   </div>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -161,9 +161,9 @@ export default function QRDisplay() {
                 {showPending && (
                   <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
                     {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="p-1.5 bg-slate-50 rounded text-xs flex justify-between items-center">
-                        <span className="font-medium text-slate-900 truncate flex-1">{member.full_name}</span>
-                        <span className="text-slate-500 text-xs ml-2">{member.unique_member_id}</span>
+                      <div key={member.unique_member_id} className="p-1.5 nm-inset rounded text-xs flex justify-between items-center">
+                        <span className="font-medium truncate flex-1" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</span>
+                        <span className="text-xs ml-2" style={{ color: 'var(--nm-text-muted)' }}>{member.unique_member_id}</span>
                       </div>
                     ))}
                   </div>
@@ -172,11 +172,11 @@ export default function QRDisplay() {
             )}
 
             {summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-2 bg-white/95 backdrop-blur border-l-4 border-l-red-500 mb-2">
+              <Card className="p-2 backdrop-blur border-l-4 border-l-red-500 mb-2">
                 <div className="flex items-center justify-between" onClick={() => setShowAbsent(!showAbsent)}>
                   <div className="flex items-center gap-2">
                     <UserX className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-semibold text-slate-900">Absent</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Absent</span>
                     <span className="text-sm font-bold text-red-600">({summary.absent_count})</span>
                   </div>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -186,9 +186,9 @@ export default function QRDisplay() {
                 {showAbsent && (
                   <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
                     {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="p-1.5 bg-slate-50 rounded text-xs flex justify-between items-center">
-                        <span className="font-medium text-slate-900 truncate flex-1">{member.full_name}</span>
-                        <span className="text-slate-500 text-xs ml-2">{member.unique_member_id}</span>
+                      <div key={member.unique_member_id} className="p-1.5 nm-inset rounded text-xs flex justify-between items-center">
+                        <span className="font-medium truncate flex-1" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</span>
+                        <span className="text-xs ml-2" style={{ color: 'var(--nm-text-muted)' }}>{member.unique_member_id}</span>
                       </div>
                     ))}
                   </div>
@@ -203,12 +203,12 @@ export default function QRDisplay() {
           <div className="hidden lg:block w-56 flex-shrink-0 overflow-y-auto">
             {/* Pending/Absent List */}
             {!summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-2 bg-white/95 backdrop-blur border-l-4 border-l-red-500">
+              <Card className="p-2 backdrop-blur border-l-4 border-l-red-500">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1">
                     <UserX className="h-3 w-3 text-red-600" />
                     <div>
-                      <p className="text-xs font-semibold text-slate-900">Pending</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Pending</p>
                       <p className="text-base font-bold text-red-600">{summary.pending_count}</p>
                     </div>
                   </div>
@@ -224,9 +224,9 @@ export default function QRDisplay() {
                 {showPending && (
                   <div className="space-y-1 max-h-80 overflow-y-auto">
                     {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="p-1 bg-slate-50 rounded text-xs">
-                        <p className="font-semibold text-slate-900 truncate">{member.full_name}</p>
-                        <p className="text-slate-600 truncate text-xs">ID: {member.unique_member_id}</p>
+                      <div key={member.unique_member_id} className="p-1 nm-inset rounded text-xs">
+                        <p className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</p>
+                        <p className="truncate text-xs" style={{ color: 'var(--nm-text-secondary)' }}>ID: {member.unique_member_id}</p>
                       </div>
                     ))}
                   </div>
@@ -235,12 +235,12 @@ export default function QRDisplay() {
             )}
 
             {summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-2 bg-white/95 backdrop-blur border-l-4 border-l-red-500">
+              <Card className="p-2 backdrop-blur border-l-4 border-l-red-500">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1">
                     <UserX className="h-3 w-3 text-red-600" />
                     <div>
-                      <p className="text-xs font-semibold text-slate-900">Absent</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Absent</p>
                       <p className="text-base font-bold text-red-600">{summary.absent_count}</p>
                     </div>
                   </div>
@@ -256,9 +256,9 @@ export default function QRDisplay() {
                 {showAbsent && (
                   <div className="space-y-1 max-h-80 overflow-y-auto">
                     {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="p-1 bg-slate-50 rounded text-xs">
-                        <p className="font-semibold text-slate-900 truncate">{member.full_name}</p>
-                        <p className="text-slate-600 truncate text-xs">ID: {member.unique_member_id}</p>
+                      <div key={member.unique_member_id} className="p-1 nm-inset rounded text-xs">
+                        <p className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</p>
+                        <p className="truncate text-xs" style={{ color: 'var(--nm-text-secondary)' }}>ID: {member.unique_member_id}</p>
                       </div>
                     ))}
                   </div>
@@ -272,8 +272,8 @@ export default function QRDisplay() {
         <div className="flex-1 flex flex-col items-center justify-center gap-2 overflow-y-auto">
           {/* Title */}
           <div className="text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Scan QR Code</h1>
-            <p className="text-xs md:text-sm text-slate-300">for Attendance</p>
+            <h1 className="text-2xl md:text-3xl font-bold mb-1" style={{ color: 'var(--nm-text-primary)' }}>Scan QR Code</h1>
+            <p className="text-xs md:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>for Attendance</p>
           </div>
 
           {/* Compact Summary Cards - All Clickable */}
@@ -281,62 +281,62 @@ export default function QRDisplay() {
             <div className="w-full max-w-2xl px-2">
               <div className="grid grid-cols-5 gap-1 md:gap-2">
                 {/* Total Card */}
-                <Card 
-                  className="p-1.5 md:p-2 bg-white/95 backdrop-blur cursor-pointer hover:bg-indigo-50 hover:scale-105 transition-all active:scale-95 ring-2 ring-transparent hover:ring-indigo-300"
+                <Card
+                  className="p-1.5 md:p-2 backdrop-blur cursor-pointer hover:scale-105 transition-all active:scale-95"
                   onClick={() => setQuickViewModal('total')}
                 >
                   <div className="flex flex-col items-center">
                     <Users className="h-3 w-3 md:h-4 md:w-4 text-indigo-600 mb-0.5" />
-                    <p className="text-xs text-slate-600 truncate">Total</p>
-                    <p className="text-sm md:text-lg font-bold text-slate-900">{summary.total_members}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>Total</p>
+                    <p className="text-sm md:text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.total_members}</p>
                   </div>
                 </Card>
 
                 {/* Present Card */}
-                <Card 
-                  className="p-1.5 md:p-2 bg-white/95 backdrop-blur cursor-pointer hover:bg-green-50 hover:scale-105 transition-all active:scale-95 ring-2 ring-transparent hover:ring-green-300"
+                <Card
+                  className="p-1.5 md:p-2 backdrop-blur cursor-pointer hover:scale-105 transition-all active:scale-95"
                   onClick={() => setQuickViewModal('present')}
                 >
                   <div className="flex flex-col items-center">
                     <UserCheck className="h-3 w-3 md:h-4 md:w-4 text-green-600 mb-0.5" />
-                    <p className="text-xs text-slate-600 truncate">Present</p>
-                    <p className="text-sm md:text-lg font-bold text-slate-900">{summary.present_count}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>Present</p>
+                    <p className="text-sm md:text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.present_count}</p>
                   </div>
                 </Card>
 
                 {/* Substitute Card */}
-                <Card 
-                  className="p-1.5 md:p-2 bg-white/95 backdrop-blur cursor-pointer hover:bg-amber-50 hover:scale-105 transition-all active:scale-95 ring-2 ring-transparent hover:ring-amber-300"
+                <Card
+                  className="p-1.5 md:p-2 backdrop-blur cursor-pointer hover:scale-105 transition-all active:scale-95"
                   onClick={() => setQuickViewModal('substitute')}
                 >
                   <div className="flex flex-col items-center">
                     <UserPlus className="h-3 w-3 md:h-4 md:w-4 text-amber-600 mb-0.5" />
-                    <p className="text-xs text-slate-600 truncate">Subs</p>
-                    <p className="text-sm md:text-lg font-bold text-slate-900">{summary.substitute_count}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>Subs</p>
+                    <p className="text-sm md:text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.substitute_count}</p>
                   </div>
                 </Card>
 
                 {/* Pending/Absent Card */}
-                <Card 
-                  className="p-1.5 md:p-2 bg-white/95 backdrop-blur cursor-pointer hover:bg-red-50 hover:scale-105 transition-all active:scale-95 ring-2 ring-transparent hover:ring-red-300"
+                <Card
+                  className="p-1.5 md:p-2 backdrop-blur cursor-pointer hover:scale-105 transition-all active:scale-95"
                   onClick={() => setQuickViewModal('pending')}
                 >
                   <div className="flex flex-col items-center">
                     <UserX className="h-3 w-3 md:h-4 md:w-4 text-red-600 mb-0.5" />
-                    <p className="text-xs text-slate-600 truncate">{summary.meeting_ended ? 'Absent' : 'Pending'}</p>
-                    <p className="text-sm md:text-lg font-bold text-slate-900">{summary.meeting_ended ? summary.absent_count : summary.pending_count}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>{summary.meeting_ended ? 'Absent' : 'Pending'}</p>
+                    <p className="text-sm md:text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.meeting_ended ? summary.absent_count : summary.pending_count}</p>
                   </div>
                 </Card>
 
                 {/* Visitor Card */}
-                <Card 
-                  className="p-1.5 md:p-2 bg-white/95 backdrop-blur cursor-pointer hover:bg-blue-50 hover:scale-105 transition-all active:scale-95 ring-2 ring-transparent hover:ring-blue-300"
+                <Card
+                  className="p-1.5 md:p-2 backdrop-blur cursor-pointer hover:scale-105 transition-all active:scale-95"
                   onClick={() => setQuickViewModal('visitor')}
                 >
                   <div className="flex flex-col items-center">
                     <Users className="h-3 w-3 md:h-4 md:w-4 text-blue-600 mb-0.5" />
-                    <p className="text-xs text-slate-600 truncate">Visitors</p>
-                    <p className="text-sm md:text-lg font-bold text-slate-900">{summary.visitor_count}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>Visitors</p>
+                    <p className="text-sm md:text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.visitor_count}</p>
                   </div>
                 </Card>
               </div>
@@ -345,31 +345,32 @@ export default function QRDisplay() {
 
           {/* Large, Bold, Centered QR Code */}
           {loading ? (
-            <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full max-w-md aspect-square flex items-center justify-center">
+            <div className="nm-raised p-6 md:p-10 rounded-3xl w-full max-w-md aspect-square flex items-center justify-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#CF2030]"></div>
             </div>
           ) : summary && summary.meeting_ended ? (
-            <div className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl max-w-md w-full mx-auto text-center">
-              <UserX className="h-16 w-16 md:h-24 md:w-24 text-slate-300 mx-auto mb-3" />
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-2">Meeting Ended</h2>
-              <p className="text-sm text-slate-600">QR Code is no longer available</p>
+            <div className="nm-raised p-6 md:p-10 rounded-3xl max-w-md w-full mx-auto text-center">
+              <UserX className="h-16 w-16 md:h-24 md:w-24 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+              <h2 className="text-xl md:text-2xl font-bold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Meeting Ended</h2>
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>QR Code is no longer available</p>
             </div>
           ) : (
             <div className="w-full max-w-md px-2 flex justify-center">
-              <div 
+              <div
                 data-testid="qr-canvas"
-                className="bg-white p-6 md:p-10 rounded-3xl shadow-2xl w-full aspect-square flex items-center justify-center ring-4 md:ring-8 ring-[#CF2030]/70 relative overflow-hidden"
+                className="nm-raised-lg p-6 md:p-10 rounded-3xl w-full aspect-square flex items-center justify-center ring-4 md:ring-8 ring-[#CF2030]/70 relative overflow-hidden"
+                style={{ background: '#ffffff' }}
               >
                 {/* Decorative corners */}
                 <div className="absolute top-2 left-2 w-8 h-8 border-t-4 border-l-4 border-[#CF2030] rounded-tl-lg"></div>
                 <div className="absolute top-2 right-2 w-8 h-8 border-t-4 border-r-4 border-[#CF2030] rounded-tr-lg"></div>
                 <div className="absolute bottom-2 left-2 w-8 h-8 border-b-4 border-l-4 border-[#CF2030] rounded-bl-lg"></div>
                 <div className="absolute bottom-2 right-2 w-8 h-8 border-b-4 border-r-4 border-[#CF2030] rounded-br-lg"></div>
-                
+
                 {qrImage && (
-                  <img 
-                    src={qrImage} 
-                    alt="QR Code" 
+                  <img
+                    src={qrImage}
+                    alt="QR Code"
                     className="w-full h-full object-contain p-2 md:p-4 relative z-10"
                     style={{ imageRendering: 'crisp-edges' }}
                   />
@@ -378,7 +379,7 @@ export default function QRDisplay() {
             </div>
           )}
 
-          <p className="text-white text-xs md:text-sm font-semibold mt-1">BNI Management System</p>
+          <p className="text-xs md:text-sm font-semibold mt-1" style={{ color: 'var(--nm-text-secondary)' }}>BNI Management System</p>
         </div>
       </div>
 
@@ -398,13 +399,13 @@ export default function QRDisplay() {
               </span>
             </DialogTitle>
           </DialogHeader>
-          
+
           {/* Member/Visitor List */}
-          <div className="flex-1 overflow-y-auto border rounded-lg">
+          <div className="flex-1 overflow-y-auto rounded-lg nm-inset">
             {getQuickViewMembers().length > 0 ? (
-              <div className="divide-y">
+              <div className="divide-y" style={{ borderColor: 'var(--nm-border)' }}>
                 {getQuickViewMembers().map((item, idx) => (
-                  <div key={idx} className="px-3 py-2.5 flex items-center gap-3 hover:bg-slate-50">
+                  <div key={idx} className="px-3 py-2.5 flex items-center gap-3 hover:opacity-80 transition-opacity">
                     {/* Member ID Circle */}
                     <div className={`h-8 w-8 md:h-10 md:w-10 rounded-full ${getQuickViewColor().split(' ')[1]} flex items-center justify-center flex-shrink-0`}>
                       <span className={`text-xs md:text-sm font-semibold ${getQuickViewColor().split(' ')[0]}`}>
@@ -412,18 +413,18 @@ export default function QRDisplay() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm md:text-base font-medium text-slate-900 truncate">
+                      <p className="text-sm md:text-base font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>
                         {item.full_name || item.visitor_name || item.name}
                       </p>
                       {/* Show additional info based on type */}
                       {quickViewModal === 'visitor' && item.company && (
-                        <p className="text-xs text-slate-500 truncate">{item.company}</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--nm-text-muted)' }}>{item.company}</p>
                       )}
                       {quickViewModal === 'substitute' && item.substitute_name && (
                         <p className="text-xs text-amber-600 truncate">Sub: {item.substitute_name}</p>
                       )}
                       {item.timestamp && (
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                           {new Date(item.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       )}
@@ -440,7 +441,7 @@ export default function QRDisplay() {
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center text-slate-400 text-sm">
+              <div className="p-8 text-center text-sm" style={{ color: 'var(--nm-text-muted)' }}>
                 No {getQuickViewTitle().toLowerCase()} found
               </div>
             )}

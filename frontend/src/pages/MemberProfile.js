@@ -98,7 +98,7 @@ export default function MemberProfile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -106,7 +106,7 @@ export default function MemberProfile() {
   if (!profile) {
     return (
       <div className="p-8 text-center">
-        <p className="text-slate-500">Member not found.</p>
+        <p style={{ color: 'var(--nm-text-secondary)' }}>Member not found.</p>
         <Button variant="ghost" onClick={() => navigate('/admin/members')} className="mt-4">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Members
         </Button>
@@ -120,13 +120,13 @@ export default function MemberProfile() {
   const initials = (member.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/members')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Members
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">{member.full_name}</h1>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h1>
       </div>
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
@@ -138,12 +138,12 @@ export default function MemberProfile() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold text-slate-900">{member.full_name}</h2>
+                <h2 className="text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h2>
                 <Badge className={`text-xs ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                   {member.membership_status || 'active'}
                 </Badge>
               </div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                 ID: {member.unique_member_id}
                 {member.business_name ? ` · ${member.business_name}` : ''}
                 {profile.chapter_name ? ` · ${profile.chapter_name}` : ''}
@@ -190,63 +190,63 @@ export default function MemberProfile() {
           <TabsContent value="overview" className="space-y-4 mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-4">
-                <h3 className="font-semibold text-slate-900 mb-3">Contact Information</h3>
+                <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Contact Information</h3>
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4 text-slate-400" />
+                    <Phone className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                     <span>{member.primary_mobile}</span>
                   </div>
                   {member.secondary_mobile && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Phone className="h-4 w-4 text-slate-400" />
+                      <Phone className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                       <span>{member.secondary_mobile} (secondary)</span>
                     </div>
                   )}
                   {member.email && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Mail className="h-4 w-4 text-slate-400" />
+                      <Mail className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                       <span>{member.email}</span>
                     </div>
                   )}
                 </div>
               </Card>
               <Card className="p-4">
-                <h3 className="font-semibold text-slate-900 mb-3">Business Information</h3>
+                <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Business Information</h3>
                 <div className="space-y-2">
                   {member.business_name && (
                     <div className="flex items-center gap-2 text-sm">
-                      <Building2 className="h-4 w-4 text-slate-400" />
+                      <Building2 className="h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                       <span>{member.business_name}</span>
                     </div>
                   )}
                   {member.business_category && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                       Category: {member.business_category}
                     </div>
                   )}
                   {!member.business_name && !member.business_category && (
-                    <p className="text-sm text-slate-400">No business info added</p>
+                    <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No business info added</p>
                   )}
                 </div>
               </Card>
             </div>
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Membership Details</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Membership Details</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
-                  <p className="text-xs text-slate-500">Joining Date</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Joining Date</p>
                   <p className="text-sm font-medium">{formatDate(member.joining_date)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Renewal Date</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Renewal Date</p>
                   <p className="text-sm font-medium">{formatDate(member.renewal_date)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Induction Fee</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Induction Fee</p>
                   <p className="text-sm font-medium">{member.induction_fee ? formatCurrency(member.induction_fee) : 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500">Created</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Created</p>
                   <p className="text-sm font-medium">{formatDate(member.created_at)}</p>
                 </div>
               </div>
@@ -257,26 +257,26 @@ export default function MemberProfile() {
           <TabsContent value="attendance" className="space-y-4 mt-4">
             <div className="grid grid-cols-3 gap-3">
               <Card className="p-4 text-center">
-                <p className="text-2xl font-bold text-slate-900">{att.total_attended}</p>
-                <p className="text-xs text-slate-500">Meetings Attended</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{att.total_attended}</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Meetings Attended</p>
               </Card>
               <Card className="p-4 text-center">
                 <p className="text-2xl font-bold text-emerald-600">{att.present_count}</p>
-                <p className="text-xs text-slate-500">On Time</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>On Time</p>
               </Card>
               <Card className="p-4 text-center">
                 <p className="text-2xl font-bold text-amber-600">{att.late_count}</p>
-                <p className="text-xs text-slate-500">Late</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Late</p>
               </Card>
             </div>
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Recent Attendance</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Recent Attendance</h3>
               {att.recent.length === 0 ? (
-                <p className="text-sm text-slate-400">No attendance records</p>
+                <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No attendance records</p>
               ) : (
                 <div className="space-y-2">
                   {att.recent.map((a, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="flex items-center gap-2">
                         {a.status === 'present' ? (
                           <CheckCircle className="h-4 w-4 text-emerald-500" />
@@ -304,13 +304,13 @@ export default function MemberProfile() {
           <TabsContent value="payments" className="space-y-4 mt-4">
             {/* Kitty Payments */}
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Kitty Payments</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Kitty Payments</h3>
               {payments.kitty.length === 0 ? (
-                <p className="text-sm text-slate-400">No kitty payments</p>
+                <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No kitty payments</p>
               ) : (
                 <div className="space-y-2">
                   {payments.kitty.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                       <span className="text-sm">{p.month}/{p.year}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">{formatCurrency(p.amount)}</span>
@@ -326,13 +326,13 @@ export default function MemberProfile() {
 
             {/* Meeting Fee Payments */}
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Meeting Fee Payments</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Meeting Fee Payments</h3>
               {payments.meeting_fee.length === 0 ? (
-                <p className="text-sm text-slate-400">No meeting fee payments</p>
+                <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No meeting fee payments</p>
               ) : (
                 <div className="space-y-2">
                   {payments.meeting_fee.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                       <span className="text-sm">{p.month}/{p.year}</span>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">{formatCurrency(p.amount)}</span>
@@ -348,13 +348,13 @@ export default function MemberProfile() {
 
             {/* Event Payments */}
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Event Payments</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Event Payments</h3>
               {payments.events.length === 0 ? (
-                <p className="text-sm text-slate-400">No event payments</p>
+                <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No event payments</p>
               ) : (
                 <div className="space-y-2">
                   {payments.events.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                    <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
                       <span className="text-sm">{p.event_id}</span>
                       <Badge className={`text-xs ${p.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                         {p.status}
@@ -369,13 +369,13 @@ export default function MemberProfile() {
           {/* History Tab */}
           <TabsContent value="history" className="space-y-4 mt-4">
             <Card className="p-4">
-              <h3 className="font-semibold text-slate-900 mb-3">Status History</h3>
+              <h3 className="font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Status History</h3>
               {(!member.status_history || member.status_history.length === 0) ? (
-                <p className="text-sm text-slate-400">No status changes recorded</p>
+                <p className="text-sm" style={{ color: 'var(--nm-text-muted)' }}>No status changes recorded</p>
               ) : (
                 <div className="space-y-3">
                   {[...member.status_history].reverse().map((entry, i) => (
-                    <div key={i} className="flex gap-3 py-2 border-b border-slate-100 last:border-0">
+                    <div key={i} className="flex gap-3 py-2 border-b last:border-0">
                       <div className="mt-1">
                         {entry.action === 'created' && <UserCheck className="h-4 w-4 text-blue-500" />}
                         {entry.action === 'approved' && <CheckCircle className="h-4 w-4 text-emerald-500" />}
@@ -386,14 +386,14 @@ export default function MemberProfile() {
                         {entry.action === 'transferred' && <ArrowRightLeft className="h-4 w-4 text-blue-500" />}
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900 capitalize">{entry.action}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm font-medium capitalize" style={{ color: 'var(--nm-text-primary)' }}>{entry.action}</p>
+                        <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                           {entry.from_status} &rarr; {entry.to_status}
                         </p>
                         {entry.reason && (
-                          <p className="text-xs text-slate-600 mt-0.5">{entry.reason}</p>
+                          <p className="text-xs mt-0.5" style={{ color: 'var(--nm-text-secondary)' }}>{entry.reason}</p>
                         )}
-                        <p className="text-[10px] text-slate-400 mt-0.5">
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--nm-text-muted)' }}>
                           {formatDate(entry.timestamp)} by {entry.changed_by}
                         </p>
                       </div>
@@ -406,8 +406,8 @@ export default function MemberProfile() {
             {/* Transfer Info */}
             {member.transfer_from_chapter && (
               <Card className="p-4">
-                <h3 className="font-semibold text-slate-900 mb-2">Transfer Record</h3>
-                <p className="text-sm text-slate-600">
+                <h3 className="font-semibold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Transfer Record</h3>
+                <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                   Transferred from chapter <strong>{member.transfer_from_chapter}</strong> on {formatDate(member.transfer_date)}
                 </p>
               </Card>
@@ -479,7 +479,7 @@ export default function MemberProfile() {
               <Input type="number" value={formData.induction_fee || ''}
                 onChange={(e) => setFormData({ ...formData, induction_fee: e.target.value })} />
             </div>
-            <Button type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">Update Member</Button>
+            <Button type="submit" className="w-full">Update Member</Button>
           </form>
         </DialogContent>
       </Dialog>
@@ -505,7 +505,7 @@ export default function MemberProfile() {
               <Textarea value={statusReason} onChange={(e) => setStatusReason(e.target.value)}
                 placeholder="Enter reason..." rows={3} />
             </div>
-            <Button onClick={handleStatusChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">Confirm</Button>
+            <Button onClick={handleStatusChange} className="w-full">Confirm</Button>
           </div>
         </DialogContent>
       </Dialog>

@@ -77,9 +77,9 @@ export default function ReportsManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header - Mobile optimized */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button
           data-testid="back-btn"
           variant="ghost"
@@ -90,20 +90,20 @@ export default function ReportsManagement() {
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
           <span className="text-sm">Back</span>
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Reports Management</h1>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Reports Management</h1>
       </div>
 
       <div className="p-4 md:p-8 max-w-7xl mx-auto">
         <div className="mb-4 md:mb-8">
-          <h2 className="text-xl md:text-3xl font-bold text-slate-900">Attendance Reports</h2>
-          <p className="text-xs md:text-sm text-slate-600 mt-1">Download meeting attendance reports</p>
+          <h2 className="text-xl md:text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Attendance Reports</h2>
+          <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Download meeting attendance reports</p>
         </div>
 
         {loading ? (
           <div className="text-center py-8 md:py-12 text-sm">Loading meetings...</div>
         ) : meetings.length === 0 ? (
           <Card className="p-8 md:p-12 text-center">
-            <p className="text-slate-600 text-sm md:text-base">No meetings available</p>
+            <p className="text-sm md:text-base" style={{ color: 'var(--nm-text-secondary)' }}>No meetings available</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 gap-3 md:gap-6">
@@ -115,10 +115,10 @@ export default function ReportsManagement() {
               >
                 {/* Mobile Layout */}
                 <div className="md:hidden">
-                  <h3 className="font-bold text-base text-slate-900 mb-2">
+                  <h3 className="font-bold text-base mb-2" style={{ color: 'var(--nm-text-primary)' }}>
                     {new Date(meeting.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </h3>
-                  <div className="text-xs text-slate-600 mb-3 space-y-1">
+                  <div className="text-xs mb-3 space-y-1" style={{ color: 'var(--nm-text-secondary)' }}>
                     <p>Start: {new Date(meeting.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                     <p>Late: {new Date(meeting.late_cutoff_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                   </div>
@@ -167,10 +167,10 @@ export default function ReportsManagement() {
                 {/* Desktop Layout */}
                 <div className="hidden md:flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-bold text-xl text-slate-900 mb-2">
+                    <h3 className="font-bold text-xl mb-2" style={{ color: 'var(--nm-text-primary)' }}>
                       Meeting - {new Date(meeting.date).toLocaleDateString()}
                     </h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
+                    <div className="grid grid-cols-2 gap-4 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                       <div>
                         <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
                         <p><strong>Late Cutoff:</strong> {new Date(meeting.late_cutoff_time).toLocaleTimeString()}</p>

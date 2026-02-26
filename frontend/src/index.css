@@ -6,33 +6,93 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 220 20% 91%;
     --foreground: 222 47% 11%;
-    --card: 0 0% 100%;
+    --card: 220 20% 91%;
     --card-foreground: 222 47% 11%;
-    --popover: 0 0% 100%;
+    --popover: 220 20% 91%;
     --popover-foreground: 222 47% 11%;
     --primary: 356 73% 47%;
     --primary-foreground: 210 40% 98%;
     --secondary: 206 100% 29%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
+    --muted: 220 16% 85%;
     --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96.1%;
+    --accent: 220 16% 85%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 220 13% 82%;
+    --input: 220 13% 82%;
     --ring: 356 73% 47%;
-    --radius: 0.5rem;
-    
+    --radius: 0.75rem;
+
     /* Status Colors */
     --color-present: #10B981;
     --color-substitute: #F59E0B;
     --color-absent: #EF4444;
     --color-visitor: #3B82F6;
     --color-total: #6366F1;
+
+    /* Neumorphic System — Light */
+    --nm-bg: #E0E5EC;
+    --nm-shadow-dark: rgba(163, 177, 198, 0.6);
+    --nm-shadow-light: rgba(255, 255, 255, 0.8);
+    --nm-shadow-dark-strong: rgba(163, 177, 198, 0.8);
+    --nm-shadow-light-strong: rgba(255, 255, 255, 1);
+    --nm-accent: #CF2030;
+    --nm-accent-hover: #A61926;
+    --nm-accent-glow: rgba(207, 32, 48, 0.3);
+    --nm-text-primary: #2D3748;
+    --nm-text-secondary: #718096;
+    --nm-text-muted: #A0AEC0;
+    --nm-surface: #E0E5EC;
+    --nm-surface-raised: #E4E9F0;
+    --nm-border: rgba(163, 177, 198, 0.25);
+    --nm-sidebar-bg: #D6DBE3;
+    --nm-sidebar-active: rgba(207, 32, 48, 0.12);
+    --nm-overlay: rgba(0, 0, 0, 0.3);
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 210 20% 90%;
+    --card: 240 15% 10%;
+    --card-foreground: 210 20% 90%;
+    --popover: 240 15% 10%;
+    --popover-foreground: 210 20% 90%;
+    --primary: 356 73% 47%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 20% 20%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 240 10% 15%;
+    --muted-foreground: 210 10% 55%;
+    --accent: 240 10% 15%;
+    --accent-foreground: 210 20% 90%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 356 73% 47%;
+
+    /* Neumorphic System — Dark */
+    --nm-bg: #121212;
+    --nm-shadow-dark: rgba(0, 0, 0, 0.7);
+    --nm-shadow-light: rgba(255, 255, 255, 0.05);
+    --nm-shadow-dark-strong: rgba(0, 0, 0, 0.9);
+    --nm-shadow-light-strong: rgba(255, 255, 255, 0.08);
+    --nm-accent: #CF2030;
+    --nm-accent-hover: #E63946;
+    --nm-accent-glow: rgba(207, 32, 48, 0.4);
+    --nm-text-primary: #E2E8F0;
+    --nm-text-secondary: #A0AEC0;
+    --nm-text-muted: #718096;
+    --nm-surface: #1A1A2E;
+    --nm-surface-raised: #1E1E32;
+    --nm-border: rgba(255, 255, 255, 0.06);
+    --nm-sidebar-bg: #0F0F1A;
+    --nm-sidebar-active: rgba(207, 32, 48, 0.25);
+    --nm-overlay: rgba(0, 0, 0, 0.6);
   }
 }
 
@@ -41,11 +101,226 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--nm-bg);
+    color: var(--nm-text-primary);
     font-family: 'Inter', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* ============================================
+   NEUMORPHIC DESIGN SYSTEM
+   ============================================ */
+
+@layer components {
+  /* === Neumorphic Shadow Classes === */
+  .nm-raised {
+    background: var(--nm-surface);
+    box-shadow: 6px 6px 12px var(--nm-shadow-dark),
+                -6px -6px 12px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-raised-sm {
+    background: var(--nm-surface);
+    box-shadow: 3px 3px 6px var(--nm-shadow-dark),
+                -3px -3px 6px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-raised-lg {
+    background: var(--nm-surface);
+    box-shadow: 8px 8px 16px var(--nm-shadow-dark),
+                -8px -8px 16px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-inset {
+    background: var(--nm-surface);
+    box-shadow: inset 3px 3px 6px var(--nm-shadow-dark),
+                inset -3px -3px 6px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-flat {
+    background: var(--nm-surface);
+    box-shadow: 2px 2px 5px var(--nm-shadow-dark),
+                -2px -2px 5px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-convex {
+    background: linear-gradient(145deg,
+      var(--nm-surface-raised),
+      var(--nm-surface));
+    box-shadow: 5px 5px 10px var(--nm-shadow-dark),
+                -5px -5px 10px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+  }
+
+  .nm-pressed {
+    background: var(--nm-surface);
+    box-shadow: inset 2px 2px 5px var(--nm-shadow-dark),
+                inset -2px -2px 5px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+  }
+
+  /* === Neumorphic Interactive States === */
+  .nm-interactive {
+    transition: box-shadow 200ms ease, transform 150ms ease;
+  }
+  .nm-interactive:hover {
+    box-shadow: 8px 8px 16px var(--nm-shadow-dark),
+                -8px -8px 16px var(--nm-shadow-light);
+    transform: translateY(-1px);
+  }
+  .nm-interactive:active {
+    box-shadow: inset 2px 2px 5px var(--nm-shadow-dark),
+                inset -2px -2px 5px var(--nm-shadow-light);
+    transform: translateY(0);
+  }
+
+  /* === Neumorphic Button Variants === */
+  .nm-btn {
+    background: var(--nm-surface);
+    box-shadow: 4px 4px 8px var(--nm-shadow-dark),
+                -4px -4px 8px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    transition: box-shadow 150ms ease, transform 100ms ease;
+  }
+  .nm-btn:hover {
+    box-shadow: 5px 5px 10px var(--nm-shadow-dark),
+                -5px -5px 10px var(--nm-shadow-light);
+  }
+  .nm-btn:active {
+    box-shadow: inset 2px 2px 4px var(--nm-shadow-dark),
+                inset -2px -2px 4px var(--nm-shadow-light);
+    transform: scale(0.98);
+  }
+
+  .nm-btn-primary {
+    background: var(--nm-accent);
+    color: white;
+    box-shadow: 4px 4px 8px var(--nm-shadow-dark),
+                -4px -4px 8px var(--nm-shadow-light);
+    border: 1px solid transparent;
+    transition: box-shadow 150ms ease, transform 100ms ease, background-color 150ms ease;
+  }
+  .nm-btn-primary:hover {
+    background: var(--nm-accent-hover);
+    box-shadow: 5px 5px 10px var(--nm-shadow-dark),
+                -5px -5px 10px var(--nm-shadow-light),
+                0 0 12px var(--nm-accent-glow);
+  }
+  .nm-btn-primary:active {
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.3),
+                inset -2px -2px 4px rgba(255,255,255,0.1);
+    transform: scale(0.98);
+  }
+
+  /* === Neumorphic Input === */
+  .nm-input {
+    background: var(--nm-surface);
+    box-shadow: inset 2px 2px 5px var(--nm-shadow-dark),
+                inset -2px -2px 5px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+    color: var(--nm-text-primary);
+    transition: box-shadow 200ms ease;
+  }
+  .nm-input::placeholder {
+    color: var(--nm-text-muted);
+  }
+  .nm-input:focus {
+    box-shadow: inset 2px 2px 5px var(--nm-shadow-dark),
+                inset -2px -2px 5px var(--nm-shadow-light),
+                0 0 0 2px var(--nm-accent-glow);
+    outline: none;
+  }
+
+  /* === Neumorphic Badges === */
+  .nm-badge {
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 3px 10px;
+    box-shadow: 2px 2px 4px var(--nm-shadow-dark),
+                -2px -2px 4px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+  }
+  .nm-badge-pending { background: #FEF3C7; color: #92400E; }
+  .nm-badge-submitted { background: #DBEAFE; color: #1E40AF; }
+  .nm-badge-confirmed { background: #E0E7FF; color: #3730A3; }
+  .nm-badge-verified { background: #D1FAE5; color: #065F46; }
+  .nm-badge-rejected { background: #FEE2E2; color: #991B1B; }
+  .nm-badge-waived { background: #F1F5F9; color: #475569; }
+  .nm-badge-active { background: #D1FAE5; color: #065F46; }
+  .nm-badge-inactive { background: #F1F5F9; color: #475569; }
+
+  .dark .nm-badge-pending { background: #78350F; color: #FDE68A; }
+  .dark .nm-badge-submitted { background: #1E3A5F; color: #93C5FD; }
+  .dark .nm-badge-confirmed { background: #312E81; color: #A5B4FC; }
+  .dark .nm-badge-verified { background: #064E3B; color: #6EE7B7; }
+  .dark .nm-badge-rejected { background: #7F1D1D; color: #FCA5A5; }
+  .dark .nm-badge-waived { background: #334155; color: #94A3B8; }
+  .dark .nm-badge-active { background: #064E3B; color: #6EE7B7; }
+  .dark .nm-badge-inactive { background: #334155; color: #94A3B8; }
+
+  /* === Neumorphic Sidebar === */
+  .nm-sidebar {
+    background: var(--nm-sidebar-bg);
+    box-shadow: 4px 0 12px var(--nm-shadow-dark);
+  }
+  .nm-sidebar-item {
+    border-radius: var(--radius);
+    transition: box-shadow 200ms ease, background-color 200ms ease;
+    color: var(--nm-text-secondary);
+  }
+  .nm-sidebar-item:hover {
+    background: var(--nm-surface);
+    box-shadow: 2px 2px 5px var(--nm-shadow-dark),
+                -2px -2px 5px var(--nm-shadow-light);
+    color: var(--nm-text-primary);
+  }
+  .nm-sidebar-item-active {
+    background: var(--nm-sidebar-active);
+    box-shadow: inset 2px 2px 4px var(--nm-shadow-dark),
+                inset -2px -2px 4px var(--nm-shadow-light);
+    color: var(--nm-accent);
+    font-weight: 600;
+    border-left: 3px solid var(--nm-accent);
+  }
+
+  /* === Neumorphic Header === */
+  .nm-header {
+    background: var(--nm-surface);
+    box-shadow: 0 4px 12px var(--nm-shadow-dark);
+    border-bottom: 1px solid var(--nm-border);
+  }
+
+  /* === Neumorphic Tab === */
+  .nm-tab {
+    background: var(--nm-surface);
+    box-shadow: 2px 2px 4px var(--nm-shadow-dark),
+                -2px -2px 4px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    border-radius: var(--radius);
+    transition: box-shadow 150ms ease;
+  }
+  .nm-tab-active {
+    background: var(--nm-accent);
+    color: white;
+    box-shadow: inset 2px 2px 4px rgba(0,0,0,0.2),
+                inset -2px -2px 4px rgba(255,255,255,0.1);
+    border-color: transparent;
   }
 }
 
@@ -57,78 +332,117 @@
   /* Typography - Responsive Scaling */
   .page-header {
     @apply text-xl md:text-2xl lg:text-[28px] font-bold;
+    color: var(--nm-text-primary);
   }
-  
+
   .section-header {
     @apply text-base md:text-lg lg:text-xl font-semibold;
+    color: var(--nm-text-primary);
   }
-  
+
   .member-name {
     @apply text-[15px] md:text-base lg:text-[17px] font-medium;
+    color: var(--nm-text-primary);
   }
-  
+
   .body-text {
     @apply text-sm md:text-[15px] lg:text-base;
+    color: var(--nm-text-primary);
   }
-  
+
   .secondary-text {
-    @apply text-xs md:text-[13px] lg:text-sm text-slate-500;
+    @apply text-xs md:text-[13px] lg:text-sm;
+    color: var(--nm-text-secondary);
   }
-  
+
   /* Dashboard Status Cards - Responsive */
   .status-card {
     @apply min-h-[90px] md:min-h-[100px] lg:min-h-[110px];
     @apply p-[14px] md:p-4 lg:p-[18px];
-    @apply rounded-[10px];
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    @apply rounded-[12px];
+    background: var(--nm-surface);
+    box-shadow: 6px 6px 12px var(--nm-shadow-dark),
+                -6px -6px 12px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    transition: box-shadow 200ms ease, transform 200ms ease;
   }
-  
+  .status-card:hover {
+    box-shadow: 8px 8px 16px var(--nm-shadow-dark),
+                -8px -8px 16px var(--nm-shadow-light);
+    transform: translateY(-1px);
+  }
+
   /* Touch/Click Targets - Min 48x48px */
   .touch-target {
     @apply min-w-[48px] min-h-[48px];
   }
-  
+
   /* Responsive Containers */
   .responsive-container {
     @apply px-4 md:px-6 lg:px-8;
     @apply mx-auto;
     @apply max-w-full md:max-w-[720px] lg:max-w-[1200px];
   }
-  
+
   /* Section Spacing */
   .section-spacing {
     @apply my-5 md:my-7 lg:my-9;
   }
-  
+
   /* Card Grid - Dashboard */
   .dashboard-grid {
     @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-5;
   }
-  
+
   /* Member Card */
   .member-card {
     @apply min-h-[65px] md:min-h-[70px] lg:min-h-[75px];
     @apply p-3 md:p-[14px] lg:p-4;
-    @apply rounded-[10px];
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    @apply rounded-[12px];
+    background: var(--nm-surface);
+    box-shadow: 4px 4px 8px var(--nm-shadow-dark),
+                -4px -4px 8px var(--nm-shadow-light);
+    border: 1px solid var(--nm-border);
+    transition: box-shadow 200ms ease, transform 200ms ease;
   }
-  
+  .member-card:hover {
+    box-shadow: 6px 6px 12px var(--nm-shadow-dark),
+                -6px -6px 12px var(--nm-shadow-light);
+    transform: translateY(-1px);
+  }
+
   /* Member ID Circle - Responsive */
   .member-id-circle {
     @apply h-8 w-8 md:h-9 md:w-9 lg:h-10 lg:w-10;
     @apply rounded-full flex items-center justify-center flex-shrink-0;
+    background: var(--nm-surface);
+    box-shadow: inset 2px 2px 4px var(--nm-shadow-dark),
+                inset -2px -2px 4px var(--nm-shadow-light);
   }
-  
+
   /* Status Colors */
   .status-present { color: var(--color-present); }
   .status-substitute { color: var(--color-substitute); }
   .status-absent { color: var(--color-absent); }
   .status-visitor { color: var(--color-visitor); }
   .status-total { color: var(--color-total); }
-  
+
   .bg-status-present { background-color: var(--color-present); }
   .bg-status-substitute { background-color: var(--color-substitute); }
   .bg-status-absent { background-color: var(--color-absent); }
   .bg-status-visitor { background-color: var(--color-visitor); }
   .bg-status-total { background-color: var(--color-total); }
+}
+
+/* ============================================
+   THEME TRANSITION SMOOTHING
+   ============================================ */
+html.transitioning,
+html.transitioning *,
+html.transitioning *::before,
+html.transitioning *::after {
+  transition: background-color 300ms ease,
+              color 300ms ease,
+              box-shadow 300ms ease,
+              border-color 300ms ease !important;
 }

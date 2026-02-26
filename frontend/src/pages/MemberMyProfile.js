@@ -69,7 +69,7 @@ export default function MemberMyProfile() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
@@ -77,8 +77,8 @@ export default function MemberMyProfile() {
   if (!profile) return null;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Profile</h1>
+    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto space-y-6" style={{ background: 'var(--nm-bg)' }}>
+      <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>My Profile</h1>
 
       {/* Profile Card */}
       <Card className="p-6">
@@ -90,8 +90,8 @@ export default function MemberMyProfile() {
             </span>
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">{profile.full_name}</h2>
-            <p className="text-sm text-slate-500">{profile.chapter_name}</p>
+            <h2 className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{profile.full_name}</h2>
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{profile.chapter_name}</p>
             <Badge className="mt-1 bg-emerald-100 text-emerald-700 text-xs">
               {profile.membership_status || 'active'}
             </Badge>
@@ -112,8 +112,8 @@ export default function MemberMyProfile() {
 
       {/* Change Password */}
       <Card className="p-6">
-        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-          <Lock className="h-5 w-5 text-slate-600" /> Change Password
+        <h2 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
+          <Lock className="h-5 w-5" style={{ color: 'var(--nm-text-secondary)' }} /> Change Password
         </h2>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
@@ -129,7 +129,8 @@ export default function MemberMyProfile() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--nm-text-muted)' }}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -160,7 +161,7 @@ export default function MemberMyProfile() {
           <Button
             type="submit"
             disabled={changingPassword}
-            className="bg-[#CF2030] hover:bg-[#A61926]"
+            className=""
           >
             <Save className="h-4 w-4 mr-2" />
             {changingPassword ? 'Changing...' : 'Change Password'}
@@ -173,11 +174,11 @@ export default function MemberMyProfile() {
 
 function InfoRow({ icon: Icon, label, value }) {
   return (
-    <div className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
-      <Icon className="h-4 w-4 text-slate-400 shrink-0" />
+    <div className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: 'var(--nm-border)' }}>
+      <Icon className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
       <div className="flex-1 min-w-0">
-        <p className="text-xs text-slate-400">{label}</p>
-        <p className="text-sm font-medium text-slate-900 truncate">{value}</p>
+        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{label}</p>
+        <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{value}</p>
       </div>
     </div>
   );

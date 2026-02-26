@@ -168,16 +168,16 @@ export default function FundManagementHub() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')} className="hover:bg-slate-100">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-900">Fund Management</h1>
-            <p className="text-xs md:text-sm text-slate-600 truncate max-w-[180px] md:max-w-none">{chapterName}</p>
+            <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Fund Management</h1>
+            <p className="text-xs md:text-sm truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-secondary)' }}>{chapterName}</p>
           </div>
         </div>
       </div>
@@ -243,8 +243,8 @@ export default function FundManagementHub() {
                 <Wallet className="h-6 w-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Kitty</h3>
-                <p className="text-xs text-slate-600">Monthly contribution</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Kitty</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Monthly contribution</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -264,8 +264,8 @@ export default function FundManagementHub() {
                 <Calendar className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Meeting Fees</h3>
-                <p className="text-xs text-slate-600">Monthly meeting fee</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Fees</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Monthly meeting fee</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -285,8 +285,8 @@ export default function FundManagementHub() {
                 <PartyPopper className="h-6 w-6 text-purple-600" />
               </div>
               <div>
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Events</h3>
-                <p className="text-xs text-slate-600">Event payments</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Events</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Event payments</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -310,8 +310,8 @@ export default function FundManagementHub() {
                 <ShieldCheck className="h-6 w-6 text-indigo-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Verify Payments</h3>
-                <p className="text-xs text-slate-600">Review & confirm member submissions</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Verify Payments</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Review & confirm member submissions</p>
               </div>
               <span className="text-indigo-600 text-sm">Review &rarr;</span>
             </div>
@@ -325,8 +325,8 @@ export default function FundManagementHub() {
                 <Banknote className="h-6 w-6 text-teal-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Cash/Cheque Entry</h3>
-                <p className="text-xs text-slate-600">Record manual payments</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Cash/Cheque Entry</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Record manual payments</p>
               </div>
               <span className="text-teal-600 text-sm">Record &rarr;</span>
             </div>
@@ -342,8 +342,8 @@ export default function FundManagementHub() {
                 <IndianRupee className="h-6 w-6 text-orange-600" />
               </div>
               <div>
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Fee Config & Generate</h3>
-                <p className="text-xs text-slate-600">View fee amounts, generate monthly fees</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Fee Config & Generate</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>View fee amounts, generate monthly fees</p>
               </div>
             </div>
             <span className="text-orange-600 text-sm">Setup &rarr;</span>
@@ -360,8 +360,8 @@ export default function FundManagementHub() {
                 <FileText className="h-6 w-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Reports</h3>
-                <p className="text-xs text-slate-600">Export & view reports</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Reports</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Export & view reports</p>
               </div>
               <span className="text-green-600 text-sm">View &rarr;</span>
             </div>
@@ -375,8 +375,8 @@ export default function FundManagementHub() {
                 <MessageCircle className="h-6 w-6 text-emerald-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-base md:text-lg font-semibold text-slate-900">Reminders</h3>
-                <p className="text-xs text-slate-600">WhatsApp payment reminders</p>
+                <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Reminders</h3>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>WhatsApp payment reminders</p>
               </div>
               <span className="text-emerald-600 text-sm">Send &rarr;</span>
             </div>
@@ -395,12 +395,13 @@ export default function FundManagementHub() {
           
           {/* Summary Stats */}
           <div className="flex gap-2 mb-4">
-            <button 
+            <button
               onClick={() => setSummaryView('all')}
-              className={`flex-1 p-3 rounded-lg text-center transition-colors ${summaryView === 'all' ? 'bg-slate-200' : 'bg-slate-100'}`}
+              className={`flex-1 p-3 rounded-lg text-center transition-colors`}
+              style={{ background: summaryView === 'all' ? 'var(--nm-bg)' : 'var(--nm-surface)' }}
             >
-              <p className="text-lg font-bold text-slate-700">{summaryData.paidCount + summaryData.pendingCount}</p>
-              <p className="text-xs text-slate-500">Total</p>
+              <p className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summaryData.paidCount + summaryData.pendingCount}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Total</p>
             </button>
             <button 
               onClick={() => setSummaryView('paid')}
@@ -430,13 +431,13 @@ export default function FundManagementHub() {
               {(summaryView === 'all' ? [...summaryData.paid, ...summaryData.pending] :
                 summaryView === 'paid' ? summaryData.paid : summaryData.pending
               ).map((member, idx) => (
-                <div key={idx} className="px-3 py-2 flex items-center justify-between hover:bg-slate-50">
+                <div key={idx} className="px-3 py-2 flex items-center justify-between hover:bg-black/5">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{member.member_name}</p>
-                    {member.eventName && <p className="text-xs text-slate-400">{member.eventName}</p>}
+                    {member.eventName && <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{member.eventName}</p>}
                   </div>
                   <div className="flex items-center gap-2">
-                    {member.amount && <span className="text-xs text-slate-500">₹{member.amount}</span>}
+                    {member.amount && <span className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>₹{member.amount}</span>}
                     {member.status === 'paid' ? (
                       <Check className="h-4 w-4 text-green-600" />
                     ) : (
@@ -448,7 +449,7 @@ export default function FundManagementHub() {
               {(summaryView === 'all' ? (summaryData.paidCount + summaryData.pendingCount) :
                 summaryView === 'paid' ? summaryData.paidCount : summaryData.pendingCount
               ) === 0 && (
-                <div className="p-8 text-center text-slate-400 text-sm">No members found</div>
+                <div className="p-8 text-center text-sm" style={{ color: 'var(--nm-text-muted)' }}>No members found</div>
               )}
             </div>
           </div>
@@ -466,27 +467,28 @@ export default function FundManagementHub() {
           </DialogHeader>
           
           {/* Date Picker */}
-          <div className="flex items-center justify-between bg-slate-100 rounded-lg p-2 mb-4">
-            <button 
+          <div className="flex items-center justify-between rounded-lg p-2 mb-4" style={{ background: 'var(--nm-surface)' }}>
+            <button
               onClick={() => changeDate(-1)}
-              className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+              className="p-2 rounded-full transition-colors hover:bg-black/5"
             >
-              <ChevronLeft className="h-5 w-5 text-slate-600" />
+              <ChevronLeft className="h-5 w-5" style={{ color: 'var(--nm-text-secondary)' }} />
             </button>
             <div className="flex-1 text-center">
-              <input 
-                type="date" 
+              <input
+                type="date"
                 value={quickViewDate}
                 onChange={(e) => handleQuickViewDateChange(e.target.value)}
-                className="bg-transparent text-center font-medium text-slate-700 border-none focus:outline-none cursor-pointer"
+                className="bg-transparent text-center font-medium border-none focus:outline-none cursor-pointer"
+                style={{ color: 'var(--nm-text-primary)' }}
               />
-              <p className="text-xs text-slate-500">{formatDateDisplay(quickViewDate)}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{formatDateDisplay(quickViewDate)}</p>
             </div>
-            <button 
+            <button
               onClick={() => changeDate(1)}
-              className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+              className="p-2 rounded-full transition-colors hover:bg-black/5"
             >
-              <ChevronRight className="h-5 w-5 text-slate-600" />
+              <ChevronRight className="h-5 w-5" style={{ color: 'var(--nm-text-secondary)' }} />
             </button>
           </div>
 
@@ -507,7 +509,7 @@ export default function FundManagementHub() {
           {/* Month-wise Breakdown */}
           {quickViewData.month_breakdown && quickViewData.month_breakdown.length > 0 && (
             <div className="mb-3">
-              <p className="text-xs font-semibold text-slate-600 mb-2">Month-wise Breakdown:</p>
+              <p className="text-xs font-semibold mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Month-wise Breakdown:</p>
               <div className="grid grid-cols-2 gap-2">
                 {quickViewData.month_breakdown.map((item, idx) => (
                   <div key={idx} className="bg-blue-50 rounded-lg p-2 text-center">
@@ -525,16 +527,16 @@ export default function FundManagementHub() {
           {/* Payments List */}
           <div className="flex-1 overflow-y-auto border rounded-lg">
             {quickViewLoading ? (
-              <div className="p-8 text-center text-slate-400 text-sm">Loading...</div>
+              <div className="p-8 text-center text-sm" style={{ color: 'var(--nm-text-muted)' }}>Loading...</div>
             ) : quickViewData.payments.length > 0 ? (
               <div className="divide-y">
                 {quickViewData.payments.map((payment, idx) => (
-                  <div key={idx} className="px-3 py-2 flex items-center justify-between hover:bg-slate-50">
+                  <div key={idx} className="px-3 py-2 flex items-center justify-between hover:bg-black/5">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{payment.member_name}</p>
-                      {payment.event_name && <p className="text-xs text-slate-400">{payment.event_name}</p>}
+                      {payment.event_name && <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{payment.event_name}</p>}
                       {payment.for_month && payment.for_year && (
-                        <p className="text-xs text-slate-400">For: {getMonthName(payment.for_month)} {payment.for_year}</p>
+                        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>For: {getMonthName(payment.for_month)} {payment.for_year}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -545,7 +547,7 @@ export default function FundManagementHub() {
                 ))}
               </div>
             ) : (
-              <div className="p-8 text-center text-slate-400 text-sm">
+              <div className="p-8 text-center text-sm" style={{ color: 'var(--nm-text-muted)' }}>
                 No payments on this date
               </div>
             )}

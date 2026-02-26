@@ -138,16 +138,16 @@ export default function PaymentReminders() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg md:text-2xl font-bold text-slate-900">Payment Reminders</h1>
-            <p className="text-sm text-slate-500">Send WhatsApp reminders for pending payments</p>
+            <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
           </div>
           {members.length > 0 && (
             <Button
@@ -171,7 +171,7 @@ export default function PaymentReminders() {
               <select
                 value={feeType}
                 onChange={e => setFeeType(e.target.value)}
-                className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
+                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
               >
                 <option value="">All Types</option>
                 <option value="kitty">Kitty</option>
@@ -185,7 +185,7 @@ export default function PaymentReminders() {
               <select
                 value={month}
                 onChange={e => setMonth(Number(e.target.value))}
-                className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
+                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
               >
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
@@ -199,7 +199,7 @@ export default function PaymentReminders() {
               <select
                 value={year}
                 onChange={e => setYear(Number(e.target.value))}
-                className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
+                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
               >
                 {[2024, 2025, 2026, 2027].map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -212,7 +212,7 @@ export default function PaymentReminders() {
         {/* Templates */}
         <Card className="p-4 mb-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-900">Message Templates</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Message Templates</h3>
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2">
             {templates.map(t => (
@@ -223,9 +223,10 @@ export default function PaymentReminders() {
                   setEditTemplateText(t.message_template);
                   setEditTemplateOpen(true);
                 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:border-slate-300 text-sm whitespace-nowrap transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm whitespace-nowrap transition-colors"
+                style={{ borderColor: 'var(--nm-border)' }}
               >
-                <Edit3 className="h-3.5 w-3.5 text-slate-400" />
+                <Edit3 className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
                 {t.name}
               </button>
             ))}
@@ -253,12 +254,12 @@ export default function PaymentReminders() {
         {/* Members List */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
           </div>
         ) : members.length === 0 ? (
           <Card className="p-8 text-center">
             <CheckCircle2 className="h-12 w-12 text-emerald-300 mx-auto mb-3" />
-            <p className="text-slate-500">No pending payments for this period</p>
+            <p style={{ color: 'var(--nm-text-secondary)' }}>No pending payments for this period</p>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -266,8 +267,8 @@ export default function PaymentReminders() {
               <Card key={m.member_id} className="p-3 md:p-4">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900">{m.member_name}</p>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{m.member_name}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       {m.fees.length} fee{m.fees.length > 1 ? 's' : ''} pending
                     </p>
                   </div>
@@ -299,7 +300,7 @@ export default function PaymentReminders() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <p className="text-xs text-slate-500 mb-2">
+              <p className="text-xs mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
                 Available placeholders: {'{name}'}, {'{chapter}'}, {'{amount}'}, {'{month}'}, {'{year}'}, {'{upi_id}'}, {'{description}'}
               </p>
               <Textarea
@@ -309,7 +310,7 @@ export default function PaymentReminders() {
                 className="font-mono text-sm"
               />
             </div>
-            <Button onClick={handleSaveTemplate} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <Button onClick={handleSaveTemplate} className="w-full">
               Save Template
             </Button>
           </div>
@@ -330,8 +331,8 @@ export default function PaymentReminders() {
               <div key={i} className="p-3 border rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-sm font-medium text-slate-900">{link.member_name}</p>
-                    <p className="text-xs text-slate-400">{link.mobile} | {formatCurrency(link.amount)}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{link.member_name}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{link.mobile} | {formatCurrency(link.amount)}</p>
                   </div>
                   <a
                     href={link.wa_link}
@@ -344,15 +345,15 @@ export default function PaymentReminders() {
                   </a>
                 </div>
                 <details className="text-xs">
-                  <summary className="text-slate-400 cursor-pointer">Preview message</summary>
-                  <pre className="mt-1 p-2 bg-slate-50 rounded text-slate-600 whitespace-pre-wrap text-[11px]">
+                  <summary className="cursor-pointer" style={{ color: 'var(--nm-text-muted)' }}>Preview message</summary>
+                  <pre className="mt-1 p-2 rounded whitespace-pre-wrap text-[11px]" style={{ background: 'var(--nm-bg)', color: 'var(--nm-text-secondary)' }}>
                     {link.message}
                   </pre>
                 </details>
               </div>
             ))}
             {reminderLinks.length === 0 && (
-              <p className="text-center text-slate-400 py-4">No links generated</p>
+              <p className="text-center py-4" style={{ color: 'var(--nm-text-muted)' }}>No links generated</p>
             )}
           </div>
         </DialogContent>

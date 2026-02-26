@@ -292,22 +292,22 @@ export default function MembersManagement() {
     return (
       <div className="flex items-center justify-center py-32">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-slate-400 mx-auto mb-4" />
-          <p className="text-slate-500 text-sm">Loading members...</p>
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" style={{ color: 'var(--nm-text-muted)' }} />
+          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Loading members...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
           <span className="text-sm">Back to Dashboard</span>
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Members Management</h1>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Members Management</h1>
       </div>
 
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
@@ -322,13 +322,13 @@ export default function MembersManagement() {
                 onClick={() => setStatusFilter(isActive ? '' : s.filter)}
                 className={`rounded-xl p-2 md:p-3 text-center transition-all border-2 ${
                   isActive ? 'border-[#CF2030] shadow-md' : 'border-transparent'
-                } bg-white hover:shadow-sm`}
+                }` } style={{ background: 'var(--nm-surface)' }}
               >
                 <div className={`h-8 w-8 md:h-9 md:w-9 rounded-lg ${s.bg} flex items-center justify-center mx-auto mb-1`}>
                   <Icon className={`h-4 w-4 ${s.color}`} />
                 </div>
-                <p className="text-lg md:text-2xl font-bold text-slate-900">{stats[s.key] || 0}</p>
-                <p className="text-[10px] md:text-xs text-slate-500">{s.label}</p>
+                <p className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{stats[s.key] || 0}</p>
+                <p className="text-[10px] md:text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{s.label}</p>
               </button>
             );
           })}
@@ -347,7 +347,7 @@ export default function MembersManagement() {
         {/* Search + Actions */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
             <Input
               placeholder="Search name, mobile, business..."
               value={searchQuery}
@@ -375,7 +375,7 @@ export default function MembersManagement() {
                     <Label>Select Excel File</Label>
                     <Input type="file" accept=".xlsx,.xls"
                       onChange={(e) => setUploadFile(e.target.files[0])} className="mt-2" />
-                    <p className="text-sm text-slate-500 mt-2">Download template for format.</p>
+                    <p className="text-sm mt-2" style={{ color: 'var(--nm-text-secondary)' }}>Download template for format.</p>
                   </div>
                   <Button onClick={handleFileUpload} disabled={uploading || !uploadFile}
                     className="w-full bg-[#CF2030] hover:bg-[#A61926]">
@@ -409,7 +409,7 @@ export default function MembersManagement() {
             <Badge className={`${STATUS_COLORS[statusFilter]} text-xs`}>
               Showing: {statusFilter}
             </Badge>
-            <button onClick={() => setStatusFilter('')} className="text-xs text-slate-500 hover:text-slate-700 underline">
+            <button onClick={() => setStatusFilter('')} className="text-xs underline" style={{ color: 'var(--nm-text-secondary)' }}>
               Clear filter
             </button>
           </div>
@@ -418,7 +418,7 @@ export default function MembersManagement() {
         {/* Member Cards */}
         {filteredMembers.length === 0 ? (
           <Card className="p-8 md:p-12 text-center">
-            <p className="text-slate-600 text-sm md:text-base">
+            <p className="text-sm md:text-base" style={{ color: 'var(--nm-text-secondary)' }}>
               {members.length === 0 ? 'No members yet. Add your first member!' : 'No members match your search/filter.'}
             </p>
           </Card>
@@ -438,12 +438,12 @@ export default function MembersManagement() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="font-medium text-sm md:text-base text-slate-900 truncate">{member.full_name}</h3>
+                        <h3 className="font-medium text-sm md:text-base truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h3>
                         <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-500 truncate">
+                      <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>
                         {member.primary_mobile}
                         {member.business_name ? ` · ${member.business_name}` : ''}
                       </p>
@@ -468,7 +468,7 @@ export default function MembersManagement() {
                         });
                         setEditOpen(true);
                       }}>
-                      <Edit className="h-3.5 w-3.5 text-slate-500" />
+                      <Edit className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
                     </Button>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
                       onClick={() => {
@@ -476,13 +476,13 @@ export default function MembersManagement() {
                         setStatusAction(member.membership_status === 'active' ? 'deactivate' : 'reactivate');
                         setStatusOpen(true);
                       }}>
-                      <Shield className="h-3.5 w-3.5 text-slate-500" />
+                      <Shield className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
                     </Button>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
                       onClick={() => handleDelete(member.member_id)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
-                    <ChevronRight className="h-4 w-4 text-slate-300 self-center" />
+                    <ChevronRight className="h-4 w-4 self-center" style={{ color: 'var(--nm-text-muted)' }} />
                   </div>
                 </div>
               </Card>
@@ -511,7 +511,7 @@ export default function MembersManagement() {
             <DialogTitle>Change Member Status</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               Member: <strong>{selectedMember?.full_name}</strong>
             </p>
             <div>

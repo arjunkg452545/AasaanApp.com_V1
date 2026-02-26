@@ -137,28 +137,28 @@ export default function AdminManualEntry() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <h1 className="text-lg md:text-2xl font-bold text-slate-900">Record Cash/Cheque Payment</h1>
-        <p className="text-sm text-slate-500">Manually record a payment received in cash or cheque</p>
+        <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Record Cash/Cheque Payment</h1>
+        <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Manually record a payment received in cash or cheque</p>
       </div>
 
       <div className="p-4 md:p-8 max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Select Member */}
           <Card className="p-4 md:p-6">
-            <h2 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-              <User className="h-4 w-4 text-slate-600" /> Select Member
+            <h2 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
+              <User className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} /> Select Member
             </h2>
             <div className="relative">
               <div className="relative">
@@ -180,20 +180,21 @@ export default function AdminManualEntry() {
               </div>
 
               {showMemberList && searchQuery && filteredMembers.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute z-10 w-full mt-1 border rounded-lg shadow-lg max-h-48 overflow-y-auto" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
                   {filteredMembers.slice(0, 20).map(m => (
                     <button
                       key={m.member_id}
                       type="button"
                       onClick={() => handleSelectMember(m)}
                       className="w-full px-3 py-2 text-left hover:bg-slate-50 flex items-center justify-between border-b last:border-0"
+                      style={{ borderColor: 'var(--nm-border)' }}
                     >
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{m.full_name}</p>
-                        <p className="text-xs text-slate-400">{m.primary_mobile}</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{m.full_name}</p>
+                        <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{m.primary_mobile}</p>
                       </div>
                       {m.business_category && (
-                        <span className="text-xs text-slate-400">{m.business_category}</span>
+                        <span className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{m.business_category}</span>
                       )}
                     </button>
                   ))}
@@ -215,13 +216,13 @@ export default function AdminManualEntry() {
           {/* Select Fee or Create New */}
           {selectedMember && (
             <Card className="p-4 md:p-6">
-              <h2 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                <Banknote className="h-4 w-4 text-slate-600" /> Select Fee
+              <h2 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
+                <Banknote className="h-4 w-4" style={{ color: 'var(--nm-text-secondary)' }} /> Select Fee
               </h2>
 
               {pendingFees.length > 0 ? (
                 <div className="space-y-2 mb-4">
-                  <p className="text-xs text-slate-500">Pending fees for this member:</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Pending fees for this member:</p>
                   {pendingFees.map(fee => (
                     <button
                       key={fee.ledger_id}
@@ -235,12 +236,12 @@ export default function AdminManualEntry() {
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium text-slate-900">{fee.description}</p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{fee.description}</p>
+                          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                             {fee.fee_type?.replace('_', ' ')} {fee.month && fee.year ? `- ${fee.month}/${fee.year}` : ''}
                           </p>
                         </div>
-                        <span className="text-sm font-bold text-slate-900">{formatCurrency(fee.amount)}</span>
+                        <span className="text-sm font-bold" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(fee.amount)}</span>
                       </div>
                     </button>
                   ))}
@@ -253,12 +254,12 @@ export default function AdminManualEntry() {
                         : 'border-dashed border-slate-300 hover:border-slate-400'
                     }`}
                   >
-                    <p className="text-sm font-medium text-slate-700">+ Create new entry</p>
-                    <p className="text-xs text-slate-400">Record a payment without a pending fee</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>+ Create new entry</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Record a payment without a pending fee</p>
                   </button>
                 </div>
               ) : (
-                <p className="text-xs text-slate-400 mb-4">No pending fees. A new entry will be created.</p>
+                <p className="text-xs mb-4" style={{ color: 'var(--nm-text-muted)' }}>No pending fees. A new entry will be created.</p>
               )}
 
               {/* New entry fields (when no fee selected) */}
@@ -269,7 +270,7 @@ export default function AdminManualEntry() {
                     <select
                       value={feeType}
                       onChange={e => setFeeType(e.target.value)}
-                      className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
+                      className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
                     >
                       <option value="cash_payment">Cash Payment</option>
                       <option value="kitty">Kitty</option>
@@ -286,7 +287,7 @@ export default function AdminManualEntry() {
                       <select
                         value={month}
                         onChange={e => setMonth(Number(e.target.value))}
-                        className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
+                        className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
                       >
                         {Array.from({ length: 12 }, (_, i) => (
                           <option key={i + 1} value={i + 1}>
@@ -313,7 +314,7 @@ export default function AdminManualEntry() {
           {/* Payment Details */}
           {selectedMember && (
             <Card className="p-4 md:p-6">
-              <h2 className="text-sm font-semibold text-slate-900 mb-3">Payment Details</h2>
+              <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Payment Details</h2>
 
               <div className="space-y-4">
                 {/* Payment Method */}
@@ -383,7 +384,7 @@ export default function AdminManualEntry() {
             <Button
               type="submit"
               disabled={submitting || !amount}
-              className="w-full bg-[#CF2030] hover:bg-[#A61926] h-12 text-base"
+              className="w-full h-12 text-base"
             >
               {submitting ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Recording...</>

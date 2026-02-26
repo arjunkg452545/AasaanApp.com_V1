@@ -166,20 +166,20 @@ export default function EventPayment() {
     const collection = paidCount * (eventData.event?.amount || 0);
 
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="bg-white border-b border-slate-200 px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
+        <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-4">
             <Button variant="ghost" size="sm" onClick={() => setShowMembers(null)}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-base md:text-2xl font-bold text-slate-900 truncate max-w-[180px] md:max-w-none">{eventData.event?.event_name}</h1>
-              <p className="text-xs text-slate-600">
+              <h1 className="text-base md:text-2xl font-bold truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-primary)' }}>{eventData.event?.event_name}</h1>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                 {eventData.event?.event_type === 'compulsory' ? '🔴' : '🟢'} ₹{eventData.event?.amount}
               </p>
             </div>
           </div>
-          <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="border rounded p-1.5 text-xs">
+          <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="nm-input rounded p-1.5 text-xs">
             <option value="cash">Cash</option>
             <option value="upi">UPI</option>
             <option value="cheque">Cheque</option>
@@ -222,7 +222,7 @@ export default function EventPayment() {
                   <input type="checkbox" checked={selectedMembers.includes(member.member_id)} onChange={() => toggleMemberSelection(member.member_id)} className="w-4 h-4" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{member.member_name}</p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                       <span className={member.status === 'paid' ? 'text-green-600' : 'text-red-600'}>{member.status}</span>
                       {member.payment_mode && <span>• {member.payment_mode}</span>}
                     </div>
@@ -247,15 +247,15 @@ export default function EventPayment() {
 
   // Main Events List
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200 px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
+      <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-base md:text-2xl font-bold text-slate-900">Event Payment</h1>
-            <p className="text-xs text-slate-600">Events & collections</p>
+            <h1 className="text-base md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Event Payment</h1>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Events & collections</p>
           </div>
         </div>
         <Button onClick={() => setShowCreate(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
@@ -287,7 +287,7 @@ export default function EventPayment() {
               </div>
               <div>
                 <Label className="text-xs">Type *</Label>
-                <select value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} className="w-full p-2 border rounded text-sm">
+                <select value={newEvent.event_type} onChange={(e) => setNewEvent({...newEvent, event_type: e.target.value})} className="nm-input w-full p-2 rounded text-sm">
                   <option value="compulsory">🔴 All Members</option>
                   <option value="optional">🟢 Select Members</option>
                 </select>
@@ -335,11 +335,11 @@ export default function EventPayment() {
         </Dialog>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-500 text-sm">Loading...</div>
+          <div className="text-center py-12 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Loading...</div>
         ) : events.length === 0 ? (
           <Card className="p-8 text-center">
-            <PartyPopper className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-            <p className="text-sm text-slate-500">No events yet</p>
+            <PartyPopper className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No events yet</p>
             <Button onClick={() => setShowCreate(true)} size="sm" className="mt-3">Create</Button>
           </Card>
         ) : (
@@ -354,7 +354,7 @@ export default function EventPayment() {
                         {event.event_type === 'compulsory' ? 'All' : 'Opt'}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                    <div className="flex items-center gap-2 text-xs mt-0.5" style={{ color: 'var(--nm-text-secondary)' }}>
                       <span>{new Date(event.event_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'})}</span>
                       <span>• {event.paid_count || 0}/{event.total_members || 0}</span>
                     </div>

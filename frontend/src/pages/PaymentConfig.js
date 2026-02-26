@@ -72,21 +72,21 @@ export default function PaymentConfig() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/superadmin/dashboard')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
         <div className="flex items-center justify-between">
-          <h1 className="text-lg md:text-2xl font-bold text-slate-900">Payment Configuration</h1>
-          <Button onClick={handleSave} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
+          <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Configuration</h1>
+          <Button onClick={handleSave} disabled={saving}>
             <Save className="h-4 w-4 mr-2" />
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -95,7 +95,7 @@ export default function PaymentConfig() {
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {/* Tabs */}
-        <div className="flex gap-1 bg-white rounded-lg p-1 border mb-6 overflow-x-auto">
+        <div className="flex gap-1 rounded-lg p-1 mb-6 overflow-x-auto" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)', borderWidth: '1px', borderStyle: 'solid' }}>
           {TABS.map(tab => {
             const Icon = tab.icon;
             return (
@@ -105,8 +105,9 @@ export default function PaymentConfig() {
                 className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? 'bg-[#CF2030] text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                    : ''
                 }`}
+                style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : {}}
               >
                 <Icon className="h-4 w-4" />
                 {tab.label}
@@ -118,7 +119,7 @@ export default function PaymentConfig() {
         {/* UPI Tab */}
         {activeTab === 'upi' && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
               <Smartphone className="h-5 w-5 text-[#CF2030]" /> UPI Settings
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -141,7 +142,7 @@ export default function PaymentConfig() {
                 />
               </div>
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
               Members will see this UPI ID for payments. QR code will be auto-generated.
             </p>
           </Card>
@@ -151,7 +152,7 @@ export default function PaymentConfig() {
         {activeTab === 'bank' && (
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+              <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
                 <Building2 className="h-5 w-5 text-[#CF2030]" /> Bank Details
               </h2>
               <button
@@ -161,7 +162,7 @@ export default function PaymentConfig() {
                 {config?.bank_enabled ? (
                   <ToggleRight className="h-6 w-6 text-green-600" />
                 ) : (
-                  <ToggleLeft className="h-6 w-6 text-slate-400" />
+                  <ToggleLeft className="h-6 w-6" style={{ color: 'var(--nm-text-muted)' }} />
                 )}
                 {config?.bank_enabled ? 'Enabled' : 'Disabled'}
               </button>
@@ -219,10 +220,10 @@ export default function PaymentConfig() {
         {/* Fee Defaults Tab */}
         {activeTab === 'fees' && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
               <IndianRupee className="h-5 w-5 text-[#CF2030]" /> Default Fee Amounts
             </h2>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               These are default amounts for all chapters. You can override per-chapter in Chapter Fee Config.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -273,7 +274,7 @@ export default function PaymentConfig() {
         {/* Verification Tab */}
         {activeTab === 'verification' && (
           <Card className="p-6 space-y-4">
-            <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+            <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
               <Shield className="h-5 w-5 text-[#CF2030]" /> Verification Settings
             </h2>
             <div className="space-y-4">
@@ -311,16 +312,16 @@ export default function PaymentConfig() {
 
 function ToggleItem({ label, description, checked, onChange }) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+    <div className="flex items-center justify-between py-2 last:border-0" style={{ borderBottomWidth: '1px', borderBottomStyle: 'solid', borderBottomColor: 'var(--nm-border)' }}>
       <div>
-        <p className="text-sm font-medium text-slate-900">{label}</p>
-        <p className="text-xs text-slate-500">{description}</p>
+        <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{label}</p>
+        <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{description}</p>
       </div>
       <button onClick={() => onChange(!checked)}>
         {checked ? (
           <ToggleRight className="h-7 w-7 text-green-600" />
         ) : (
-          <ToggleLeft className="h-7 w-7 text-slate-400" />
+          <ToggleLeft className="h-7 w-7" style={{ color: 'var(--nm-text-muted)' }} />
         )}
       </button>
     </div>

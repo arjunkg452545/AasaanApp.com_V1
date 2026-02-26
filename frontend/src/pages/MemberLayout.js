@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   LayoutDashboard, Wallet, History, User, LogOut, Menu, X
 } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 const navItems = [
   { label: 'Home', path: '/member/dashboard', icon: LayoutDashboard },
@@ -40,27 +41,27 @@ export default function MemberLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--nm-bg)' }}>
       {/* Desktop sidebar overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: 'var(--nm-overlay)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Desktop Sidebar - hidden on mobile */}
+      {/* Desktop Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col
+          fixed inset-y-0 left-0 z-50 w-64 nm-sidebar flex flex-col
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0 lg:static lg:z-auto
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           hidden lg:flex
         `}
       >
         {/* Logo area */}
-        <div className="px-5 py-5 border-b border-slate-100">
+        <div className="px-5 py-5" style={{ borderBottom: '1px solid var(--nm-border)' }}>
           <div className="flex items-center gap-3">
             <img
               src="/icons/aasaan-logo.png"
@@ -68,16 +69,16 @@ export default function MemberLayout() {
               className="h-9 w-auto rounded-lg"
             />
             <div>
-              <h1 className="text-base font-bold leading-tight text-slate-900">Member Portal</h1>
+              <h1 className="text-base font-bold leading-tight" style={{ color: 'var(--nm-text-primary)' }}>Member Portal</h1>
               {chapterName && (
-                <p className="text-[11px] text-slate-500 truncate max-w-[160px]">{chapterName}</p>
+                <p className="text-[11px] truncate max-w-[160px]" style={{ color: 'var(--nm-text-muted)' }}>{chapterName}</p>
               )}
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -87,10 +88,10 @@ export default function MemberLayout() {
                 onClick={() => handleNavClick(item.path)}
                 className={`
                   w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  transition-colors duration-150
+                  transition-all duration-200
                   ${active
-                    ? 'bg-[#CF2030]/10 text-[#CF2030]'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'nm-sidebar-item-active'
+                    : 'nm-sidebar-item'
                   }
                 `}
               >
@@ -101,27 +102,31 @@ export default function MemberLayout() {
           })}
         </nav>
 
-        {/* Bottom: Member info + Logout */}
-        <div className="px-4 py-4 border-t border-slate-100">
+        {/* Bottom: Member info + Theme + Logout */}
+        <div className="px-4 py-4" style={{ borderTop: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-slate-900 truncate">{memberName}</p>
-              <p className="text-xs text-slate-500">Member</p>
+              <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{memberName}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Member</p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="shrink-0 text-slate-400 hover:text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                className="shrink-0"
+                style={{ color: 'var(--nm-text-muted)' }}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Mobile top bar */}
-      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden nm-header px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img
             src="/icons/aasaan-logo.png"
@@ -129,20 +134,24 @@ export default function MemberLayout() {
             className="h-7 w-auto rounded"
           />
           <div>
-            <span className="text-sm font-semibold text-slate-900">Member Portal</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Member Portal</span>
             {chapterName && (
-              <p className="text-[10px] text-slate-500 truncate max-w-[160px]">{chapterName}</p>
+              <p className="text-[10px] truncate max-w-[160px]" style={{ color: 'var(--nm-text-muted)' }}>{chapterName}</p>
             )}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="text-slate-400 hover:text-red-600 hover:bg-red-50 h-8 w-8"
-        >
-          <LogOut className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleLogout}
+            className="h-8 w-8"
+            style={{ color: 'var(--nm-text-muted)' }}
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Main content */}
@@ -151,7 +160,7 @@ export default function MemberLayout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-30 safe-area-bottom">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 nm-header z-30 safe-area-bottom" style={{ borderTop: '1px solid var(--nm-border)' }}>
         <div className="flex items-center justify-around h-16">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -161,13 +170,14 @@ export default function MemberLayout() {
                 key={item.path}
                 onClick={() => handleNavClick(item.path)}
                 className={`
-                  flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-lg
-                  transition-colors min-w-[60px]
+                  flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl
+                  transition-all min-w-[60px]
                   ${active
-                    ? 'text-[#CF2030]'
-                    : 'text-slate-400 hover:text-slate-600'
+                    ? 'nm-pressed'
+                    : ''
                   }
                 `}
+                style={{ color: active ? 'var(--nm-accent)' : 'var(--nm-text-muted)' }}
               >
                 <Icon className={`h-5 w-5 ${active ? 'stroke-[2.5]' : ''}`} />
                 <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>

@@ -100,7 +100,7 @@ export default function DeveloperEDs() {
       <div className="flex items-center justify-center py-32">
         <div className="text-center">
           <div className="animate-spin h-8 w-8 border-4 border-slate-900 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-slate-600">Loading Executive Directors...</p>
+          <p style={{ color: 'var(--nm-text-secondary)' }}>Loading Executive Directors...</p>
         </div>
       </div>
     );
@@ -111,12 +111,12 @@ export default function DeveloperEDs() {
       {/* Page Title */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Executive Directors</h2>
-          <p className="text-slate-500 mt-1">Manage all Super Admins</p>
+          <h2 className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Executive Directors</h2>
+          <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Manage all Super Admins</p>
         </div>
         <Button
           onClick={() => navigate('/developer/superadmin/create')}
-          className="bg-[#CF2030] hover:bg-[#A61926] shrink-0"
+          className="shrink-0"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add New ED
@@ -125,12 +125,12 @@ export default function DeveloperEDs() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
         <Input
           placeholder="Search by name, mobile, email, region, state..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-white"
+          className="pl-10"
         />
       </div>
 
@@ -138,9 +138,9 @@ export default function DeveloperEDs() {
       <div className="space-y-3">
         {filteredSuperadmins.length === 0 ? (
           <Card className="p-12 text-center">
-            <UserCheck className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-slate-700">No Executive Directors Found</h3>
-            <p className="text-slate-500 mt-1">
+            <UserCheck className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>No Executive Directors Found</h3>
+            <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>
               {searchQuery ? 'Try a different search term' : 'Create your first Executive Director'}
             </p>
           </Card>
@@ -148,16 +148,17 @@ export default function DeveloperEDs() {
           filteredSuperadmins.map((sa) => (
             <Card
               key={sa.superadmin_id}
-              className={`p-5 hover:shadow-md transition-all ${!sa.is_active ? 'opacity-60 bg-slate-50' : ''}`}
+              className={`p-5 hover:shadow-md transition-all ${!sa.is_active ? 'opacity-60' : ''}`}
+              style={!sa.is_active ? { background: 'var(--nm-bg)' } : undefined}
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${sa.is_active ? 'bg-[#CF2030]/10' : 'bg-slate-200'}`}>
-                    <UserCheck className={`h-6 w-6 ${sa.is_active ? 'text-[#CF2030]' : 'text-slate-400'}`} />
+                  <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${sa.is_active ? 'bg-[#CF2030]/10' : ''}`} style={!sa.is_active ? { background: 'var(--nm-border)' } : undefined}>
+                    <UserCheck className={`h-6 w-6 ${sa.is_active ? 'text-[#CF2030]' : ''}`} style={!sa.is_active ? { color: 'var(--nm-text-muted)' } : undefined} />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-slate-900 truncate">{sa.name || 'Unnamed'}</h3>
+                      <h3 className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{sa.name || 'Unnamed'}</h3>
                       <Badge
                         variant={sa.is_active ? 'default' : 'secondary'}
                         className={`text-xs ${sa.is_active ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : ''}`}
@@ -165,7 +166,7 @@ export default function DeveloperEDs() {
                         {sa.is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 mt-1">
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1" style={{ color: 'var(--nm-text-secondary)' }}>
                       {sa.mobile && (
                         <span className="flex items-center gap-1">
                           <Phone className="h-3.5 w-3.5" />
@@ -196,8 +197,8 @@ export default function DeveloperEDs() {
 
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right mr-2 hidden sm:block">
-                    <p className="text-sm text-slate-500">Chapters</p>
-                    <p className="text-xl font-bold text-slate-900">{sa.chapter_count || 0}</p>
+                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Chapters</p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{sa.chapter_count || 0}</p>
                   </div>
                   <div className="sm:hidden">
                     <Badge variant="outline" className="text-xs">
@@ -274,7 +275,7 @@ export default function DeveloperEDs() {
                 />
               </div>
             </div>
-            <Button type="submit" disabled={saving} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <Button type="submit" disabled={saving} className="w-full">
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {saving ? 'Updating...' : 'Update Super Admin'}
             </Button>

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import {
   LayoutDashboard, ShieldCheck, Users, LogOut, Menu, X, Calculator,
 } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 const navItems = [
   { label: 'Dashboard', path: '/accountant/dashboard', icon: LayoutDashboard },
@@ -32,11 +33,12 @@ export default function AccountantLayout() {
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex" style={{ background: 'var(--nm-bg)' }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ background: 'var(--nm-overlay)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -44,35 +46,35 @@ export default function AccountantLayout() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white flex flex-col
+          fixed inset-y-0 left-0 z-50 w-64 nm-sidebar flex flex-col
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0 lg:static lg:z-auto
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
         {/* Logo area */}
-        <div className="p-4 border-b border-slate-700">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--nm-border)' }}>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <Calculator className="h-5 w-5 text-white" />
+            <div className="h-10 w-10 rounded-lg nm-pressed flex items-center justify-center" style={{ color: 'var(--nm-accent)' }}>
+              <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-bold text-sm">Accountant Panel</h2>
-              <p className="text-xs text-slate-400 truncate">{accountantName}</p>
+              <h2 className="font-bold text-sm" style={{ color: 'var(--nm-text-primary)' }}>Accountant Panel</h2>
+              <p className="text-xs truncate" style={{ color: 'var(--nm-text-muted)' }}>{accountantName}</p>
             </div>
           </div>
         </div>
 
         {/* Nav items */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1.5">
           {navItems.map(item => (
             <button
               key={item.path}
               onClick={() => handleNavClick(item.path)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                 isActive(item.path)
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'nm-sidebar-item-active'
+                  : 'nm-sidebar-item'
               }`}
             >
               <item.icon className="h-4 w-4" />
@@ -81,11 +83,14 @@ export default function AccountantLayout() {
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="p-3 border-t border-slate-700">
+        {/* Bottom: Theme + Logout */}
+        <div className="p-3" style={{ borderTop: '1px solid var(--nm-border)' }}>
+          <div className="flex items-center justify-between mb-2">
+            <ThemeToggle />
+          </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm nm-sidebar-item transition-all duration-200"
           >
             <LogOut className="h-4 w-4" />
             Logout
@@ -96,14 +101,17 @@ export default function AccountantLayout() {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar (mobile) */}
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)}>
-            <Menu className="h-5 w-5 text-slate-600" />
+        <div className="lg:hidden nm-header px-4 py-3 flex items-center justify-between">
+          <button onClick={() => setSidebarOpen(true)} className="nm-btn p-2 rounded-lg">
+            <Menu className="h-5 w-5" style={{ color: 'var(--nm-text-secondary)' }} />
           </button>
-          <h1 className="text-sm font-bold text-slate-900">Accountant Panel</h1>
-          <button onClick={handleLogout}>
-            <LogOut className="h-5 w-5 text-slate-400" />
-          </button>
+          <h1 className="text-sm font-bold" style={{ color: 'var(--nm-text-primary)' }}>Accountant Panel</h1>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <button onClick={handleLogout} className="p-2">
+              <LogOut className="h-5 w-5" style={{ color: 'var(--nm-text-muted)' }} />
+            </button>
+          </div>
         </div>
 
         {/* Content */}

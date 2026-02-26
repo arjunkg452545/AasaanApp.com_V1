@@ -71,20 +71,20 @@ export default function MemberPendingApprovals() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-8 py-3 md:py-4">
+      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
         <Button variant="ghost" size="sm" onClick={() => navigate('/superadmin/dashboard')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
         </Button>
         <div className="flex items-center gap-3">
-          <h1 className="text-lg md:text-2xl font-bold text-slate-900">Pending Approvals</h1>
+          <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Pending Approvals</h1>
           <Badge className="bg-amber-100 text-amber-700">{members.length}</Badge>
         </div>
       </div>
@@ -92,8 +92,8 @@ export default function MemberPendingApprovals() {
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {members.length === 0 ? (
           <Card className="p-8 md:p-12 text-center">
-            <Clock className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-600">No pending member approvals</p>
+            <Clock className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p style={{ color: 'var(--nm-text-secondary)' }}>No pending member approvals</p>
           </Card>
         ) : (
           <div className="space-y-3">
@@ -105,18 +105,18 @@ export default function MemberPendingApprovals() {
                       <Clock className="h-5 w-5 text-amber-600" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-medium text-slate-900 truncate">{member.full_name}</h3>
-                      <p className="text-xs text-slate-500">
+                      <h3 className="font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h3>
+                      <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                         ID: {member.unique_member_id} &middot; {member.primary_mobile}
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
-                        <Building2 className="h-3 w-3 text-slate-400" />
-                        <span className="text-xs text-slate-500">{member.chapter_name || 'Unknown Chapter'}</span>
+                        <Building2 className="h-3 w-3" style={{ color: 'var(--nm-text-muted)' }} />
+                        <span className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{member.chapter_name || 'Unknown Chapter'}</span>
                       </div>
                       {member.business_name && (
-                        <p className="text-xs text-slate-400 mt-0.5">{member.business_name}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--nm-text-muted)' }}>{member.business_name}</p>
                       )}
-                      <p className="text-[10px] text-slate-400">Added {formatDate(member.created_at)}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>Added {formatDate(member.created_at)}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -153,7 +153,7 @@ export default function MemberPendingApprovals() {
             <DialogTitle>Reject Member</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-slate-600">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               Rejecting: <strong>{selectedMember?.full_name}</strong>
             </p>
             <div>

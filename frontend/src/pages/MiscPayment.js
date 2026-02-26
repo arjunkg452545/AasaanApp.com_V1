@@ -146,18 +146,18 @@ export default function MiscPayment() {
     const pendingCount = memberData.members.filter(m => m.status === 'pending').length;
 
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="bg-white border-b border-slate-200 px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
+        <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
           <div className="flex items-center gap-2 md:gap-4">
             <Button variant="ghost" size="sm" onClick={() => setShowMembers(null)}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-base md:text-2xl font-bold text-slate-900 truncate max-w-[180px] md:max-w-none">{memberData.payment?.payment_name}</h1>
-              <p className="text-xs text-slate-600">₹{memberData.payment?.amount}</p>
+              <h1 className="text-base md:text-2xl font-bold truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-primary)' }}>{memberData.payment?.payment_name}</h1>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>₹{memberData.payment?.amount}</p>
             </div>
           </div>
-          <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="border rounded p-1.5 text-xs">
+          <select value={paymentMode} onChange={(e) => setPaymentMode(e.target.value)} className="nm-input rounded p-1.5 text-xs">
             <option value="cash">Cash</option>
             <option value="upi">UPI</option>
             <option value="cheque">Cheque</option>
@@ -203,7 +203,7 @@ export default function MiscPayment() {
                   <input type="checkbox" checked={selectedMembers.includes(member.member_id)} onChange={() => toggleMemberSelection(member.member_id)} className="w-4 h-4" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{member.member_name}</p>
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                       <span className={member.status === 'paid' ? 'text-green-600' : 'text-red-600'}>{member.status}</span>
                       {member.payment_mode && <span>• {member.payment_mode}</span>}
                     </div>
@@ -228,15 +228,15 @@ export default function MiscPayment() {
 
   // Main Payments List
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="bg-white border-b border-slate-200 px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
+      <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-base md:text-2xl font-bold text-slate-900">Misc Payment</h1>
-            <p className="text-xs text-slate-600">Cash, UPI, Cheque</p>
+            <h1 className="text-base md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Misc Payment</h1>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Cash, UPI, Cheque</p>
           </div>
         </div>
         <Button onClick={() => setShowCreate(true)} className="bg-blue-600 hover:bg-blue-700" size="sm">
@@ -300,11 +300,11 @@ export default function MiscPayment() {
         </Dialog>
 
         {loading ? (
-          <div className="text-center py-12 text-slate-500 text-sm">Loading...</div>
+          <div className="text-center py-12 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Loading...</div>
         ) : payments.length === 0 ? (
           <Card className="p-8 text-center">
-            <CreditCard className="h-12 w-12 mx-auto mb-3 text-slate-300" />
-            <p className="text-sm text-slate-500">No payments yet</p>
+            <CreditCard className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No payments yet</p>
             <Button onClick={() => setShowCreate(true)} size="sm" className="mt-3">Create</Button>
           </Card>
         ) : (
@@ -314,7 +314,7 @@ export default function MiscPayment() {
                 <div className="flex items-center gap-2">
                   <div className="flex-1 min-w-0 cursor-pointer" onClick={() => loadMembers(payment.misc_payment_id)}>
                     <h3 className="font-semibold text-sm truncate">{payment.payment_name}</h3>
-                    <p className="text-xs text-slate-500">Due: {new Date(payment.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'})}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Due: {new Date(payment.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short'})}</p>
                   </div>
                   <div className="text-right mr-2">
                     <p className="text-lg font-bold text-blue-600">₹{payment.amount}</p>

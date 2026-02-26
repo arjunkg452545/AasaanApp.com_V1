@@ -29,22 +29,22 @@ export default function MeetingManagementHub() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header - Mobile optimized */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-6 lg:px-8 py-3 md:py-4 flex justify-between items-center">
+      <div className="nm-header px-4 md:px-6 lg:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => navigate('/admin/dashboard')}
-            className="hover:bg-slate-100 min-w-[48px] min-h-[48px]"
+            className="min-w-[48px] min-h-[48px]"
           >
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden md:inline ml-2">Back</span>
           </Button>
           <div>
-            <h1 className="text-xl md:text-2xl lg:text-[28px] font-bold text-slate-900">Meeting Management</h1>
-            <p className="text-xs md:text-[13px] lg:text-sm text-slate-600 truncate max-w-[180px] md:max-w-none">{chapterName}</p>
+            <h1 className="text-xl md:text-2xl lg:text-[28px] font-bold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Management</h1>
+            <p className="text-xs md:text-[13px] lg:text-sm truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-secondary)' }}>{chapterName}</p>
           </div>
         </div>
       </div>
@@ -56,8 +56,8 @@ export default function MeetingManagementHub() {
             <ClipboardList className="h-5 w-5 md:h-6 md:w-6 text-[#005596]" />
           </div>
           <div>
-            <h2 className="text-lg md:text-xl lg:text-2xl font-semibold text-slate-900">Meeting Hub</h2>
-            <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">Meetings, QR & Reports</p>
+            <h2 className="text-lg md:text-xl lg:text-2xl font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Hub</h2>
+            <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Meetings, QR & Reports</p>
           </div>
         </div>
 
@@ -70,8 +70,8 @@ export default function MeetingManagementHub() {
                 <Calendar className="h-5 w-5 md:h-6 md:w-6 text-[#005596]" />
               </div>
               <div>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">Total Meetings</p>
-                <p className="text-2xl md:text-[28px] lg:text-3xl font-bold text-slate-900">{stats.meetings}</p>
+                <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Total Meetings</p>
+                <p className="text-2xl md:text-[28px] lg:text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{stats.meetings}</p>
               </div>
             </div>
           </Card>
@@ -87,8 +87,8 @@ export default function MeetingManagementHub() {
                 <Calendar className="h-5 w-5 md:h-6 md:w-6 text-[#005596]" />
               </div>
               <div>
-                <h3 className="text-sm md:text-base lg:text-lg font-semibold text-slate-900">Meetings</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">Create & manage</p>
+                <h3 className="text-sm md:text-base lg:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Meetings</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Create & manage</p>
               </div>
             </div>
           </Card>
@@ -104,8 +104,8 @@ export default function MeetingManagementHub() {
                 <QrCode className="h-5 w-5 md:h-6 md:w-6 text-[#CF2030]" />
               </div>
               <div>
-                <h3 className="text-sm md:text-base lg:text-lg font-semibold text-slate-900">QR Display</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">Show QR codes</p>
+                <h3 className="text-sm md:text-base lg:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>QR Display</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Show QR codes</p>
               </div>
             </div>
           </Card>
@@ -121,8 +121,8 @@ export default function MeetingManagementHub() {
                 <FileText className="h-5 w-5 md:h-6 md:w-6 text-[#005596]" />
               </div>
               <div>
-                <h3 className="text-sm md:text-base lg:text-lg font-semibold text-slate-900">Reports</h3>
-                <p className="text-xs md:text-[13px] lg:text-sm text-slate-600">View & download</p>
+                <h3 className="text-sm md:text-base lg:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Reports</h3>
+                <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>View & download</p>
               </div>
             </div>
           </Card>

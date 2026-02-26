@@ -6,6 +6,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
 import { Code2, Lock, Mail } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function DeveloperLogin() {
   const [email, setEmail] = useState('');
@@ -35,7 +36,7 @@ export default function DeveloperLogin() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
+    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2" style={{ background: 'var(--nm-bg)' }}>
       {/* Left Panel - Branding */}
       <div
         className="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden"
@@ -67,34 +68,39 @@ export default function DeveloperLogin() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex items-center justify-center p-8 bg-slate-50">
+      <div className="flex items-center justify-center p-8 relative" style={{ background: 'var(--nm-bg)' }}>
+        {/* Theme Toggle */}
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <div className="text-center">
               <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-24 w-auto mx-auto rounded-lg shadow-md" />
-              <h1 className="text-2xl font-bold text-slate-900 mt-3">Aasaan App</h1>
-              <p className="text-slate-600 text-sm">Developer Console</p>
+              <h1 className="text-2xl font-bold mt-3" style={{ color: 'var(--nm-text-primary)' }}>Aasaan App</h1>
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Developer Console</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-8 border border-slate-100">
+          <div className="nm-raised rounded-2xl p-8">
             <div className="flex items-center gap-2 mb-2">
-              <div className="h-8 w-8 rounded-lg bg-slate-900 flex items-center justify-center">
-                <Code2 className="h-4 w-4 text-white" />
+              <div className="h-8 w-8 rounded-lg nm-pressed flex items-center justify-center" style={{ color: 'var(--nm-accent)' }}>
+                <Code2 className="h-4 w-4" />
               </div>
-              <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Developer Access</span>
+              <span className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--nm-text-muted)' }}>Developer Access</span>
             </div>
-            <h2 className="text-3xl font-bold mb-2 text-slate-900">Developer Login</h2>
-            <p className="text-slate-600 mb-8">Sign in to access the platform console</p>
+            <h2 className="text-3xl font-bold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Developer Login</h2>
+            <p className="mb-8" style={{ color: 'var(--nm-text-secondary)' }}>Sign in to access the platform console</p>
 
             <form onSubmit={handleLogin} className="space-y-6">
               <div>
-                <Label htmlFor="email" className="text-slate-700 font-medium">
+                <Label htmlFor="email" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Email Address
                 </Label>
                 <div className="relative mt-2">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                   <Input
                     id="email"
                     type="email"
@@ -102,17 +108,17 @@ export default function DeveloperLogin() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@aasaanapp.com"
                     required
-                    className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-slate-900 focus:ring-slate-900/20"
+                    className="pl-10 h-11"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Label htmlFor="password" className="font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                   Password
                 </Label>
                 <div className="relative mt-2">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
                   <Input
                     id="password"
                     type="password"
@@ -120,7 +126,7 @@ export default function DeveloperLogin() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter password"
                     required
-                    className="pl-10 h-11 bg-slate-50 border-slate-200 focus:border-slate-900 focus:ring-slate-900/20"
+                    className="pl-10 h-11"
                   />
                 </div>
               </div>
@@ -128,14 +134,14 @@ export default function DeveloperLogin() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-slate-900 hover:bg-slate-800 text-white font-medium"
+                className="w-full h-11 bg-[#CF2030] hover:bg-[#A61926] text-white font-medium"
               >
                 {loading ? 'Signing in...' : 'Sign In to Console'}
               </Button>
             </form>
           </div>
 
-          <p className="text-center text-sm text-slate-500 mt-4">An SIPL Product</p>
+          <p className="text-center text-sm mt-4" style={{ color: 'var(--nm-text-muted)' }}>An SIPL Product</p>
         </div>
       </div>
     </div>
