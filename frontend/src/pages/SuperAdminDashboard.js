@@ -41,6 +41,7 @@ import {
   Settings,
   ChevronRight,
   UserCheck,
+  Loader2,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -503,7 +504,9 @@ export default function SuperAdminDashboard() {
 
         {/* --- Chapter Cards Grid --- */}
         {loading ? (
-          <div className="text-center py-16" style={{ color: 'var(--nm-text-secondary)' }}>Loading dashboard...</div>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+          </div>
         ) : filteredChapters.length === 0 ? (
           <div className="text-center py-16">
             <Building2 className="h-12 w-12 mx-auto mb-3" style={{ color: 'var(--nm-text-muted)' }} />

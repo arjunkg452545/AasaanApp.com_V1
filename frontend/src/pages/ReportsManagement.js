@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Users, Download, Trash2, FileSpreadsheet, FileText } from 'lucide-react';
+import { ArrowLeft, Users, Download, Trash2, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 
 export default function ReportsManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -100,7 +100,9 @@ export default function ReportsManagement() {
         </div>
 
         {loading ? (
-          <div className="text-center py-8 md:py-12 text-sm">Loading meetings...</div>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+          </div>
         ) : meetings.length === 0 ? (
           <Card className="p-8 md:p-12 text-center">
             <p className="text-sm md:text-base" style={{ color: 'var(--nm-text-secondary)' }}>No meetings available</p>

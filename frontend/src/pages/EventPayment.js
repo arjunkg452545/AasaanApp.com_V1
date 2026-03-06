@@ -228,11 +228,11 @@ export default function EventPayment() {
                     </div>
                   </div>
                   {member.status === 'pending' ? (
-                    <Button size="sm" onClick={() => handleMarkPaid(member.member_id)} className="bg-green-600 text-xs px-2 h-7">
+                    <Button size="sm" onClick={() => handleMarkPaid(member.member_id)} className="bg-green-600 text-xs px-3 h-9">
                       <Check className="h-3 w-3 mr-1" />Pay
                     </Button>
                   ) : (
-                    <Button size="sm" variant="outline" onClick={() => handleUnmarkPaid(member.member_id)} className="text-xs px-2 h-7 text-red-600">
+                    <Button size="sm" variant="outline" onClick={() => handleUnmarkPaid(member.member_id)} className="text-xs px-3 h-9 text-red-600">
                       <X className="h-3 w-3" />
                     </Button>
                   )}

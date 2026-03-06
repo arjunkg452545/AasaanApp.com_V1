@@ -270,11 +270,11 @@ export default function MeetingFeePayment() {
                   </div>
                   <div className="flex items-center gap-1">
                     {payment.status === 'paid' ? (
-                      <Button size="sm" variant="outline" onClick={() => handleUnmarkPaid(payment.member_id)} className="text-xs px-2 h-7 text-red-600">
+                      <Button size="sm" variant="outline" onClick={() => handleUnmarkPaid(payment.member_id)} className="text-xs px-3 h-9 text-red-600">
                         <X className="h-3 w-3" />
                       </Button>
                     ) : (
-                      <Button size="sm" onClick={() => openPaymentModeDialog(payment.member_id)} className="bg-green-600 hover:bg-green-700 text-xs px-2 h-7">
+                      <Button size="sm" onClick={() => openPaymentModeDialog(payment.member_id)} className="bg-green-600 hover:bg-green-700 text-xs px-3 h-9">
                         <Check className="h-3 w-3 mr-1" />Pay
                       </Button>
                     )}

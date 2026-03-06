@@ -95,14 +95,14 @@ export default function PaymentConfig() {
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {/* Tabs */}
-        <div className="flex gap-1 rounded-lg p-1 mb-6 overflow-x-auto" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)', borderWidth: '1px', borderStyle: 'solid' }}>
+        <div className="flex gap-2 rounded-lg p-1 mb-6 overflow-x-auto" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)', borderWidth: '1px', borderStyle: 'solid' }}>
           {TABS.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? 'bg-[#CF2030] text-white'
                     : ''

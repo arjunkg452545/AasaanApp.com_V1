@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, QrCode } from 'lucide-react';
+import { ArrowLeft, QrCode, Loader2 } from 'lucide-react';
 
 export default function QRManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -42,27 +42,48 @@ export default function QRManagement() {
         <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>QR Display Management</h1>
       </div>
 
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>QR Display Management</h2>
-          <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Show QR codes for attendance</p>
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="mb-4 md:mb-8">
+          <h2 className="text-xl md:text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>QR Display Management</h2>
+          <p className="text-sm mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Show QR codes for attendance</p>
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading meetings...</div>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+          </div>
         ) : meetings.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-8 md:p-12 text-center">
             <p style={{ color: 'var(--nm-text-secondary)' }}>No meetings available</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-3 md:gap-6">
             {meetings.map((meeting) => (
               <Card
                 key={meeting.meeting_id}
-                className="p-6 border-l-4 border-l-[#10B981]"
+                className="p-3 md:p-6 border-l-4 border-l-[#10B981]"
                 data-testid={`meeting-qr-card-${meeting.meeting_id}`}
               >
-                <div className="flex items-start justify-between">
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  <h3 className="font-bold text-base mb-2" style={{ color: 'var(--nm-text-primary)' }}>
+                    QR - {new Date(meeting.date).toLocaleDateString()}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-3" style={{ color: 'var(--nm-text-secondary)' }}>
+                    <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
+                    <p><strong>End:</strong> {new Date(meeting.end_time).toLocaleTimeString()}</p>
+                  </div>
+                  <Button
+                    data-testid={`show-qr-btn-${meeting.meeting_id}`}
+                    onClick={() => navigate(`/admin/qr/${meeting.meeting_id}`)}
+                    className="bg-[#10B981] hover:bg-[#059669] w-full"
+                  >
+                    <QrCode className="h-4 w-4 mr-2" />
+                    Show QR
+                  </Button>
+                </div>
+                {/* Desktop Layout */}
+                <div className="hidden md:flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-bold text-xl mb-2" style={{ color: 'var(--nm-text-primary)' }}>
                       QR Display - {new Date(meeting.date).toLocaleDateString()}

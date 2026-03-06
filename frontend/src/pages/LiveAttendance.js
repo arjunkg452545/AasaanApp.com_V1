@@ -91,7 +91,7 @@ export default function LiveAttendance() {
         </div>
       </div>
 
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
         {/* Attendance Summary */}
         {summary && (
           <div className="mb-8">

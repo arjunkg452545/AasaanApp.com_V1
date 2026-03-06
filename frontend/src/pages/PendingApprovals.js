@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
-import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock, RefreshCw, Loader2 } from 'lucide-react';
 
 export default function PendingApprovals() {
   const [pending, setPending] = useState([]);
@@ -82,9 +82,11 @@ export default function PendingApprovals() {
         </div>
       </div>
 
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
         {loading ? (
-          <div className="text-center py-12" style={{ color: 'var(--nm-text-secondary)' }}>Loading pending requests...</div>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+          </div>
         ) : pending.length === 0 ? (
           <Card className="p-12 text-center">
             <Clock className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--nm-text-muted)' }} />

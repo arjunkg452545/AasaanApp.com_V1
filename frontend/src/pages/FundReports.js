@@ -980,13 +980,13 @@ export default function FundReports() {
             {/* Modal Body */}
             <div className="flex-1 overflow-auto p-4">
               {/* Member Table */}
-              <div className="overflow-x-auto mb-6">
-                <table className="w-full text-sm border-collapse">
+              <div className="overflow-x-auto mb-6 -mx-4 px-4 md:mx-0 md:px-0">
+                <table className="w-full text-sm border-collapse" style={{ minWidth: '600px' }}>
                   <thead>
                     <tr className="bg-slate-800 text-white">
-                      <th className="px-3 py-2 text-left font-semibold border">Sr</th>
-                      <th className="px-3 py-2 text-left font-semibold border">ID</th>
-                      <th className="px-3 py-2 text-left font-semibold border">Member Name</th>
+                      <th className="px-2 md:px-3 py-2 text-left font-semibold border whitespace-nowrap">Sr</th>
+                      <th className="px-2 md:px-3 py-2 text-left font-semibold border whitespace-nowrap">ID</th>
+                      <th className="px-2 md:px-3 py-2 text-left font-semibold border whitespace-nowrap sticky left-0 bg-slate-800 z-10">Member Name</th>
                       {previewData.months.map(m => (
                         <React.Fragment key={m.key}>
                           <th className="px-3 py-2 text-center font-semibold border">Amount ({m.label})</th>
@@ -1001,9 +1001,9 @@ export default function FundReports() {
                   <tbody>
                     {previewData.members.slice(0, 10).map((member, idx) => (
                       <tr key={member.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
-                        <td className="px-3 py-2 border text-center">{member.sr}</td>
-                        <td className="px-3 py-2 border">{member.id}</td>
-                        <td className="px-3 py-2 border font-medium">{member.name}</td>
+                        <td className="px-2 md:px-3 py-2 border text-center">{member.sr}</td>
+                        <td className="px-2 md:px-3 py-2 border">{member.id}</td>
+                        <td className={`px-2 md:px-3 py-2 border font-medium sticky left-0 z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{member.name}</td>
                         {previewData.months.map(m => {
                           const payment = member.payments?.[m.key];
                           return (

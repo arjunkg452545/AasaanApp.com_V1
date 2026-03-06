@@ -203,12 +203,12 @@ export default function AccountantApprovals() {
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {/* Tabs */}
-        <div className="flex gap-1 rounded-lg p-1 border mb-4" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
+        <div className="flex gap-2 rounded-lg p-1 border mb-4" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
           {TABS.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'bg-indigo-600 text-white'
                   : ''

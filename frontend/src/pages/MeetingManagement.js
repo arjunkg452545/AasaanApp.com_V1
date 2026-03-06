@@ -8,7 +8,7 @@ import { Card } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Checkbox } from '../components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, ArrowLeft, Trash2 } from 'lucide-react';
+import { Plus, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
 
 export default function MeetingManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -187,11 +187,11 @@ export default function MeetingManagement() {
         <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Meeting Management</h1>
       </div>
 
-      <div className="p-8 max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-4 md:mb-8">
           <div>
-            <h2 className="text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Meetings</h2>
-            <p className="mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Create and manage your chapter meetings</p>
+            <h2 className="text-xl md:text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Meetings</h2>
+            <p className="text-xs md:text-sm mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Create and manage your chapter meetings</p>
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
@@ -271,20 +271,44 @@ export default function MeetingManagement() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12">Loading meetings...</div>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+          </div>
         ) : meetings.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-8 md:p-12 text-center">
             <p style={{ color: 'var(--nm-text-secondary)' }}>No meetings yet. Create your first meeting!</p>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-3 md:gap-6">
             {meetings.map((meeting) => (
               <Card
                 key={meeting.meeting_id}
-                className="p-6 border-l-4 border-l-[#005596]"
+                className="p-3 md:p-6 border-l-4 border-l-[#005596]"
                 data-testid={`meeting-card-${meeting.meeting_id}`}
               >
-                <div className="flex items-start justify-between">
+                {/* Mobile Layout */}
+                <div className="md:hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-bold text-base" style={{ color: 'var(--nm-text-primary)' }}>
+                      {new Date(meeting.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </h3>
+                    <Button
+                      data-testid={`delete-meeting-btn-${meeting.meeting_id}`}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteMeeting(meeting.meeting_id)}
+                      className="text-red-600 hover:text-red-700 h-9 px-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+                    <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
+                    <p><strong>End:</strong> {new Date(meeting.end_time).toLocaleTimeString()}</p>
+                  </div>
+                </div>
+                {/* Desktop Layout */}
+                <div className="hidden md:flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-bold text-xl mb-2" style={{ color: 'var(--nm-text-primary)' }}>
                       Meeting - {new Date(meeting.date).toLocaleDateString()}
