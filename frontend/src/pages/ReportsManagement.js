@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
-import { ArrowLeft, Users, Download, Trash2, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
+import { ArrowLeft, Users, Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 
 export default function ReportsManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -59,20 +59,6 @@ export default function ReportsManagement() {
       toast.success('PDF report downloaded');
     } catch (error) {
       toast.error('Failed to download PDF report');
-    }
-  };
-
-  const deleteMeeting = async (meetingId) => {
-    if (!window.confirm('Are you sure you want to delete this meeting? All attendance records will also be deleted.')) {
-      return;
-    }
-
-    try {
-      await api.delete(`/admin/meetings/${meetingId}`);
-      toast.success('Meeting deleted successfully');
-      loadMeetings();
-    } catch (error) {
-      toast.error('Failed to delete meeting');
     }
   };
 
@@ -154,15 +140,6 @@ export default function ReportsManagement() {
                       <FileText className="h-3 w-3 mr-1" />
                       PDF
                     </Button>
-                    <Button
-                      data-testid={`delete-report-btn-${meeting.meeting_id}`}
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs px-2"
-                      onClick={() => deleteMeeting(meeting.meeting_id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
                   </div>
                 </div>
                 
@@ -207,15 +184,6 @@ export default function ReportsManagement() {
                     >
                       <FileText className="h-4 w-4 mr-2" />
                       Download PDF
-                    </Button>
-                    <Button
-                      data-testid={`delete-report-btn-${meeting.meeting_id}`}
-                      variant="outline"
-                      onClick={() => deleteMeeting(meeting.meeting_id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
                     </Button>
                   </div>
                 </div>

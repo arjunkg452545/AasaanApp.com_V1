@@ -11,7 +11,7 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import {
-  Plus, Edit, Trash2, Search, UserCheck, Building2,
+  Plus, Edit, Power, Search, UserCheck, Building2,
   Phone, Mail, MapPin, Map, ChevronRight, Loader2
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
@@ -41,17 +41,19 @@ export default function DeveloperEDs() {
     }
   };
 
-  const handleDeactivate = async (sa) => {
-    const action = sa.is_active ? 'deactivate' : 'reactivate';
-    if (!window.confirm(`Are you sure you want to ${action} "${sa.name || sa.mobile}"?`)) return;
+  const [deactivateConfirm, setDeactivateConfirm] = useState(null);
 
+  const handleDeactivate = (sa) => {
+    setDeactivateConfirm(sa);
+  };
+
+  const confirmDeactivate = async () => {
+    if (!deactivateConfirm) return;
+    const action = deactivateConfirm.is_active ? 'deactivate' : 'reactivate';
     try {
-      if (sa.is_active) {
-        await api.delete(`/developer/superadmins/${sa.superadmin_id}`);
-      } else {
-        await api.put(`/developer/superadmins/${sa.superadmin_id}`, { is_active: true });
-      }
+      await api.put(`/developer/superadmins/${deactivateConfirm.superadmin_id}/deactivate`);
       toast.success(`Super Admin ${action}d successfully`);
+      setDeactivateConfirm(null);
       loadSuperadmins();
     } catch (error) {
       toast.error(`Failed to ${action} Super Admin`);
@@ -220,7 +222,7 @@ export default function DeveloperEDs() {
                         : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200'
                     }
                   >
-                    {sa.is_active ? <Trash2 className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    {sa.is_active ? <Power className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -281,6 +283,33 @@ export default function DeveloperEDs() {
               {saving ? 'Updating...' : 'Update Super Admin'}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Deactivate/Reactivate Confirmation Dialog */}
+      <Dialog open={!!deactivateConfirm} onOpenChange={() => setDeactivateConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {deactivateConfirm?.is_active ? 'Deactivate Executive Director' : 'Reactivate Executive Director'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+              {deactivateConfirm?.is_active
+                ? `This will deactivate "${deactivateConfirm?.name || deactivateConfirm?.mobile}". They will lose access but their data will be preserved.`
+                : `This will reactivate "${deactivateConfirm?.name || deactivateConfirm?.mobile}" and restore their access.`}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeactivateConfirm(null)}>Cancel</Button>
+              <Button
+                onClick={confirmDeactivate}
+                className={deactivateConfirm?.is_active ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'}
+              >
+                {deactivateConfirm?.is_active ? 'Deactivate' : 'Reactivate'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

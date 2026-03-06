@@ -23,12 +23,7 @@ export default function MemberLayout() {
   const chapterName = localStorage.getItem('chapter_name') || '';
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('member_id');
-    localStorage.removeItem('member_name');
-    localStorage.removeItem('chapter_id');
-    localStorage.removeItem('chapter_name');
+    localStorage.clear();
     toast.success('Logged out successfully');
     navigate('/');
   };

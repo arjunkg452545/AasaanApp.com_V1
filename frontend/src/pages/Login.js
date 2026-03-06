@@ -36,6 +36,7 @@ export default function Login() {
         mobile: memberMobile,
         password: memberPassword,
       });
+      localStorage.clear();
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('role', 'member');
       localStorage.setItem('member_id', response.data.member_id);
@@ -61,6 +62,7 @@ export default function Login() {
         password: adminPassword,
       });
       const { token, role, redirect, mobile, chapter_id, chapter_name, accountant_id, name, superadmin_id } = response.data;
+      localStorage.clear();
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
       if (mobile) localStorage.setItem('mobile', mobile);
@@ -84,6 +86,7 @@ export default function Login() {
     setDevLoading(true);
     try {
       const response = await api.post('/developer/login', { email: devEmail, password: devPassword });
+      localStorage.clear();
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('role', response.data.role);
       localStorage.setItem('dev_email', response.data.email);

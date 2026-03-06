@@ -48,20 +48,24 @@ async def get_meetings(user=Depends(get_current_user)):
     meetings = await db.meetings.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
     return meetings
 
-@router.delete("/admin/meetings/{meeting_id}")
-async def delete_meeting(meeting_id: str, user=Depends(get_current_user)):
+@router.put("/admin/meetings/{meeting_id}/archive")
+async def archive_meeting(meeting_id: str, user=Depends(get_current_user)):
+    """Archive a meeting — sets status to 'archived'. Attendance records are preserved."""
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    result = await db.meetings.delete_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]})
-    
-    if result.deleted_count == 0:
+
+    meeting = await db.meetings.find_one(
+        {"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0}
+    )
+    if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    
-    # Also delete associated attendance records
-    await db.attendance.delete_many({"meeting_id": meeting_id})
-    
-    return {"message": "Meeting deleted successfully"}
+
+    new_status = "active" if meeting.get("status") == "archived" else "archived"
+    await db.meetings.update_one(
+        {"meeting_id": meeting_id},
+        {"$set": {"status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": f"Meeting {'restored' if new_status == 'active' else 'archived'} successfully", "new_status": new_status}
 
 @router.get("/admin/meetings/{meeting_id}/qr")
 async def get_qr_code(meeting_id: str, request: Request, user=Depends(get_current_user)):

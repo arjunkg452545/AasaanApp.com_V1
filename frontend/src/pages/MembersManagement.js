@@ -15,7 +15,7 @@ import {
 import { Textarea } from '../components/ui/textarea';
 import { toast } from 'sonner';
 import {
-  Plus, ArrowLeft, Edit, Trash2, Upload, Download,
+  Plus, ArrowLeft, Edit, Upload, Download,
   Search, Users, UserCheck, UserX, Clock, AlertTriangle,
   FileDown, Loader2, Shield, ChevronRight,
 } from 'lucide-react';
@@ -141,17 +141,6 @@ export default function MembersManagement() {
       loadData();
     } catch (error) {
       toast.error('Failed to update member');
-    }
-  };
-
-  const handleDelete = async (memberId) => {
-    if (!window.confirm('Are you sure you want to delete this member?')) return;
-    try {
-      await api.delete(`/admin/members/${memberId}`);
-      toast.success('Member deleted');
-      loadData();
-    } catch (error) {
-      toast.error('Failed to delete member');
     }
   };
 
@@ -477,10 +466,6 @@ export default function MembersManagement() {
                         setStatusOpen(true);
                       }}>
                       <Shield className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                      onClick={() => handleDelete(member.member_id)}>
-                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                     <ChevronRight className="h-4 w-4 self-center" style={{ color: 'var(--nm-text-muted)' }} />
                   </div>

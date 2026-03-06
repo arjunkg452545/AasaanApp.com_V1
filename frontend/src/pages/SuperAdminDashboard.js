@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import SASubscriptionBanner from './SASubscriptionBanner';
 import SAChapterCards from './SAChapterCards';
 import SAChapterDialogs from './SAChapterDialogs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 
 function formatINR(amount) {
   if (amount == null) return '\u20B90';
@@ -137,16 +138,22 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleDeleteChapter = async (chapterId, chapterName) => {
-    if (!window.confirm(
-      `Are you sure you want to delete "${chapterName}"?\n\nThis will permanently delete all associated members, meetings, and attendance records.\n\nThis action cannot be undone.`,
-    )) return;
+  const [deactivateConfirm, setDeactivateConfirm] = useState(null);
+
+  const handleDeactivateChapter = (chapterId, chapterName, status) => {
+    setDeactivateConfirm({ chapterId, chapterName, status });
+  };
+
+  const confirmDeactivateChapter = async () => {
+    if (!deactivateConfirm) return;
     try {
-      await api.delete(`/superadmin/chapters/${chapterId}`);
-      toast.success('Chapter deleted successfully');
+      await api.put(`/superadmin/chapters/${deactivateConfirm.chapterId}/deactivate`);
+      const isInactive = (deactivateConfirm.status || '').toLowerCase() === 'inactive';
+      toast.success(`Chapter ${isInactive ? 'reactivated' : 'deactivated'} successfully`);
+      setDeactivateConfirm(null);
       loadAll();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to delete chapter');
+      toast.error(error.response?.data?.detail || 'Failed to update chapter');
     }
   };
 
@@ -256,7 +263,7 @@ export default function SuperAdminDashboard() {
           chapters={chapters} filteredChapters={filteredChapters} loading={loading}
           searchQuery={searchQuery} setSearchQuery={setSearchQuery}
           statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-          onEdit={handleEditChapter} onDelete={handleDeleteChapter}
+          onEdit={handleEditChapter} onDeactivate={handleDeactivateChapter}
         />
       </main>
 
@@ -271,6 +278,35 @@ export default function SuperAdminDashboard() {
         showEditPassword={showEditPassword} setShowEditPassword={setShowEditPassword}
         onCreateSubmit={handleCreate} onEditSubmit={handleUpdateCredentials}
       />
+
+      {/* Deactivate Chapter Confirmation */}
+      <Dialog open={!!deactivateConfirm} onOpenChange={() => setDeactivateConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {(deactivateConfirm?.status || '').toLowerCase() === 'inactive' ? 'Reactivate Chapter' : 'Deactivate Chapter'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+              {(deactivateConfirm?.status || '').toLowerCase() === 'inactive'
+                ? `This will reactivate "${deactivateConfirm?.chapterName}".`
+                : `This will deactivate "${deactivateConfirm?.chapterName}". All members, meetings, and financial records will be preserved.`}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeactivateConfirm(null)}>Cancel</Button>
+              <Button
+                onClick={confirmDeactivateChapter}
+                className={(deactivateConfirm?.status || '').toLowerCase() === 'inactive'
+                  ? 'bg-emerald-600 hover:bg-emerald-700'
+                  : 'bg-red-600 hover:bg-red-700'}
+              >
+                {(deactivateConfirm?.status || '').toLowerCase() === 'inactive' ? 'Reactivate' : 'Deactivate'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

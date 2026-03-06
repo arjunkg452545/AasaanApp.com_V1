@@ -96,24 +96,22 @@ async def update_chapter_credentials(chapter_id: str, data: UpdateCredentials, u
     return {"message": "Credentials updated successfully"}
 
 
-@router.delete("/superadmin/chapters/{chapter_id}")
-async def delete_chapter(chapter_id: str, user=Depends(get_current_user)):
+@router.put("/superadmin/chapters/{chapter_id}/deactivate")
+async def deactivate_chapter(chapter_id: str, user=Depends(get_current_user)):
+    """Soft deactivate a chapter — sets status to 'inactive'. All data preserved."""
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await db.chapters.delete_one({"chapter_id": chapter_id})
-    if result.deleted_count == 0:
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
+    if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
 
-    await db.members.delete_many({"chapter_id": chapter_id})
-    await db.meetings.delete_many({"chapter_id": chapter_id})
-
-    meetings = await db.meetings.find({"chapter_id": chapter_id}, {"_id": 0, "meeting_id": 1}).to_list(1000)
-    meeting_ids = [m["meeting_id"] for m in meetings]
-    if meeting_ids:
-        await db.attendance.delete_many({"meeting_id": {"$in": meeting_ids}})
-
-    return {"message": "Chapter and all related data deleted successfully"}
+    new_status = "active" if (chapter.get("status") or "").lower() == "inactive" else "inactive"
+    await db.chapters.update_one(
+        {"chapter_id": chapter_id},
+        {"$set": {"status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": f"Chapter {'reactivated' if new_status == 'active' else 'deactivated'} successfully", "new_status": new_status}
 
 
 @router.get("/superadmin/chapters/{chapter_id}/audit-logs")

@@ -4,13 +4,13 @@ Member Authentication Routes
 - Admin sets member password
 - Member changes own password
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from datetime import datetime, timezone
 import uuid
 
 from database import db
 from deps import get_current_user, require_role
-from auth import create_access_token, hash_password, verify_password
+from auth import create_access_token, hash_password, verify_password, ACCESS_TOKEN_EXPIRE_DAYS
 from models_payment import (
     MemberLoginRequest,
     MemberLoginResponse,
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api")
 
 # ===== MEMBER LOGIN =====
 @router.post("/member/login", response_model=MemberLoginResponse)
-async def member_login(data: MemberLoginRequest):
+async def member_login(data: MemberLoginRequest, response: Response):
     """Member login with mobile + password. Returns JWT with role='member'."""
     # Look up credentials
     creds = await db.member_credentials.find_one({"mobile": data.mobile}, {"_id": 0})
@@ -61,6 +61,11 @@ async def member_login(data: MemberLoginRequest):
         "member_id": creds["member_id"],
         "chapter_id": member["chapter_id"],
     })
+
+    response.set_cookie(
+        key="access_token", value=token, httponly=True, samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+    )
 
     return MemberLoginResponse(
         token=token,

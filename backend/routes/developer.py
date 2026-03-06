@@ -1,11 +1,11 @@
 # MAX 400 LINES - Split into separate route files if exceeding
 """Developer endpoints: seed, login, superadmin CRUD, dashboard stats."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from database import db
 from deps import get_current_user, require_role
-from auth import create_access_token, verify_password, hash_password
+from auth import create_access_token, verify_password, hash_password, ACCESS_TOKEN_EXPIRE_DAYS
 from models import (
     DeveloperSeedRequest, DeveloperLoginRequest, DeveloperLoginResponse,
     SuperAdminCreate, SuperAdminUpdate, SuperAdminResponse,
@@ -36,12 +36,16 @@ async def seed_developer():
     return {"message": "Developer account seeded successfully", "email": data.email}
 
 @router.post("/developer/login", response_model=DeveloperLoginResponse)
-async def developer_login(data: DeveloperLoginRequest):
+async def developer_login(data: DeveloperLoginRequest, response: Response):
     developer = await db.developers.find_one({"email": data.email}, {"_id": 0})
     if not developer or not verify_password(data.password, developer["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token({"email": data.email, "role": "developer", "dev_id": developer["dev_id"]})
+    response.set_cookie(
+        key="access_token", value=token, httponly=True, samesite="lax",
+        max_age=ACCESS_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+    )
     return DeveloperLoginResponse(token=token, role="developer", email=data.email, name=developer["name"])
 
 @router.post("/developer/superadmins", response_model=SuperAdminResponse)
@@ -152,18 +156,28 @@ async def update_superadmin(superadmin_id: str, data: SuperAdminUpdate, user=Dep
 
     return {"message": "Super Admin updated successfully"}
 
-@router.delete("/developer/superadmins/{superadmin_id}")
-async def delete_superadmin(superadmin_id: str, user=Depends(require_role("developer"))):
-    """Soft delete a Super Admin"""
-    result = await db.superadmins.update_one(
+@router.put("/developer/superadmins/{superadmin_id}/deactivate")
+async def deactivate_superadmin(superadmin_id: str, user=Depends(require_role("developer"))):
+    """Toggle active/inactive for a Super Admin."""
+    sa = await db.superadmins.find_one(
         {"$or": [{"superadmin_id": superadmin_id}, {"mobile": superadmin_id}]},
-        {"$set": {"is_active": False, "deleted_at": datetime.now(timezone.utc).isoformat()}}
+        {"_id": 0}
     )
-
-    if result.matched_count == 0:
+    if not sa:
         raise HTTPException(status_code=404, detail="Super Admin not found")
 
-    return {"message": "Super Admin deactivated successfully"}
+    new_active = not sa.get("is_active", True)
+    update_data = {"is_active": new_active}
+    if not new_active:
+        update_data["deleted_at"] = datetime.now(timezone.utc).isoformat()
+
+    await db.superadmins.update_one(
+        {"$or": [{"superadmin_id": superadmin_id}, {"mobile": superadmin_id}]},
+        {"$set": update_data}
+    )
+
+    action = "reactivated" if new_active else "deactivated"
+    return {"message": f"Super Admin {action} successfully", "is_active": new_active}
 
 @router.get("/developer/dashboard/stats")
 async def developer_dashboard_stats(user=Depends(require_role("developer"))):

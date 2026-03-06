@@ -290,12 +290,21 @@ async def update_member(member_id: str, member: MemberUpdate, user=Depends(get_c
     return MemberResponse(**updated_member)
 
 
-@router.delete("/admin/members/{member_id}")
-async def delete_member(member_id: str, user=Depends(get_current_user)):
+@router.put("/admin/members/{member_id}/deactivate")
+async def deactivate_member(member_id: str, user=Depends(get_current_user)):
+    """Soft deactivate a member — sets membership_status to 'inactive'."""
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    result = await db.members.delete_one({"member_id": member_id, "chapter_id": user["chapter_id"]})
-    if result.deleted_count == 0:
+    member = await db.members.find_one(
+        {"member_id": member_id, "chapter_id": user["chapter_id"]}, {"_id": 0}
+    )
+    if not member:
         raise HTTPException(status_code=404, detail="Member not found")
-    return {"message": "Member deleted successfully"}
+
+    new_status = "active" if member.get("membership_status") == "inactive" else "inactive"
+    await db.members.update_one(
+        {"member_id": member_id},
+        {"$set": {"membership_status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": f"Member {'reactivated' if new_status == 'active' else 'deactivated'} successfully", "new_status": new_status}

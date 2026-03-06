@@ -24,10 +24,7 @@ export default function DeveloperLayout() {
   const devName = localStorage.getItem('dev_name') || 'Developer';
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('dev_email');
-    localStorage.removeItem('dev_name');
+    localStorage.clear();
     toast.success('Logged out successfully');
     navigate('/');
   };

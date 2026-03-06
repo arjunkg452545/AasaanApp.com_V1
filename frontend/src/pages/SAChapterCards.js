@@ -15,7 +15,7 @@ import {
   Building2,
   Users,
   Edit,
-  Trash2,
+  Power,
   Search,
   CalendarDays,
   MapPin,
@@ -52,7 +52,7 @@ export default function SAChapterCards({
   statusFilter,
   setStatusFilter,
   onEdit,
-  onDelete,
+  onDeactivate,
 }) {
   return (
     <>
@@ -169,13 +169,17 @@ export default function SAChapterCards({
                     Edit Credentials
                   </Button>
                   <Button
-                    data-testid={`delete-chapter-btn-${chapter.chapter_id}`}
+                    data-testid={`deactivate-chapter-btn-${chapter.chapter_id}`}
                     variant="outline"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                    onClick={() => onDelete(chapter.chapter_id, chapter.name)}
+                    className={
+                      (chapter.status || '').toLowerCase() === 'inactive'
+                        ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200'
+                        : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200'
+                    }
+                    onClick={() => onDeactivate(chapter.chapter_id, chapter.name, chapter.status)}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <Power className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </div>

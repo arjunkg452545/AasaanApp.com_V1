@@ -8,7 +8,7 @@ import { Card } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Checkbox } from '../components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, ArrowLeft, Trash2, Loader2 } from 'lucide-react';
+import { Plus, ArrowLeft, Archive, ArchiveRestore, Loader2 } from 'lucide-react';
 
 export default function MeetingManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -157,17 +157,16 @@ export default function MeetingManagement() {
     }
   };
 
-  const deleteMeeting = async (meetingId) => {
-    if (!window.confirm('Are you sure you want to delete this meeting? All attendance records will also be deleted.')) {
-      return;
-    }
+  const [archiveConfirm, setArchiveConfirm] = useState(null);
 
+  const archiveMeeting = async (meetingId, isArchived) => {
     try {
-      await api.delete(`/admin/meetings/${meetingId}`);
-      toast.success('Meeting deleted successfully');
+      await api.put(`/admin/meetings/${meetingId}/archive`);
+      toast.success(isArchived ? 'Meeting restored successfully' : 'Meeting archived successfully');
+      setArchiveConfirm(null);
       loadMeetings();
     } catch (error) {
-      toast.error('Failed to delete meeting');
+      toast.error('Failed to update meeting');
     }
   };
 
@@ -293,25 +292,30 @@ export default function MeetingManagement() {
                       {new Date(meeting.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </h3>
                     <Button
-                      data-testid={`delete-meeting-btn-${meeting.meeting_id}`}
                       variant="ghost"
                       size="sm"
-                      onClick={() => deleteMeeting(meeting.meeting_id)}
-                      className="text-red-600 hover:text-red-700 h-9 px-2"
+                      onClick={() => setArchiveConfirm(meeting)}
+                      className={meeting.status === 'archived' ? 'text-emerald-600 hover:text-emerald-700 h-9 px-2' : 'text-amber-600 hover:text-amber-700 h-9 px-2'}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {meeting.status === 'archived' ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
                     </Button>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                     <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
                     <p><strong>End:</strong> {new Date(meeting.end_time).toLocaleTimeString()}</p>
                   </div>
+                  {meeting.status === 'archived' && (
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">Archived</span>
+                  )}
                 </div>
                 {/* Desktop Layout */}
                 <div className="hidden md:flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-bold text-xl mb-2" style={{ color: 'var(--nm-text-primary)' }}>
                       Meeting - {new Date(meeting.date).toLocaleDateString()}
+                      {meeting.status === 'archived' && (
+                        <span className="ml-2 text-sm px-2 py-0.5 rounded bg-amber-100 text-amber-700">Archived</span>
+                      )}
                     </h3>
                     <div className="grid grid-cols-2 gap-4 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
                       <div>
@@ -326,13 +330,12 @@ export default function MeetingManagement() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <Button
-                      data-testid={`delete-meeting-btn-${meeting.meeting_id}`}
                       variant="outline"
-                      onClick={() => deleteMeeting(meeting.meeting_id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setArchiveConfirm(meeting)}
+                      className={meeting.status === 'archived' ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50'}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      {meeting.status === 'archived' ? <ArchiveRestore className="h-4 w-4 mr-2" /> : <Archive className="h-4 w-4 mr-2" />}
+                      {meeting.status === 'archived' ? 'Restore' : 'Archive'}
                     </Button>
                   </div>
                 </div>
@@ -341,6 +344,36 @@ export default function MeetingManagement() {
           </div>
         )}
       </div>
+
+      {/* Archive Confirmation Dialog */}
+      <Dialog open={!!archiveConfirm} onOpenChange={() => setArchiveConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {archiveConfirm?.status === 'archived' ? 'Restore Meeting' : 'Archive Meeting'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+              {archiveConfirm?.status === 'archived'
+                ? 'This will restore the meeting and make it active again.'
+                : 'This will archive the meeting. Attendance records will be preserved. You can restore it later.'}
+            </p>
+            <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>
+              Meeting: {archiveConfirm && new Date(archiveConfirm.date).toLocaleDateString()}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setArchiveConfirm(null)}>Cancel</Button>
+              <Button
+                onClick={() => archiveMeeting(archiveConfirm.meeting_id, archiveConfirm.status === 'archived')}
+                className={archiveConfirm?.status === 'archived' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'}
+              >
+                {archiveConfirm?.status === 'archived' ? 'Restore' : 'Archive'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

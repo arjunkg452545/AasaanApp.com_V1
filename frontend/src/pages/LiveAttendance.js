@@ -40,11 +40,11 @@ export default function LiveAttendance() {
     loadAttendance();
     loadSummary();
     
-    // Auto-refresh every 5 seconds
+    // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
       loadAttendance();
       loadSummary();
-    }, 5000);
+    }, 30000);
     return () => clearInterval(interval);
   }, [meetingId]);
 
@@ -223,7 +223,7 @@ export default function LiveAttendance() {
 
             <div className="flex items-center gap-2 text-sm mt-4" style={{ color: 'var(--nm-text-secondary)' }}>
               <Clock className="h-4 w-4" />
-              <span>Auto-refreshing every 5 seconds</span>
+              <span>Auto-refreshing every 30 seconds</span>
             </div>
           </div>
         )}
