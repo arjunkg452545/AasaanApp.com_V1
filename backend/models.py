@@ -278,6 +278,14 @@ class EventPaymentResponse(BaseModel):
     cheque_no: Optional[str] = None
     bank_name: Optional[str] = None
 
+class MiscUnmarkPayment(BaseModel):
+    misc_payment_id: str
+    member_id: str
+
+class EventUnmarkPayment(BaseModel):
+    event_id: str
+    member_id: str
+
 # Bulk Operation Models
 class BulkMarkPayment(BaseModel):
     member_ids: List[str]

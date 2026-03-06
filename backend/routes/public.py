@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 from database import db
-from models import AttendanceCreate
+from models import AttendanceCreate, AttendanceResponse
 from qr_generator import verify_qr_token
 import pytz
 
@@ -140,7 +140,7 @@ async def mark_attendance(attendance: AttendanceCreate):
         invited_member = await db.members.find_one(
             {
                 "unique_member_id": attendance.invited_by_member_id,
-                "chapter_id": chapter_id  # CRITICAL: Must filter by chapter_id
+                "chapter_id": meeting["chapter_id"]  # CRITICAL: Must filter by chapter_id
             }, 
             {"_id": 0, "full_name": 1}
         )

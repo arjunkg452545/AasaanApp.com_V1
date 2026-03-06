@@ -2,16 +2,20 @@
 """Meeting management: create/delete meetings, QR codes, attendance, reports."""
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from database import db
 from deps import get_current_user
-from models import MeetingCreate, List
+from models import MeetingCreate, MeetingResponse, AttendanceResponse, List
 from qr_generator import generate_qr_token, create_qr_image
 from report_generator import generate_excel_report, generate_pdf_report
 import io
+import pytz
+
+IST = pytz.timezone('Asia/Kolkata')
 
 router = APIRouter(prefix="/api", tags=["meetings"])
 
+@router.post("/admin/meetings", response_model=MeetingResponse)
 async def create_meeting(meeting: MeetingCreate, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
