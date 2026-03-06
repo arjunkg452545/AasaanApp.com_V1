@@ -4596,6 +4596,8 @@ from routes.admin_verification import router as admin_verification_router
 from routes.ed_approval import router as ed_approval_router
 from routes.payment_reminders import router as payment_reminders_router
 from routes.payment_gateway import router as payment_gateway_router
+from routes.admin_auth import router as admin_auth_router
+app.include_router(admin_auth_router)
 app.include_router(member_auth_router)
 app.include_router(payment_config_router)
 app.include_router(fee_ledger_router)
