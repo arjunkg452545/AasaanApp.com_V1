@@ -2,53 +2,94 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#CF2030" />
-        <meta name="description" content="Aasaan App - BNI Management System for chapters" />
-        
-        <!-- Favicon -->
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        
-        <!-- PWA Manifest -->
-        <link rel="manifest" href="/manifest.json" />
-        
-        <!-- Apple Touch Icons for iOS -->
-        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
-        
+        <meta name="description" content="BNI Chapter Management System - AasaanApp by SIPL" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
         <!-- Apple PWA Meta Tags -->
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Aasaan App" />
-        <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-        <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+        <meta name="apple-mobile-web-app-title" content="AasaanApp" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-        <title>Aasaan App</title>
+        <!-- Favicon -->
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+        <!-- PWA Manifest -->
+        <link rel="manifest" href="/manifest.json" />
+
+        <!-- Apple Touch Icons -->
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
+
+        <!-- Apple Splash Screens -->
+        <link rel="apple-touch-startup-image" href="/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+        <link rel="apple-touch-startup-image" href="/splash/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)" />
+        <link rel="apple-touch-startup-image" href="/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+        <link rel="apple-touch-startup-image" href="/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+        <link rel="apple-touch-startup-image" href="/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+
+        <title>AasaanApp</title>
+
+        <!-- Splash screen style while JS loads -->
+        <style>
+            #splash-screen {
+                position: fixed; inset: 0; z-index: 9999;
+                background: #E0E5EC;
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                transition: opacity 0.3s ease;
+            }
+            @media (prefers-color-scheme: dark) {
+                #splash-screen { background: #121212; }
+                #splash-screen p { color: #A0AEC0; }
+            }
+            #splash-screen img { width: 80px; height: 80px; border-radius: 16px; }
+            #splash-screen p { margin-top: 12px; font-family: sans-serif; font-size: 14px; color: #718096; }
+            #splash-screen .loader { width: 24px; height: 24px; margin-top: 16px; border: 3px solid #E0E5EC; border-top-color: #CF2030; border-radius: 50%; animation: spin 0.8s linear infinite; }
+            @media (prefers-color-scheme: dark) { #splash-screen .loader { border-color: #333; border-top-color: #CF2030; } }
+            @keyframes spin { to { transform: rotate(360deg); } }
+        </style>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
+
+        <!-- Splash screen shown while React boots -->
+        <div id="splash-screen">
+            <img src="/icons/icon-192x192.png" alt="AasaanApp" />
+            <p>AasaanApp</p>
+            <div class="loader"></div>
+        </div>
+
         <div id="root"></div>
-        <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+        <!-- Auto-remove splash screen once React bundle loads -->
+        <script>
+            (function removeSplash() {
+                // MutationObserver: remove splash once React renders content into #root
+                var root = document.getElementById('root');
+                var splash = document.getElementById('splash-screen');
+                if (!splash) return;
+                var observer = new MutationObserver(function() {
+                    if (root.children.length > 0) {
+                        observer.disconnect();
+                        splash.style.opacity = '0';
+                        setTimeout(function() { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 350);
+                    }
+                });
+                observer.observe(root, { childList: true });
+                // Fallback: remove after 5s no matter what
+                setTimeout(function() {
+                    observer.disconnect();
+                    if (splash.parentNode) { splash.style.opacity = '0'; setTimeout(function() { if (splash.parentNode) splash.parentNode.removeChild(splash); }, 350); }
+                }, 5000);
+            })();
+        </script>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-        <!-- SIPL Badge removed - now in AttendanceForm.js footer -->
+        <!-- PostHog Analytics -->
         <script>
             !(function (t, e) {
                 var o, n, p, r;
@@ -113,7 +154,7 @@
             })(document, window.posthog || []);
             posthog.init("phc_yJW1VjHGGwmCbbrtczfqqNxgBDbhlhOWcdzcIJEOTFE", {
                 api_host: "https://us.i.posthog.com",
-                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well
+                person_profiles: "identified_only",
             });
         </script>
     </body>

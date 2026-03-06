@@ -100,13 +100,51 @@
   * {
     @apply border-border;
   }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     background-color: var(--nm-bg);
     color: var(--nm-text-primary);
     font-family: 'Inter', sans-serif;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    /* Safe areas for notched phones */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', sans-serif;
+  }
+
+  /* Prevent horizontal overflow globally */
+  #root {
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  /* Ensure images don't overflow */
+  img, video, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Minimum touch target sizes — only for standalone interactive elements */
+  button:not(.inline-btn),
+  [role="button"]:not(.inline-btn) {
+    min-height: 44px;
+  }
+
+  /* Fix input zoom on iOS (font-size < 16px triggers zoom) */
+  input, select, textarea {
+    font-size: 16px;
   }
 }
 
@@ -499,4 +537,83 @@ html.transitioning *::after {
               color 300ms ease,
               box-shadow 300ms ease,
               border-color 300ms ease !important;
+}
+
+/* ============================================
+   MOBILE-FIRST / PWA UTILITIES
+   ============================================ */
+
+/* Page fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Touch feedback — all interactive elements */
+@layer components {
+  .nm-btn:active,
+  .nm-btn-primary:active,
+  .nm-interactive:active {
+    transform: scale(0.97);
+  }
+
+  /* Scrollable containers — hide scrollbar but keep scrollable */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile full-screen dialog */
+  @media (max-width: 640px) {
+    .mobile-fullscreen-dialog [data-radix-dialog-content],
+    .mobile-fullscreen-dialog [role="dialog"] {
+      width: 100vw !important;
+      max-width: 100vw !important;
+      height: 100dvh !important;
+      max-height: 100dvh !important;
+      border-radius: 0 !important;
+      margin: 0 !important;
+    }
+  }
+
+  /* No horizontal scroll on tables */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+  }
+
+  /* Skeleton loading pulse */
+  .nm-skeleton {
+    background: var(--nm-surface);
+    box-shadow: inset 2px 2px 5px var(--nm-shadow-dark),
+                inset -2px -2px 5px var(--nm-shadow-light);
+    border-radius: var(--radius);
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+}
+
+/* Pull-to-refresh visual indicator */
+@keyframes pullDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+
+/* Standalone PWA — extra bottom padding for gesture bar */
+@media all and (display-mode: standalone) {
+  body {
+    padding-bottom: max(env(safe-area-inset-bottom), 8px);
+  }
 }

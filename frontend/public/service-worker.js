@@ -1,22 +1,31 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'aasaanapp-v4';
+const CACHE_NAME = 'aasaanapp-v5';
+const STATIC_ASSETS = [
+  '/',
+  '/offline.html',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/aasaan-logo.png',
+];
 
-// Install event - skip waiting for immediate activation
+// Install — pre-cache essential assets & skip waiting
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing', CACHE_NAME);
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
   self.skipWaiting();
 });
 
-// Activate event - delete ALL old caches and claim clients immediately
+// Activate — clean old caches & claim clients
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating', CACHE_NAME);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
           if (name !== CACHE_NAME) {
-            console.log('Service Worker: Deleting old cache', name);
             return caches.delete(name);
           }
         })
@@ -25,46 +34,88 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - NETWORK FIRST for everything
-// This ensures users always get the latest code and data
+// Fetch — network-first for API, cache-first for static
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Skip non-GET requests entirely (let browser handle POST, PUT, DELETE)
-  if (request.method !== 'GET') {
+  // Skip non-GET
+  if (request.method !== 'GET') return;
+  // Skip non-http
+  if (!request.url.startsWith('http')) return;
+
+  const url = new URL(request.url);
+
+  // API calls → network-first
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            return cached || new Response(JSON.stringify({ error: 'offline' }), {
+              status: 503,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          });
+        })
+    );
     return;
   }
 
-  // Skip chrome-extension and non-http requests
-  if (!request.url.startsWith('http')) {
+  // Static assets (JS, CSS, images, fonts) → cache-first
+  const isStatic = /\.(js|css|png|jpg|jpeg|svg|gif|ico|woff2?|ttf|eot)(\?.*)?$/.test(url.pathname);
+  if (isStatic) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      }).catch(() => caches.match(request))
+    );
     return;
   }
 
+  // Navigation requests (HTML pages) → network-first with offline fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            return cached || caches.match('/offline.html');
+          });
+        })
+    );
+    return;
+  }
+
+  // Everything else → network-first
   event.respondWith(
     fetch(request)
       .then((response) => {
-        // Only cache successful same-origin responses
         if (response.status === 200 && response.type === 'basic') {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
       })
-      .catch(() => {
-        // Network failed - try cache as offline fallback
-        return caches.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          // Nothing in cache either
-          return new Response('Offline', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({ 'Content-Type': 'text/plain' })
-          });
-        });
-      })
+      .catch(() => caches.match(request))
   );
 });
