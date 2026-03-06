@@ -173,7 +173,7 @@ export default function DeveloperSettings() {
   return (
     <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6">
       <Tabs defaultValue="pricing" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
+        <TabsList className="flex w-full overflow-x-auto mb-6 gap-1">
           <TabsTrigger value="pricing" className="gap-1.5 text-xs sm:text-sm">
             <IndianRupee className="h-4 w-4 hidden sm:inline-block" />
             Pricing
@@ -251,7 +251,7 @@ export default function DeveloperSettings() {
                           min="0"
                           value={settings.per_chapter_rate}
                           onChange={(e) => handlePerChapterRateChange(e.target.value)}
-                          className="pl-7 bg-white"
+                          className="pl-7"
                           placeholder="0"
                         />
                       </div>
@@ -294,7 +294,7 @@ export default function DeveloperSettings() {
                                     min="0"
                                     value={slab.rate}
                                     onChange={(e) => handleSlabRateChange(idx, e.target.value)}
-                                    className="pl-7 bg-white"
+                                    className="pl-7"
                                     placeholder="0"
                                   />
                                 </div>
@@ -325,7 +325,7 @@ export default function DeveloperSettings() {
                           min="0"
                           value={settings.per_member_rate}
                           onChange={(e) => handlePerMemberRateChange(e.target.value)}
-                          className="pl-7 bg-white"
+                          className="pl-7"
                           placeholder="0"
                         />
                       </div>
@@ -336,9 +336,9 @@ export default function DeveloperSettings() {
               )}
 
               <div className="flex justify-end pt-2">
-                <Button onClick={savePricing} disabled={saving} className="bg-slate-900 hover:bg-slate-800">
+                <Button onClick={savePricing} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
                   {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save Pricing
+                  <span className="hidden sm:inline">Save Pricing</span><span className="sm:hidden">Save</span>
                 </Button>
               </div>
             </CardContent>
@@ -392,7 +392,7 @@ export default function DeveloperSettings() {
                               max="100"
                               value={cycle.discount_percent}
                               onChange={(e) => handleCycleDiscount(idx, e.target.value)}
-                              className="pr-7 bg-white"
+                              className="pr-7"
                               placeholder="0"
                               disabled={!cycle.enabled}
                             />
@@ -406,9 +406,9 @@ export default function DeveloperSettings() {
               </div>
 
               <div className="flex justify-end pt-6">
-                <Button onClick={saveBillingCycles} disabled={saving} className="bg-slate-900 hover:bg-slate-800">
+                <Button onClick={saveBillingCycles} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
                   {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save Billing Cycles
+                  <span className="hidden sm:inline">Save Billing Cycles</span><span className="sm:hidden">Save</span>
                 </Button>
               </div>
             </CardContent>
@@ -450,7 +450,7 @@ export default function DeveloperSettings() {
                       min="1"
                       value={settings.free_trial.duration_days}
                       onChange={(e) => handleTrialField('duration_days', e.target.value)}
-                      className="bg-white"
+                      className=""
                       placeholder="30"
                     />
                     <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Number of days the trial lasts</p>
@@ -465,7 +465,7 @@ export default function DeveloperSettings() {
                       min="1"
                       value={settings.free_trial.max_chapters}
                       onChange={(e) => handleTrialField('max_chapters', e.target.value)}
-                      className="bg-white"
+                      className=""
                       placeholder="1"
                     />
                     <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Maximum chapters allowed during the trial period</p>
@@ -474,9 +474,9 @@ export default function DeveloperSettings() {
               )}
 
               <div className="flex justify-end pt-2">
-                <Button onClick={saveFreeTrial} disabled={saving} className="bg-slate-900 hover:bg-slate-800">
+                <Button onClick={saveFreeTrial} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
                   {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save Free Trial
+                  <span className="hidden sm:inline">Save Free Trial</span><span className="sm:hidden">Save</span>
                 </Button>
               </div>
             </CardContent>
@@ -505,7 +505,7 @@ export default function DeveloperSettings() {
                     max="100"
                     value={settings.gst_percent}
                     onChange={(e) => handleGstChange(e.target.value)}
-                    className="pr-7 bg-white"
+                    className="pr-7"
                     placeholder="18"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>%</span>
@@ -516,9 +516,9 @@ export default function DeveloperSettings() {
               </div>
 
               <div className="flex justify-end pt-2">
-                <Button onClick={saveTax} disabled={saving} className="bg-slate-900 hover:bg-slate-800">
+                <Button onClick={saveTax} disabled={saving} className="bg-[#CF2030] hover:bg-[#A61926]">
                   {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save Tax Settings
+                  <span className="hidden sm:inline">Save Tax Settings</span><span className="sm:hidden">Save</span>
                 </Button>
               </div>
             </CardContent>

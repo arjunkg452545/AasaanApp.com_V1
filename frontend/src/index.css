@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap');
+/* Helvetica Neue / Arial system font stack — no external font import needed */
 
 @tailwind base;
 @tailwind components;
@@ -109,7 +109,7 @@
   body {
     background-color: var(--nm-bg);
     color: var(--nm-text-primary);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
     /* Safe areas for notched phones */
@@ -120,7 +120,7 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
   }
 
   /* Prevent horizontal overflow globally */

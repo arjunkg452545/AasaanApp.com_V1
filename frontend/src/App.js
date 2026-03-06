@@ -27,6 +27,7 @@ const AttendanceForm = lazy(() => import("./pages/AttendanceForm"));
 const MemberProfile = lazy(() => import("./pages/MemberProfile"));
 const MemberPendingApprovals = lazy(() => import("./pages/MemberPendingApprovals"));
 const SuperAdminMembers = lazy(() => import("./pages/SuperAdminMembers"));
+const ManageAdmins = lazy(() => import("./pages/ManageAdmins"));
 const InstallPWA = lazy(() => import("./components/InstallPWA"));
 
 // Member Portal
@@ -165,6 +166,7 @@ function App() {
           <Route path="/superadmin/payment-config" element={<ProtectedRoute requiredRole="superadmin"><PaymentConfig /></ProtectedRoute>} />
           <Route path="/superadmin/accountants" element={<ProtectedRoute requiredRole="superadmin"><AccountantManagement /></ProtectedRoute>} />
           <Route path="/superadmin/gateway-setup" element={<ProtectedRoute requiredRole="superadmin"><PaymentGatewaySetup /></ProtectedRoute>} />
+          <Route path="/superadmin/manage-admins" element={<ProtectedRoute requiredRole="superadmin"><ManageAdmins /></ProtectedRoute>} />
 
           {/* Chapter Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><ChapterAdminDashboard /></ProtectedRoute>} />

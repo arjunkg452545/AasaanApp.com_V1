@@ -245,7 +245,7 @@ export default function SuperAdminDashboard() {
             <UserCheck className="h-4 w-4 mr-2" />
             Accountants
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => navigate('/superadmin/manage-admins')}>
             <Settings className="h-4 w-4 mr-2" />
             Manage Admins
           </Button>

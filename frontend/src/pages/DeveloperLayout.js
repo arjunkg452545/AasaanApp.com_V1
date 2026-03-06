@@ -119,8 +119,8 @@ export default function DeveloperLayout() {
         <div className="px-4 py-4" style={{ borderTop: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{devName}</p>
-              <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Developer</p>
+              <p className="text-xs font-medium truncate" style={{ color: 'var(--nm-text-primary)' }} title={devName}>{devName}</p>
+              <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>Developer</p>
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />

@@ -51,9 +51,10 @@ export default function SASubscriptionBanner({ subscription, subMeta }) {
   }
 
   // Active
-  const planLabel =
-    (subscription.plan || subscription.plan_name || 'Plan').charAt(0).toUpperCase() +
-    (subscription.plan || subscription.plan_name || 'Plan').slice(1);
+  const rawPlan = subscription.plan_type || subscription.plan || subscription.plan_name || '';
+  const planLabel = rawPlan
+    ? rawPlan.charAt(0).toUpperCase() + rawPlan.slice(1).replace(/_/g, ' ')
+    : 'Free Trial';
   const expiresLabel = subscription.end_date
     ? formatDate(subscription.end_date)
     : subMeta.days_remaining != null

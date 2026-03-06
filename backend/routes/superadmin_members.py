@@ -20,10 +20,15 @@ async def get_pending_members(user=Depends(get_current_user)):
             {"membership_status": "pending"}, {"_id": 0}
         ).sort("created_at", -1).to_list(500)
     else:
-        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
-        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
-        chapters = await db.chapters.find({"created_by": sa_id}, {"chapter_id": 1}).to_list(100)
-        chapter_ids = [c["chapter_id"] for c in chapters]
+        mobile = user.get("mobile", "")
+        sa = await db.superadmins.find_one({"mobile": mobile}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", mobile) if sa else mobile
+        # Query by both superadmin_id and mobile since created_by may use either
+        chapters = await db.chapters.find(
+            {"$or": [{"created_by": sa_id}, {"created_by": mobile}]},
+            {"chapter_id": 1}
+        ).to_list(100)
+        chapter_ids = list({c["chapter_id"] for c in chapters})
         members = await db.members.find(
             {"chapter_id": {"$in": chapter_ids}, "membership_status": "pending"},
             {"_id": 0}
@@ -164,10 +169,15 @@ async def get_all_ed_members(
     if user["role"] == "developer":
         base_filter = {}
     else:
-        sa = await db.superadmins.find_one({"mobile": user.get("mobile")}, {"_id": 0})
-        sa_id = sa.get("superadmin_id", user.get("mobile")) if sa else user.get("mobile")
-        chapters = await db.chapters.find({"created_by": sa_id}, {"chapter_id": 1}).to_list(100)
-        chapter_ids = [c["chapter_id"] for c in chapters]
+        mobile = user.get("mobile", "")
+        sa = await db.superadmins.find_one({"mobile": mobile}, {"_id": 0})
+        sa_id = sa.get("superadmin_id", mobile) if sa else mobile
+        # Query by both superadmin_id and mobile since created_by may use either
+        chapters = await db.chapters.find(
+            {"$or": [{"created_by": sa_id}, {"created_by": mobile}]},
+            {"chapter_id": 1}
+        ).to_list(100)
+        chapter_ids = list({c["chapter_id"] for c in chapters})
         base_filter = {"chapter_id": {"$in": chapter_ids}}
 
     query = {**base_filter, "archived": {"$ne": True}}

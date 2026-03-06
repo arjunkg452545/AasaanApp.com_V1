@@ -1,176 +1,101 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Download, X, Smartphone, Share } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 
 export default function InstallPWA() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
-    // Check if iOS
-    const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    setIsIOS(iOS);
-
     // Check if already installed (standalone mode)
     const standalone = window.matchMedia('(display-mode: standalone)').matches ||
                        window.navigator.standalone === true;
     setIsStandalone(standalone);
 
-    // Don't show if already installed
-    if (standalone) {
-      return;
-    }
+    if (standalone) return;
 
-    // Check if user dismissed in last 24 hours
+    // Check if user dismissed in last 7 days
     const dismissedTime = localStorage.getItem('pwa-install-dismissed-time');
     if (dismissedTime) {
-      const hoursSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60);
-      if (hoursSinceDismissed < 24) {
-        return; // Don't show if dismissed within 24 hours
-      }
+      const daysSinceDismissed = (Date.now() - parseInt(dismissedTime)) / (1000 * 60 * 60 * 24);
+      if (daysSinceDismissed < 7) return;
     }
 
     // Android/Chrome install prompt
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Show banner after small delay
-      setTimeout(() => setShowInstall(true), 1500);
+      setTimeout(() => setShowInstall(true), 2000);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // For iOS - show custom instructions after 2 seconds
-    if (iOS && !window.navigator.standalone) {
-      setTimeout(() => setShowInstall(true), 2000);
+    // iOS — show after delay
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS && !window.navigator.standalone) {
+      setTimeout(() => setShowInstall(true), 2500);
     }
-
-    // For browsers that don't support beforeinstallprompt (fallback)
-    // Show generic install prompt after 3 seconds
-    const fallbackTimer = setTimeout(() => {
-      if (!deferredPrompt && !iOS) {
-        // Check if it's a mobile device
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-          setShowInstall(true);
-        }
-      }
-    }, 3000);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      clearTimeout(fallbackTimer);
     };
-  }, [deferredPrompt]);
+  }, []);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-
-      if (outcome === 'accepted') {
-        console.log('PWA installed successfully');
-      }
-
+      await deferredPrompt.userChoice;
       setDeferredPrompt(null);
-      setShowInstall(false);
     }
+    setShowInstall(false);
   };
 
   const handleDismiss = () => {
     setShowInstall(false);
-    // Store dismissal time (will show again after 24 hours)
     localStorage.setItem('pwa-install-dismissed-time', Date.now().toString());
   };
 
-  // Don't show if already installed or banner hidden
-  if (!showInstall || isStandalone) {
-    return null;
-  }
+  if (!showInstall || isStandalone) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.2), transparent)' }}>
-      <Card className="max-w-md mx-auto p-4 border-2 border-[#CF2030]">
-        <div className="flex items-start gap-3">
-          {/* App Icon - Using Aasaan App Logo */}
-          <img
-            src="/icons/icon-72x72.png"
-            alt="Aasaan App"
-            className="h-14 w-14 rounded-xl flex-shrink-0 shadow-lg"
-          />
-
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg" style={{ color: 'var(--nm-text-primary)' }}>📲 Aasaan App Install करें</h3>
-
-            {isIOS ? (
-              // iOS Instructions
-              <div className="mt-2">
-                <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
-                  iPhone/iPad पर Install करने के लिए:
-                </p>
-                <div className="nm-inset rounded-lg p-3 space-y-2">
-                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
-                    <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">1</div>
-                    <span>नीचे <Share className="inline h-4 w-4" /> Share बटन दबाएं</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
-                    <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">2</div>
-                    <span>"Add to Home Screen" चुनें</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
-                    <div className="h-6 w-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-bold">3</div>
-                    <span>"Add" दबाएं ✓</span>
-                  </div>
-                </div>
-              </div>
-            ) : deferredPrompt ? (
-              // Android/Chrome with native prompt
-              <div className="mt-2">
-                <p className="text-sm mb-3" style={{ color: 'var(--nm-text-secondary)' }}>
-                  तेज़ access के लिए Home Screen पर Add करें
-                </p>
-                <Button
-                  onClick={handleInstallClick}
-                  className="bg-[#CF2030] hover:bg-[#A61926] w-full font-semibold"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  अभी Install करें
-                </Button>
-              </div>
-            ) : (
-              // Generic fallback instructions
-              <div className="mt-2">
-                <p className="text-sm mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
-                  App Install करने के लिए:
-                </p>
-                <div className="nm-inset rounded-lg p-3 text-sm" style={{ color: 'var(--nm-text-primary)' }}>
-                  Browser menu (⋮) में जाकर <strong>"Add to Home Screen"</strong> या <strong>"Install App"</strong> चुनें
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Close button */}
-          <button
-            onClick={handleDismiss}
-            className="flex-shrink-0 p-1 nm-btn rounded-full"
-            style={{ color: 'var(--nm-text-muted)' }}
-            aria-label="Close"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-3 pt-3 text-center" style={{ borderTop: '1px solid var(--nm-border)' }}>
-          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
-            🔒 Safe & Secure • No storage needed • Works offline
-          </p>
-        </div>
-      </Card>
+    <div
+      className="fixed bottom-4 left-4 right-4 z-50 flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg max-w-md mx-auto"
+      style={{
+        background: 'var(--nm-surface)',
+        border: '1px solid var(--nm-border)',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+      }}
+    >
+      <img
+        src="/icons/icon-72x72.png"
+        alt="Aasaan App"
+        className="h-9 w-9 rounded-lg flex-shrink-0"
+      />
+      <p className="flex-1 text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>
+        Install Aasaan App for quick access
+      </p>
+      {deferredPrompt ? (
+        <button
+          onClick={handleInstallClick}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white flex-shrink-0"
+          style={{ background: '#CF2030' }}
+        >
+          <Download className="h-3.5 w-3.5" />
+          Install
+        </button>
+      ) : (
+        <span className="text-xs flex-shrink-0" style={{ color: 'var(--nm-text-secondary)' }}>
+          Use browser menu
+        </span>
+      )}
+      <button
+        onClick={handleDismiss}
+        className="flex-shrink-0 p-1 rounded-full"
+        style={{ color: 'var(--nm-text-muted)' }}
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }

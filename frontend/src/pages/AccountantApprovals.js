@@ -14,13 +14,13 @@ import {
 } from 'lucide-react';
 
 const STATUS_COLORS = {
-  admin_confirmed: 'bg-indigo-100 text-indigo-700',
+  admin_confirmed: 'bg-amber-100 text-amber-700',
   verified: 'bg-emerald-100 text-emerald-700',
   rejected: 'bg-red-100 text-red-700',
 };
 
 const TABS = [
-  { id: 'admin_confirmed', label: 'Awaiting', color: 'text-indigo-600' },
+  { id: 'admin_confirmed', label: 'Awaiting', color: 'text-amber-600' },
   { id: 'verified', label: 'Approved', color: 'text-emerald-600' },
   { id: 'rejected', label: 'Rejected', color: 'text-red-600' },
 ];
@@ -192,7 +192,7 @@ export default function AccountantApprovals() {
               variant="outline"
               size="sm"
               onClick={() => setStatementOpen(true)}
-              className="border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+              className="border-[#CF2030]/30 text-[#CF2030] hover:bg-[#CF2030]/5"
             >
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Bank Statement
@@ -210,7 +210,7 @@ export default function AccountantApprovals() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-[#CF2030] text-white'
                   : ''
               }`}
               style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : undefined}
@@ -229,7 +229,7 @@ export default function AccountantApprovals() {
             >
               <div className={`h-4 w-4 rounded border ${
                 selectedIds.length === payments.length
-                  ? 'bg-indigo-600 border-indigo-600'
+                  ? 'bg-[#CF2030] border-[#CF2030]'
                   : ''
               } flex items-center justify-center`} style={selectedIds.length !== payments.length ? { borderColor: 'var(--nm-border)' } : undefined}>
                 {selectedIds.length === payments.length && (
@@ -266,7 +266,7 @@ export default function AccountantApprovals() {
                         <button
                           onClick={() => toggleSelect(p.ledger_id)}
                           className={`h-5 w-5 rounded border shrink-0 flex items-center justify-center ${
-                            isSelected ? 'bg-indigo-600 border-indigo-600' : ''
+                            isSelected ? 'bg-[#CF2030] border-[#CF2030]' : ''
                           }`}
                           style={!isSelected ? { borderColor: 'var(--nm-border)' } : undefined}
                         >

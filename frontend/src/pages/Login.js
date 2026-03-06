@@ -101,7 +101,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative" style={{ background: 'var(--nm-bg)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-0 py-4 relative" style={{ background: 'var(--nm-bg)' }}>
 
       {/* Theme toggle — top-right of PAGE */}
       <div className="absolute top-4 right-4 z-20">
@@ -117,7 +117,7 @@ export default function Login() {
         />
         <h1
           className="text-2xl sm:text-3xl font-bold mt-3"
-          style={{ color: 'var(--nm-accent)', fontFamily: 'Outfit, sans-serif' }}
+          style={{ color: 'var(--nm-accent)', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
         >
           Aasaan App
         </h1>
@@ -128,11 +128,10 @@ export default function Login() {
 
       {/* ===== FLIP CARD CONTAINER ===== */}
       <div
-        className="w-full"
+        className="w-full px-4 sm:px-0"
         style={{
           perspective: '1000px',
           maxWidth: 420,
-          minWidth: 300,
         }}
       >
         <div
@@ -168,7 +167,7 @@ export default function Login() {
 
               <h2
                 className="text-3xl font-bold mb-1"
-                style={{ color: 'var(--nm-text-primary)', fontFamily: 'Outfit, sans-serif' }}
+                style={{ color: 'var(--nm-text-primary)', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
               >
                 Welcome Back
               </h2>
@@ -266,7 +265,7 @@ export default function Login() {
 
               <h2
                 className="text-3xl font-bold mb-1"
-                style={{ color: 'var(--nm-text-primary)', fontFamily: 'Outfit, sans-serif' }}
+                style={{ color: 'var(--nm-text-primary)', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
               >
                 Admin Login
               </h2>

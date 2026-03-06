@@ -14,6 +14,7 @@ import {
   Plus, Edit, Trash2, Search, UserCheck, Building2,
   Phone, Mail, MapPin, Map, ChevronRight, Loader2
 } from 'lucide-react';
+import { toTitleCase } from '../utils/formatDate';
 
 export default function DeveloperEDs() {
   const [superadmins, setSuperadmins] = useState([]);
@@ -158,7 +159,7 @@ export default function DeveloperEDs() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{sa.name || 'Unnamed'}</h3>
+                      <h3 className="font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(sa.name) || 'No Name Set'}</h3>
                       <Badge
                         variant={sa.is_active ? 'default' : 'secondary'}
                         className={`text-xs ${sa.is_active ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : ''}`}

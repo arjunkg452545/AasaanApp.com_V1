@@ -44,7 +44,6 @@ export default function QRManagement() {
 
       <div className="p-4 md:p-8 max-w-7xl mx-auto">
         <div className="mb-4 md:mb-8">
-          <h2 className="text-xl md:text-3xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>QR Display Management</h2>
           <p className="text-sm mt-1" style={{ color: 'var(--nm-text-secondary)' }}>Show QR codes for attendance</p>
         </div>
 

@@ -5,6 +5,7 @@ import { Card } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import { Loader2, History, CheckCircle2 } from 'lucide-react';
+import { formatDate } from '../utils/formatDate';
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-IN', {
@@ -90,7 +91,7 @@ export default function MemberPaymentHistory() {
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{p.description}</p>
                             <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
-                              {p.payment_method?.toUpperCase()} {p.payment_date ? `| ${p.payment_date}` : ''}
+                              {p.payment_method?.toUpperCase()} {p.payment_date ? `| ${formatDate(p.payment_date)}` : ''}
                             </p>
                           </div>
                         </div>

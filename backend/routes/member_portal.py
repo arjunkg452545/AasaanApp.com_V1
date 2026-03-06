@@ -312,6 +312,20 @@ async def member_profile(user=Depends(require_role("member"))):
     )
 
     member["chapter_name"] = chapter["name"] if chapter else ""
+
+    # Attendance stats
+    unique_member_id = member.get("unique_member_id", "")
+    chapter_id_val = member.get("chapter_id", "")
+    total_meetings = await db.meetings.count_documents({"chapter_id": chapter_id_val})
+    attended = await db.attendance.count_documents({
+        "unique_member_id": unique_member_id,
+        "approval_status": "approved",
+        "type": {"$in": ["member", "substitute"]},
+    })
+    member["attendance_total"] = total_meetings
+    member["attendance_present"] = attended
+    member["attendance_pct"] = round((attended / total_meetings) * 100) if total_meetings > 0 else 0
+
     return member
 
 
