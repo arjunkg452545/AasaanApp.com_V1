@@ -350,17 +350,17 @@ export default function Login() {
         An SIPL Product
       </p>
 
-      {/* Hidden developer access gear icon — EXACTLY AS ORIGINAL, NO CHANGES */}
+      {/* Hidden developer access gear icon — fixed bottom-right */}
       <button
         onClick={() => setDevModalOpen(true)}
-        className="absolute bottom-4 right-4 p-1 rounded-full transition-opacity duration-300 cursor-default"
-        style={{ opacity: 0.08 }}
-        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.25'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.08'; }}
+        className="p-1 rounded-full transition-opacity duration-300 cursor-default"
+        style={{ position: 'fixed', bottom: 12, right: 12, opacity: 0.15, zIndex: 10 }}
+        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.35'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.15'; }}
         aria-label="Settings"
         tabIndex={-1}
       >
-        <Settings style={{ width: 14, height: 14, color: 'var(--nm-text-muted)' }} />
+        <Settings style={{ width: 16, height: 16, color: 'var(--nm-text-muted)' }} />
       </button>
 
       {/* Developer Login Modal — EXACTLY AS ORIGINAL, NO CHANGES */}
