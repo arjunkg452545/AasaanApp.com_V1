@@ -206,7 +206,7 @@ export default function EventPayment() {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-medium text-blue-900">{selectedMembers.length} selected</span>
                 <div className="flex gap-1">
-                  <Button size="sm" onClick={handleBulkMark} className="bg-green-600 text-xs px-2 h-6"><Check className="h-3 w-3" /></Button>
+                  <Button size="sm" onClick={handleBulkMark} className="bg-[#CF2030] text-xs px-2 h-6"><Check className="h-3 w-3" /></Button>
                   <Button size="sm" onClick={handleBulkUnmark} variant="destructive" className="text-xs px-2 h-6"><X className="h-3 w-3" /></Button>
                   <Button size="sm" variant="outline" onClick={() => setSelectedMembers([])} className="text-xs h-6">Clear</Button>
                 </div>
@@ -228,7 +228,7 @@ export default function EventPayment() {
                     </div>
                   </div>
                   {member.status === 'pending' ? (
-                    <Button size="sm" onClick={() => handleMarkPaid(member.member_id)} className="bg-green-600 text-xs px-3 h-9">
+                    <Button size="sm" onClick={() => handleMarkPaid(member.member_id)} className="bg-[#CF2030] text-xs px-3 h-9">
                       <Check className="h-3 w-3 mr-1" />Pay
                     </Button>
                   ) : (
@@ -258,7 +258,7 @@ export default function EventPayment() {
             <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Events & collections</p>
           </div>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
+        <Button onClick={() => setShowCreate(true)} className="bg-[#CF2030] hover:bg-[#A61926]" size="sm">
           <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" />
           <span className="text-xs md:text-sm">Add</span>
         </Button>
@@ -306,7 +306,7 @@ export default function EventPayment() {
                 </div>
               </div>
             )}
-            <Button onClick={handleCreate} className="mt-3 bg-purple-600 hover:bg-purple-700" size="sm">Create</Button>
+            <Button onClick={handleCreate} className="mt-3 bg-[#CF2030] hover:bg-[#A61926]" size="sm">Create</Button>
           </Card>
         )}
 

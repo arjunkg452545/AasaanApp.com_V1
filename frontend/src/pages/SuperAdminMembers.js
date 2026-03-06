@@ -17,6 +17,7 @@ import {
   ArrowLeft, Loader2, Search, Users, Building2,
   ArrowRightLeft, UserCheck, Shield,
 } from 'lucide-react';
+import { toTitleCase } from '../utils/formatDate';
 
 const STATUS_COLORS = {
   active: 'bg-emerald-100 text-emerald-700',
@@ -160,7 +161,7 @@ export default function SuperAdminMembers() {
         ) : (
           <div className="space-y-2">
             {filteredMembers.map((member) => (
-              <Card key={member.member_id} className="p-3 md:p-4 hover:shadow-sm transition-shadow">
+              <Card key={member.member_id} className="p-3 md:p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <div className="h-9 w-9 rounded-full flex items-center justify-center shrink-0" style={{ background: 'var(--nm-surface)' }}>
@@ -168,7 +169,7 @@ export default function SuperAdminMembers() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h3>
+                        <h3 className="font-medium text-sm truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(member.full_name)}</h3>
                         <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
@@ -207,7 +208,7 @@ export default function SuperAdminMembers() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-              Transferring: <strong>{selectedMember?.full_name}</strong>
+              Transferring: <strong>{toTitleCase(selectedMember?.full_name)}</strong>
               {selectedMember?.chapter_name && (
                 <span style={{ color: 'var(--nm-text-muted)' }}> from {selectedMember.chapter_name}</span>
               )}

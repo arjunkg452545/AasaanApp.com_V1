@@ -5,10 +5,9 @@ import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 import {
-  Plus, LogOut, Building2, Users, CheckCircle, IndianRupee,
+  Plus, Building2, Users, CheckCircle, IndianRupee,
   CreditCard, Clock, ChevronRight, UserCheck, Settings,
 } from 'lucide-react';
-import ThemeToggle from '../components/ThemeToggle';
 import { toast } from 'sonner';
 import SASubscriptionBanner from './SASubscriptionBanner';
 import SAChapterCards from './SAChapterCards';
@@ -24,8 +23,8 @@ function formatINR(amount) {
 
 function StatCard({ icon: Icon, iconBg, iconColor, label, value }) {
   return (
-    <Card className="p-5">
-      <div className="flex items-center gap-3">
+    <Card className="p-5 min-h-[90px]">
+      <div className="flex items-center gap-3 h-full">
         <div className={`h-10 w-10 rounded-lg ${iconBg} flex items-center justify-center shrink-0`}>
           <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
@@ -157,8 +156,6 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  const handleLogout = () => { localStorage.clear(); navigate('/'); };
-
   const handleEditChapter = (chapter) => {
     setSelectedChapter(chapter);
     setEditForm({ new_mobile: chapter.admin_mobile || '', new_password: '' });
@@ -167,36 +164,7 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
-      {/* ===== Header ===== */}
-      <header className="bg-gradient-to-r from-slate-900 to-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-10 w-10 rounded-lg" />
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight">Super Admin</h1>
-              <p className="text-xs text-slate-300">Aasaan App - Chapter Management</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            {edMobile && (
-              <span className="hidden sm:inline text-sm text-slate-300">
-                ED: <span className="font-medium text-white">{edMobile}</span>
-              </span>
-            )}
-            <ThemeToggle />
-            <Button
-              data-testid="logout-btn"
-              variant="ghost" size="sm" onClick={handleLogout}
-              className="text-slate-200 hover:text-white hover:bg-white/10"
-            >
-              <LogOut className="h-4 w-4 mr-1.5" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
+    <div style={{ background: 'var(--nm-bg)' }}>
       {/* ===== Main content ===== */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <SASubscriptionBanner subscription={subscription} subMeta={subMeta} />

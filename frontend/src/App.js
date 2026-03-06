@@ -14,7 +14,9 @@ const DeveloperEDs = lazy(() => import("./pages/DeveloperEDs"));
 const DeveloperSubscriptions = lazy(() => import("./pages/DeveloperSubscriptions"));
 const DeveloperSettings = lazy(() => import("./pages/DeveloperSettings"));
 const CreateSuperAdmin = lazy(() => import("./pages/CreateSuperAdmin"));
+const SuperAdminLayout = lazy(() => import("./pages/SuperAdminLayout"));
 const SuperAdminDashboard = lazy(() => import("./pages/SuperAdminDashboard"));
+const ChapterAdminLayout = lazy(() => import("./pages/ChapterAdminLayout"));
 const ChapterAdminDashboard = lazy(() => import("./pages/ChapterAdminDashboard"));
 const MembersManagement = lazy(() => import("./pages/MembersManagement"));
 const MeetingManagement = lazy(() => import("./pages/MeetingManagement"));
@@ -37,6 +39,7 @@ const MemberPayments = lazy(() => import("./pages/MemberPayments"));
 const MemberPaymentDetail = lazy(() => import("./pages/MemberPaymentDetail"));
 const MemberPaymentHistory = lazy(() => import("./pages/MemberPaymentHistory"));
 const MemberMyProfile = lazy(() => import("./pages/MemberMyProfile"));
+const MemberAttendance = lazy(() => import("./pages/MemberAttendance"));
 
 // Payment Config
 const PaymentConfig = lazy(() => import("./pages/PaymentConfig"));
@@ -160,36 +163,40 @@ function App() {
           </Route>
 
           {/* Super Admin Routes */}
-          <Route path="/superadmin/dashboard" element={<ProtectedRoute requiredRole="superadmin"><SuperAdminDashboard /></ProtectedRoute>} />
-          <Route path="/superadmin/members/pending" element={<ProtectedRoute requiredRole="superadmin"><MemberPendingApprovals /></ProtectedRoute>} />
-          <Route path="/superadmin/members" element={<ProtectedRoute requiredRole="superadmin"><SuperAdminMembers /></ProtectedRoute>} />
-          <Route path="/superadmin/payment-config" element={<ProtectedRoute requiredRole="superadmin"><PaymentConfig /></ProtectedRoute>} />
-          <Route path="/superadmin/accountants" element={<ProtectedRoute requiredRole="superadmin"><AccountantManagement /></ProtectedRoute>} />
-          <Route path="/superadmin/gateway-setup" element={<ProtectedRoute requiredRole="superadmin"><PaymentGatewaySetup /></ProtectedRoute>} />
-          <Route path="/superadmin/manage-admins" element={<ProtectedRoute requiredRole="superadmin"><ManageAdmins /></ProtectedRoute>} />
+          <Route path="/superadmin" element={<ProtectedRoute requiredRole="superadmin"><SuperAdminLayout /></ProtectedRoute>}>
+            <Route path="dashboard" element={<SuperAdminDashboard />} />
+            <Route path="members/pending" element={<MemberPendingApprovals />} />
+            <Route path="members" element={<SuperAdminMembers />} />
+            <Route path="payment-config" element={<PaymentConfig />} />
+            <Route path="accountants" element={<AccountantManagement />} />
+            <Route path="gateway-setup" element={<PaymentGatewaySetup />} />
+            <Route path="manage-admins" element={<ManageAdmins />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           {/* Chapter Admin Routes */}
-          <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><ChapterAdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/members" element={<ProtectedRoute requiredRole="admin"><MembersManagement /></ProtectedRoute>} />
-          <Route path="/admin/members/:memberId" element={<ProtectedRoute requiredRole="admin"><MemberProfile /></ProtectedRoute>} />
-          <Route path="/admin/meeting-hub" element={<ProtectedRoute requiredRole="admin"><MeetingManagementHub /></ProtectedRoute>} />
-          <Route path="/admin/meetings" element={<ProtectedRoute requiredRole="admin"><MeetingManagement /></ProtectedRoute>} />
-          <Route path="/admin/qr-management" element={<ProtectedRoute requiredRole="admin"><QRManagement /></ProtectedRoute>} />
-          <Route path="/admin/qr/:meetingId" element={<ProtectedRoute requiredRole="admin"><QRDisplay /></ProtectedRoute>} />
-          <Route path="/admin/reports" element={<ProtectedRoute requiredRole="admin"><ReportsManagement /></ProtectedRoute>} />
-          <Route path="/admin/attendance/:meetingId" element={<ProtectedRoute requiredRole="admin"><LiveAttendance /></ProtectedRoute>} />
-          <Route path="/admin/fee-config" element={<ProtectedRoute requiredRole="admin"><ChapterFeeConfig /></ProtectedRoute>} />
-          <Route path="/admin/verify-payments" element={<ProtectedRoute requiredRole="admin"><AdminVerifyPayments /></ProtectedRoute>} />
-          <Route path="/admin/manual-entry" element={<ProtectedRoute requiredRole="admin"><AdminManualEntry /></ProtectedRoute>} />
-          <Route path="/admin/reminders" element={<ProtectedRoute requiredRole="admin"><PaymentReminders /></ProtectedRoute>} />
-
-          {/* Fund Management */}
-          <Route path="/admin/fund-hub" element={<ProtectedRoute requiredRole="admin"><FundManagementHub /></ProtectedRoute>} />
-          <Route path="/admin/fund/kitty" element={<ProtectedRoute requiredRole="admin"><KittyPayment /></ProtectedRoute>} />
-          <Route path="/admin/fund/meetingfee" element={<ProtectedRoute requiredRole="admin"><MeetingFeePayment /></ProtectedRoute>} />
-          <Route path="/admin/fund/misc" element={<ProtectedRoute requiredRole="admin"><MiscPayment /></ProtectedRoute>} />
-          <Route path="/admin/fund/events" element={<ProtectedRoute requiredRole="admin"><EventPayment /></ProtectedRoute>} />
-          <Route path="/admin/fund/reports" element={<ProtectedRoute requiredRole="admin"><FundReports /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><ChapterAdminLayout /></ProtectedRoute>}>
+            <Route path="dashboard" element={<ChapterAdminDashboard />} />
+            <Route path="members" element={<MembersManagement />} />
+            <Route path="members/:memberId" element={<MemberProfile />} />
+            <Route path="meeting-hub" element={<MeetingManagementHub />} />
+            <Route path="meetings" element={<MeetingManagement />} />
+            <Route path="qr-management" element={<QRManagement />} />
+            <Route path="qr/:meetingId" element={<QRDisplay />} />
+            <Route path="reports" element={<ReportsManagement />} />
+            <Route path="attendance/:meetingId" element={<LiveAttendance />} />
+            <Route path="fee-config" element={<ChapterFeeConfig />} />
+            <Route path="verify-payments" element={<AdminVerifyPayments />} />
+            <Route path="manual-entry" element={<AdminManualEntry />} />
+            <Route path="reminders" element={<PaymentReminders />} />
+            <Route path="fund-hub" element={<FundManagementHub />} />
+            <Route path="fund/kitty" element={<KittyPayment />} />
+            <Route path="fund/meetingfee" element={<MeetingFeePayment />} />
+            <Route path="fund/misc" element={<MiscPayment />} />
+            <Route path="fund/events" element={<EventPayment />} />
+            <Route path="fund/reports" element={<FundReports />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
+          </Route>
 
           {/* Member Portal */}
           <Route path="/member" element={<ProtectedRoute requiredRole="member"><MemberLayout /></ProtectedRoute>}>
@@ -197,6 +204,7 @@ function App() {
             <Route path="payments" element={<MemberPayments />} />
             <Route path="payments/:ledgerId" element={<MemberPaymentDetail />} />
             <Route path="history" element={<MemberPaymentHistory />} />
+            <Route path="attendance" element={<MemberAttendance />} />
             <Route path="profile" element={<MemberMyProfile />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>

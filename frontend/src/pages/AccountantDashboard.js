@@ -8,6 +8,7 @@ import {
   Loader2, ShieldCheck, CheckCircle2, XCircle, Clock,
   ChevronRight, IndianRupee,
 } from 'lucide-react';
+import { toTitleCase } from '../utils/formatDate';
 
 function formatCurrency(amount) {
   return new Intl.NumberFormat('en-IN', {
@@ -54,7 +55,7 @@ export default function AccountantDashboard() {
     <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
-          Welcome, {accountantName}
+          Welcome, {toTitleCase(accountantName)}
         </h1>
         <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Payment Verification Dashboard</p>
       </div>
@@ -119,7 +120,7 @@ export default function AccountantDashboard() {
                 <p className="text-xs text-indigo-600">Total: {formatCurrency(summary.admin_confirmed_total)}</p>
               </div>
             </div>
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+            <Button size="sm" className="bg-[#CF2030] hover:bg-[#A61926]">
               Review <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
@@ -134,7 +135,7 @@ export default function AccountantDashboard() {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/accountant/approvals')}
-            className="text-indigo-600"
+            className="text-[#CF2030]"
           >
             View All <ChevronRight className="h-4 w-4" />
           </Button>

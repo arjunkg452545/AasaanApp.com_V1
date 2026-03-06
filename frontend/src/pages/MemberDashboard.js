@@ -9,6 +9,7 @@ import {
   Loader2, IndianRupee, Clock, CheckCircle2,
   AlertCircle, ChevronRight, Wallet,
 } from 'lucide-react';
+import { toTitleCase } from '../utils/formatDate';
 
 const STATUS_COLORS = {
   pending: 'bg-amber-100 text-amber-700',
@@ -71,7 +72,7 @@ export default function MemberDashboard() {
       {/* Welcome */}
       <div className="mb-6">
         <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
-          Welcome, {data.member_name}
+          Welcome, {toTitleCase(data.member_name)}
         </h1>
         <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{data.chapter_name}</p>
       </div>

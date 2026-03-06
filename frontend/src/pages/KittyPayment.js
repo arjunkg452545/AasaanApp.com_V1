@@ -207,7 +207,7 @@ export default function KittyPayment() {
             <div className="flex items-center justify-between flex-wrap gap-2">
               <span className="font-medium text-blue-900 text-xs md:text-sm">{selectedMembers.length} selected</span>
               <div className="flex gap-1 md:gap-2">
-                <Button size="sm" onClick={handleBulkMark} className="bg-green-600 hover:bg-green-700 text-xs px-2">
+                <Button size="sm" onClick={handleBulkMark} className="bg-[#CF2030] hover:bg-[#A61926] text-xs px-2">
                   <Check className="h-3 w-3" />
                 </Button>
                 <Button size="sm" onClick={handleBulkUnmark} variant="destructive" className="text-xs px-2">
@@ -257,7 +257,7 @@ export default function KittyPayment() {
                         <X className="h-3 w-3" />
                       </Button>
                     ) : (
-                      <Button size="sm" onClick={() => handleMarkPaid(payment.member_id)} className="bg-green-600 hover:bg-green-700 text-xs px-3 h-9">
+                      <Button size="sm" onClick={() => handleMarkPaid(payment.member_id)} className="bg-[#CF2030] hover:bg-[#A61926] text-xs px-3 h-9">
                         <Check className="h-3 w-3 mr-1" />Pay
                       </Button>
                     )}

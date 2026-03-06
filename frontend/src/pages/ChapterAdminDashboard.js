@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
-import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { LogOut, Users, ClipboardList, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Users, ClipboardList, Wallet, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import ThemeToggle from '../components/ThemeToggle';
 
 export default function ChapterAdminDashboard() {
   const [stats, setStats] = useState({ members: 0, meetings: 0, fundTotal: 0, expiringSoon: 0, pendingVerifications: 0 });
@@ -39,11 +37,6 @@ export default function ChapterAdminDashboard() {
     setChapterName(name);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-  };
-
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -53,26 +46,10 @@ export default function ChapterAdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
-      {/* Header - Mobile optimized */}
-      <div className="nm-header px-4 md:px-6 lg:px-8 py-3 md:py-4 flex justify-between items-center">
-        <div className="flex items-center gap-2 md:gap-4">
-          <img src="/icons/aasaan-logo.png" alt="Aasaan App" className="h-10 md:h-12 w-auto rounded-lg" />
-          <div>
-            <h1 className="text-xl md:text-2xl lg:text-[28px] font-bold truncate max-w-[180px] md:max-w-none" style={{ color: 'var(--nm-text-primary)' }}>{chapterName}</h1>
-            <p className="text-xs md:text-[13px] lg:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Chapter Admin Dashboard</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <Button data-testid="logout-btn" variant="outline" onClick={handleLogout} size="sm" className="min-w-[48px] min-h-[48px] md:min-w-0 md:min-h-0">
-            <LogOut className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Logout</span>
-          </Button>
-        </div>
-      </div>
-
-      <div className="px-4 md:px-6 lg:px-8 py-5 md:py-7 lg:py-9 max-w-full md:max-w-[720px] lg:max-w-[1200px] mx-auto">
+    <div style={{ background: 'var(--nm-bg)' }}>
+      <div className="px-4 md:px-6 lg:px-8 py-5 md:py-7 lg:py-9 max-w-full lg:max-w-[1200px] mx-auto">
+        <h1 className="text-xl md:text-2xl font-bold mb-1" style={{ color: 'var(--nm-text-primary)' }}>{chapterName}</h1>
+        <p className="text-xs md:text-sm mb-5" style={{ color: 'var(--nm-text-secondary)' }}>Chapter Admin Dashboard</p>
         <h2 className="text-xl md:text-2xl lg:text-[28px] font-bold mb-5 md:mb-7 lg:mb-9" style={{ color: 'var(--nm-text-primary)' }}>Welcome Back</h2>
 
         {/* Main Cards - Responsive Grid */}

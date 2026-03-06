@@ -251,7 +251,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('kitty')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-amber-600 hover:bg-amber-700 text-xs" onClick={() => navigate('/admin/fund/kitty')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/kitty')}>
                 Manage →
               </Button>
             </div>
@@ -272,7 +272,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('meetingfee')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => navigate('/admin/fund/meetingfee')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/meetingfee')}>
                 Manage →
               </Button>
             </div>
@@ -293,7 +293,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('events')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-purple-600 hover:bg-purple-700 text-xs" onClick={() => navigate('/admin/fund/events')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/events')}>
                 Manage →
               </Button>
             </div>

@@ -19,6 +19,7 @@ import {
   Search, Users, UserCheck, UserX, Clock, AlertTriangle,
   FileDown, Loader2, Shield, ChevronRight,
 } from 'lucide-react';
+import { toTitleCase } from '../utils/formatDate';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -427,7 +428,7 @@ export default function MembersManagement() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="font-medium text-sm md:text-base truncate" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h3>
+                        <h3 className="font-medium text-sm md:text-base truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(member.full_name)}</h3>
                         <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
@@ -497,7 +498,7 @@ export default function MembersManagement() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-              Member: <strong>{selectedMember?.full_name}</strong>
+              Member: <strong>{toTitleCase(selectedMember?.full_name)}</strong>
             </p>
             <div>
               <Label>Action</Label>

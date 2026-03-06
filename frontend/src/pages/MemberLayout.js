@@ -3,14 +3,16 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import {
-  LayoutDashboard, Wallet, History, User, LogOut, Menu, X
+  LayoutDashboard, Wallet, CheckCircle, User, LogOut, Menu, X, ClipboardList
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
+import { toTitleCase } from '../utils/formatDate';
 
 const navItems = [
   { label: 'Home', path: '/member/dashboard', icon: LayoutDashboard },
   { label: 'Payments', path: '/member/payments', icon: Wallet },
-  { label: 'History', path: '/member/history', icon: History },
+  { label: 'Completed', path: '/member/history', icon: CheckCircle },
+  { label: 'Attendance', path: '/member/attendance', icon: ClipboardList },
   { label: 'Profile', path: '/member/profile', icon: User },
 ];
 
@@ -101,7 +103,7 @@ export default function MemberLayout() {
         <div className="px-4 py-4" style={{ borderTop: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{memberName}</p>
+              <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(memberName)}</p>
               <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>Member</p>
             </div>
             <div className="flex items-center gap-1">
@@ -166,7 +168,7 @@ export default function MemberLayout() {
                 onClick={() => handleNavClick(item.path)}
                 className={`
                   flex flex-col items-center justify-center gap-0.5 py-1 px-3 rounded-xl
-                  transition-all min-w-[60px]
+                  transition-all min-w-[48px]
                   ${active
                     ? 'nm-pressed'
                     : ''

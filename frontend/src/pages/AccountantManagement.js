@@ -82,7 +82,7 @@ export default function AccountantManagement() {
     <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Accountants</h1>
-        <Button onClick={() => setCreateOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={() => setCreateOpen(true)} className="bg-[#CF2030] hover:bg-[#A61926]">
           <Plus className="h-4 w-4 mr-2" /> Add Accountant
         </Button>
       </div>
@@ -194,7 +194,7 @@ export default function AccountantManagement() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
+              className="w-full bg-[#CF2030] hover:bg-[#A61926]"
             >
               {submitting ? 'Creating...' : 'Create Accountant'}
             </Button>

@@ -282,7 +282,7 @@ export default function MeetingManagement() {
             {meetings.map((meeting) => (
               <Card
                 key={meeting.meeting_id}
-                className="p-3 md:p-6 border-l-4 border-l-[#005596]"
+                className="p-3 md:p-6 border-l-4 border-l-[#005596] hover:shadow-md transition-shadow"
                 data-testid={`meeting-card-${meeting.meeting_id}`}
               >
                 {/* Mobile Layout */}

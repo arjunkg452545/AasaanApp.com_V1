@@ -180,18 +180,18 @@ export default function FundReports() {
           <div className="border-t my-6" style={{ borderColor: 'var(--nm-border)' }}></div>
 
           {/* Preview Button */}
-          <button onClick={handlePreview} disabled={isLoadingPreview || eventsNoSelection} className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-indigo-500 text-white rounded-xl font-semibold hover:bg-indigo-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md mb-4" data-testid="preview-btn">
+          <button onClick={handlePreview} disabled={isLoadingPreview || eventsNoSelection} className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-[#CF2030] text-white rounded-xl font-semibold hover:bg-[#A61926] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md mb-4" data-testid="preview-btn">
             <Eye className="w-5 h-5" />
             {isLoadingPreview ? 'Loading Preview...' : 'Preview Report'}
           </button>
 
           {/* Export Buttons */}
           <div className="flex flex-col sm:flex-row gap-4">
-            <button onClick={handleExportExcel} disabled={isExporting || eventsNoSelection} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" data-testid="export-excel-btn">
+            <button onClick={handleExportExcel} disabled={isExporting || eventsNoSelection} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-[#CF2030] text-white rounded-xl font-semibold hover:bg-[#A61926] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" data-testid="export-excel-btn">
               <FileSpreadsheet className="w-5 h-5" />
               Download Excel
             </button>
-            <button onClick={handleExportPDF} disabled={isExporting || eventsNoSelection} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-rose-500 text-white rounded-xl font-semibold hover:bg-rose-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" data-testid="export-pdf-btn">
+            <button onClick={handleExportPDF} disabled={isExporting || eventsNoSelection} className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-[#CF2030] text-white rounded-xl font-semibold hover:bg-[#A61926] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md" data-testid="export-pdf-btn">
               <FileText className="w-5 h-5" />
               Download PDF
             </button>

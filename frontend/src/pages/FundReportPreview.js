@@ -129,14 +129,14 @@ export default function FundReportPreview({ previewData, category, chapterName, 
         <div className="bg-slate-100 px-6 py-4 flex flex-col sm:flex-row gap-3">
           <button
             onClick={onExportExcel}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-white rounded-xl font-semibold hover:bg-emerald-600 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#CF2030] text-white rounded-xl font-semibold hover:bg-[#A61926] transition-all"
           >
             <FileSpreadsheet className="w-5 h-5" />
             Download Excel
           </button>
           <button
             onClick={onExportPDF}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-rose-500 text-white rounded-xl font-semibold hover:bg-rose-600 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#CF2030] text-white rounded-xl font-semibold hover:bg-[#A61926] transition-all"
           >
             <FileText className="w-5 h-5" />
             Download PDF
