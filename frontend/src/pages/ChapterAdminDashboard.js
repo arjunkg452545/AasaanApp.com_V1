@@ -15,15 +15,15 @@ export default function ChapterAdminDashboard() {
   const loadStats = async () => {
     try {
       const [membersRes, meetingsRes, fundRes, memberStatsRes, verifyRes] = await Promise.all([
-        api.get('/admin/members'),
-        api.get('/admin/meetings'),
+        api.get('/admin/members').catch(() => ({ data: [] })),
+        api.get('/admin/meetings').catch(() => ({ data: [] })),
         api.get('/admin/fund/reports/summary').catch(() => ({ data: { grand_total: 0 } })),
         api.get('/admin/members/stats').catch(() => ({ data: { expiring_soon: 0 } })),
         api.get('/admin/payments/summary').catch(() => ({ data: { submitted_count: 0 } })),
       ]);
       setStats({
-        members: membersRes.data.length,
-        meetings: meetingsRes.data.length,
+        members: Array.isArray(membersRes.data) ? membersRes.data.length : 0,
+        meetings: Array.isArray(meetingsRes.data) ? meetingsRes.data.length : 0,
         fundTotal: fundRes.data.grand_total || 0,
         expiringSoon: memberStatsRes.data.expiring_soon || 0,
         pendingVerifications: verifyRes.data.submitted_count || 0,

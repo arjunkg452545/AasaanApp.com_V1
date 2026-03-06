@@ -182,20 +182,22 @@ export default function FundReports() {
 
   // Fetch data from backend
   const fetchReportData = async () => {
+    try {
     const months = getSelectedMonths();
-    
+
     // Fetch members
     const membersRes = await api.get('/admin/members');
-    const members = membersRes.data.filter(m => m.status === 'Active');
-    
+    const allMembers = Array.isArray(membersRes.data) ? membersRes.data : [];
+    const members = allMembers.filter(m => (m.status === 'Active' || m.membership_status === 'active'));
+
     // For each month, fetch all members with their individual amounts
     // Use the /payments?month=X&year=Y API which returns ALL members (both paid and pending)
     // with their individual amounts from member_amounts collection
     const monthPaymentsMap = {};
-    
+
     for (const monthInfo of months) {
       const { month, year, key } = monthInfo;
-      
+
       if (category === 'kitty') {
         const res = await api.get(`/admin/fund/kitty/payments?month=${month}&year=${year}`);
         monthPaymentsMap[key] = res.data || [];
@@ -204,7 +206,7 @@ export default function FundReports() {
         monthPaymentsMap[key] = res.data || [];
       }
     }
-    
+
     // For events, keep original logic
     let eventPayments = [];
     if (category === 'events') {
@@ -257,6 +259,10 @@ export default function FundReports() {
     });
     
     return { members: memberData, months };
+    } catch (error) {
+      toast.error('Failed to load report data');
+      return { members: [], months: [] };
+    }
   };
 
   // Calculate summary for a month

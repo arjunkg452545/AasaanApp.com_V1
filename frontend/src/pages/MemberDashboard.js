@@ -144,7 +144,7 @@ export default function MemberDashboard() {
           </Button>
         </div>
 
-        {data.recent_payments.length === 0 ? (
+        {(!data.recent_payments || data.recent_payments.length === 0) ? (
           <Card className="p-6 text-center">
             <Wallet className="h-10 w-10 mx-auto mb-2" style={{ color: 'var(--nm-text-muted)' }} />
             <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No payment activity yet</p>

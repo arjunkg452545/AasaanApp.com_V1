@@ -34,7 +34,7 @@ export default function AccountantDashboard() {
         api.get('/verification/payments/confirmed?status=admin_confirmed'),
       ]);
       setSummary(summaryRes.data);
-      setRecentPayments(paymentsRes.data.slice(0, 10));
+      setRecentPayments(Array.isArray(paymentsRes.data) ? paymentsRes.data.slice(0, 10) : []);
     } catch {
       toast.error('Failed to load dashboard');
     } finally {
