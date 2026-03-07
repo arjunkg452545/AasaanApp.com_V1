@@ -3,6 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "./components/ui/sonner";
+import { tryRefreshToken } from "./utils/api";
 
 // Login loads immediately (entry point)
 import Login from "./pages/Login";
@@ -120,7 +121,19 @@ class ErrorBoundary extends React.Component {
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
+  const expiresAt = localStorage.getItem('token_expires_at');
+
   if (!token) return <Navigate to="/" replace />;
+
+  // Check if token has expired
+  if (expiresAt) {
+    const expiry = new Date(expiresAt);
+    if (expiry <= new Date()) {
+      localStorage.clear();
+      return <Navigate to="/" replace />;
+    }
+  }
+
   if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/" replace />;
   return children;
 };
@@ -135,6 +148,18 @@ function App() {
     const handleOffline = () => toast('You\'re offline', { duration: 5000, style: { background: '#FEFCE8', color: '#854D0E', border: '1px solid #FDE68A' } });
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Auto-login: if token exists and not expired, try refreshing silently
+    const token = localStorage.getItem('token');
+    const userName = localStorage.getItem('user_name') || localStorage.getItem('dev_name') || localStorage.getItem('accountant_name');
+    if (token) {
+      tryRefreshToken();
+      // Show welcome back toast only on fresh app load (not navigations)
+      if (userName && window.location.pathname === '/') {
+        toast.success(`Welcome back, ${userName}!`, { duration: 3000 });
+      }
+    }
+
     return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   }, []);
 

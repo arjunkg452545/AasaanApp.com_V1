@@ -33,8 +33,8 @@ async def superadmin_login(data: LoginRequest):
     if admin.get("is_active") is False:
         raise HTTPException(status_code=403, detail="Account is deactivated. Contact developer admin.")
 
-    token = create_access_token({"mobile": data.mobile, "role": "superadmin"})
-    return LoginResponse(token=token, role="superadmin", mobile=data.mobile)
+    token, expires_at = create_access_token({"mobile": data.mobile, "role": "superadmin"})
+    return LoginResponse(token=token, role="superadmin", mobile=data.mobile, expires_at=expires_at)
 
 
 @router.post("/superadmin/chapters")

@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 from database import db
 from deps import get_current_user, require_role
-from auth import create_access_token, verify_password, hash_password, ACCESS_TOKEN_EXPIRE_DAYS
+from auth import create_access_token, verify_password, hash_password, STAFF_TOKEN_EXPIRE_DAYS
 from models import (
     DeveloperSeedRequest, DeveloperLoginRequest, DeveloperLoginResponse,
     SuperAdminCreate, SuperAdminUpdate, SuperAdminResponse,
@@ -41,12 +41,12 @@ async def developer_login(data: DeveloperLoginRequest, response: Response):
     if not developer or not verify_password(data.password, developer["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"email": data.email, "role": "developer", "dev_id": developer["dev_id"]})
+    token, expires_at = create_access_token({"email": data.email, "role": "developer", "dev_id": developer["dev_id"]})
     response.set_cookie(
         key="access_token", value=token, httponly=True, samesite="lax",
-        max_age=ACCESS_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+        max_age=STAFF_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
     )
-    return DeveloperLoginResponse(token=token, role="developer", email=data.email, name=developer["name"])
+    return DeveloperLoginResponse(token=token, role="developer", email=data.email, name=developer["name"], expires_at=expires_at)
 
 @router.post("/developer/superadmins", response_model=SuperAdminResponse)
 async def create_superadmin(data: SuperAdminCreate, user=Depends(require_role("developer"))):

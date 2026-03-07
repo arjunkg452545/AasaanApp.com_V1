@@ -10,7 +10,7 @@ import uuid
 
 from database import db
 from deps import get_current_user, require_role
-from auth import create_access_token, hash_password, verify_password, ACCESS_TOKEN_EXPIRE_DAYS
+from auth import create_access_token, hash_password, verify_password, MEMBER_TOKEN_EXPIRE_DAYS
 from models_payment import (
     MemberLoginRequest,
     MemberLoginResponse,
@@ -79,11 +79,11 @@ async def member_login(data: MemberLoginRequest, response: Response):
     if jwt_role == "admin":
         jwt_payload["chapter_role"] = chapter_role
 
-    token = create_access_token(jwt_payload)
+    token, expires_at = create_access_token(jwt_payload)
 
     response.set_cookie(
         key="access_token", value=token, httponly=True, samesite="lax",
-        max_age=ACCESS_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+        max_age=MEMBER_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
     )
 
     return MemberLoginResponse(
@@ -95,6 +95,7 @@ async def member_login(data: MemberLoginRequest, response: Response):
         member_name=member.get("full_name", ""),
         chapter_name=chapter_name,
         chapter_role=chapter_role,
+        expires_at=expires_at,
     )
 
 
@@ -158,8 +159,9 @@ async def change_member_password(
         {"member_id": member_id},
         {"$set": {
             "password_hash": hash_password(data.new_password),
+            "password_changed_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }}
     )
 
-    return {"message": "Password changed successfully"}
+    return {"message": "Password changed successfully. Please log in again."}

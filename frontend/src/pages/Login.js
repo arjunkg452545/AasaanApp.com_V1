@@ -42,7 +42,7 @@ export default function Login() {
         mobile: memberMobile,
         password: memberPassword,
       });
-      const { token, role, redirect, member_id, member_name, chapter_id, chapter_name, chapter_role } = response.data;
+      const { token, role, redirect, member_id, member_name, chapter_id, chapter_name, chapter_role, expires_at } = response.data;
       localStorage.clear();
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
@@ -53,6 +53,7 @@ export default function Login() {
       localStorage.setItem('chapter_role', chapter_role || 'member');
       localStorage.setItem('user_name', member_name);
       localStorage.setItem('mobile', memberMobile);
+      if (expires_at) localStorage.setItem('token_expires_at', expires_at);
       toast.success('Welcome back!');
       navigate(redirect || '/app/home');
     } catch (error) {
@@ -71,7 +72,7 @@ export default function Login() {
         login_id: adminMobile,
         password: adminPassword,
       });
-      const { token, role, redirect, mobile, chapter_id, chapter_name, accountant_id, name, superadmin_id } = response.data;
+      const { token, role, redirect, mobile, chapter_id, chapter_name, accountant_id, name, superadmin_id, expires_at } = response.data;
       localStorage.clear();
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
@@ -81,6 +82,7 @@ export default function Login() {
       if (accountant_id) localStorage.setItem('accountant_id', accountant_id);
       if (name) localStorage.setItem('accountant_name', name);
       if (superadmin_id) localStorage.setItem('superadmin_id', superadmin_id);
+      if (expires_at) localStorage.setItem('token_expires_at', expires_at);
       toast.success('Login successful!');
       navigate(redirect);
     } catch (error) {
@@ -101,6 +103,7 @@ export default function Login() {
       localStorage.setItem('role', response.data.role);
       localStorage.setItem('dev_email', response.data.email);
       localStorage.setItem('dev_name', response.data.name);
+      if (response.data.expires_at) localStorage.setItem('token_expires_at', response.data.expires_at);
       toast.success('Access granted');
       setDevModalOpen(false);
       navigate('/developer/dashboard');

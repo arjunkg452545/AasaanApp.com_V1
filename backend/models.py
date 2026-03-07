@@ -10,6 +10,7 @@ class LoginResponse(BaseModel):
     token: str
     role: str
     mobile: str
+    expires_at: Optional[str] = None
     chapter_id: Optional[str] = None
     chapter_name: Optional[str] = None
 
@@ -322,6 +323,7 @@ class DeveloperLoginResponse(BaseModel):
     role: str
     email: str
     name: str
+    expires_at: Optional[str] = None
 
 class SuperAdminCreate(BaseModel):
     name: str

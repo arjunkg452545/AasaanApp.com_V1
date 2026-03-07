@@ -24,6 +24,7 @@ class MemberLoginResponse(BaseModel):
     member_name: str
     chapter_name: str = ""
     chapter_role: Optional[str] = None
+    expires_at: Optional[str] = None
 
 
 class MemberSetPasswordRequest(BaseModel):
@@ -174,6 +175,7 @@ class AccountantLoginResponse(BaseModel):
     accountant_id: str
     name: str
     superadmin_id: str
+    expires_at: Optional[str] = None
 
 
 class BulkApproveRequest(BaseModel):
