@@ -148,9 +148,7 @@ export default function AdminVerifyPayments() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-[#CF2030] text-white'
-                  : ''
+                activeTab === tab.id ? 'nm-tab-active' : 'nm-tab'
               }`}
               style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : undefined}
             >

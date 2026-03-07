@@ -344,9 +344,9 @@ export default function MembersManagement() {
 
         {/* Expiring Soon Alert */}
         {stats.expiring_soon > 0 && (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-            <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />
-            <p className="text-sm text-amber-700">
+          <div className="flex items-center gap-2 p-3 rounded-xl border" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
+            <AlertTriangle className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-accent)' }} />
+            <p className="text-sm" style={{ color: 'var(--nm-text-primary)' }}>
               <strong>{stats.expiring_soon}</strong> member{stats.expiring_soon > 1 ? 's' : ''} renew{stats.expiring_soon === 1 ? 's' : ''} within 30 days
             </p>
           </div>
@@ -360,7 +360,7 @@ export default function MembersManagement() {
               placeholder="Search name, mobile, business..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
+              className="pl-9 nm-input"
             />
           </div>
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -386,7 +386,7 @@ export default function MembersManagement() {
                     <p className="text-sm mt-2" style={{ color: 'var(--nm-text-secondary)' }}>Download template for format.</p>
                   </div>
                   <Button onClick={handleFileUpload} disabled={uploading || !uploadFile}
-                    className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+                    className="w-full nm-btn-primary">
                     {uploading ? 'Uploading...' : 'Upload Members'}
                   </Button>
                 </div>
@@ -394,7 +394,7 @@ export default function MembersManagement() {
             </Dialog>
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-[#CF2030] hover:bg-[#A61926] text-xs md:text-sm" size="sm">
+                <Button className="nm-btn-primary text-xs md:text-sm" size="sm">
                   <Plus className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Add Member
                 </Button>
               </DialogTrigger>
@@ -402,7 +402,7 @@ export default function MembersManagement() {
                 <DialogHeader><DialogTitle>Add New Member</DialogTitle></DialogHeader>
                 <form onSubmit={handleCreate} className="space-y-4">
                   <MemberFormFields />
-                  <Button type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+                  <Button type="submit" className="w-full nm-btn-primary">
                     Add Member
                   </Button>
                 </form>
@@ -435,7 +435,7 @@ export default function MembersManagement() {
             {filteredMembers.map((member) => (
               <Card
                 key={member.member_id}
-                className="p-3 md:p-4 hover:shadow-md transition-shadow border-l-4 border-l-[#CF2030] rounded-xl shadow-sm cursor-pointer"
+                className="p-3 md:p-4 nm-interactive border-l-4 border-l-[#CF2030] rounded-xl cursor-pointer"
                 onClick={() => navigate(`/app/members/${member.member_id}`)}
               >
                 <div className="flex items-center justify-between gap-2">
@@ -527,7 +527,7 @@ export default function MembersManagement() {
           <DialogHeader><DialogTitle>Edit Member</DialogTitle></DialogHeader>
           <form onSubmit={handleUpdate} className="space-y-4">
             <MemberFormFields isEdit />
-            <Button type="submit" className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <Button type="submit" className="w-full nm-btn-primary">
               Update Member
             </Button>
           </form>
@@ -564,7 +564,7 @@ export default function MembersManagement() {
                 rows={3}
               />
             </div>
-            <Button onClick={handleStatusChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <Button onClick={handleStatusChange} className="w-full nm-btn-primary">
               Confirm
             </Button>
           </div>
@@ -603,13 +603,13 @@ export default function MembersManagement() {
               </Select>
             </div>
             {roleWarning && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-700 flex items-center gap-1">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {roleWarning}
+              <div className="p-3 rounded-lg border" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
+                <p className="text-xs flex items-center gap-1" style={{ color: 'var(--nm-text-secondary)' }}>
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--nm-accent)' }} /> {roleWarning}
                 </p>
               </div>
             )}
-            <Button onClick={handleRoleChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+            <Button onClick={handleRoleChange} className="w-full nm-btn-primary">
               Assign Role
             </Button>
           </div>

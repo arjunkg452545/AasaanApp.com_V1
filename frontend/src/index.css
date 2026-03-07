@@ -611,6 +611,20 @@ html.transitioning *::after {
   to { transform: translateY(0); }
 }
 
+/* Safe area bottom padding for bottom nav and sheets */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Bottom sheet slide-out animation */
+@keyframes slideOutToBottom {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(100%); opacity: 0; }
+}
+.animate-out-slide-bottom {
+  animation: slideOutToBottom 200ms ease-in forwards;
+}
+
 /* Standalone PWA — extra bottom padding for gesture bar */
 @media all and (display-mode: standalone) {
   body {

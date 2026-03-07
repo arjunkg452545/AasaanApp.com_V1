@@ -109,7 +109,7 @@ export default function VisitorManagement() {
           <h1 className="text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Visitor Management</h1>
           <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Track and manage chapter visitors</p>
         </div>
-        <Button className="bg-[#CF2030] hover:bg-[#A61926] text-white" onClick={() => setCreateOpen(true)}>
+        <Button className="nm-btn-primary" onClick={() => setCreateOpen(true)}>
           <Plus className="h-4 w-4 mr-2" /> Add Visitor
         </Button>
       </div>
@@ -139,7 +139,7 @@ export default function VisitorManagement() {
       {/* Search */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'var(--nm-text-muted)' }} />
-        <Input placeholder="Search visitors..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
+        <Input placeholder="Search visitors..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10 nm-input" />
       </div>
 
       {/* Visitor List */}
@@ -223,7 +223,7 @@ export default function VisitorManagement() {
               </Select>
             </div>
             <div><Label>Notes</Label><Input value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Optional notes" className="mt-1" /></div>
-            <Button className="w-full bg-[#CF2030] hover:bg-[#A61926] text-white" onClick={handleCreate}>Register Visitor</Button>
+            <Button className="w-full nm-btn-primary" onClick={handleCreate}>Register Visitor</Button>
           </div>
         </DialogContent>
       </Dialog>

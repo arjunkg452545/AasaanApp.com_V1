@@ -251,7 +251,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('kitty')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/kitty')}>
+              <Button size="sm" className="flex-1 nm-btn-primary text-xs" onClick={() => navigate('/app/fund/kitty')}>
                 Manage →
               </Button>
             </div>
@@ -272,7 +272,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('meetingfee')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/meetingfee')}>
+              <Button size="sm" className="flex-1 nm-btn-primary text-xs" onClick={() => navigate('/app/fund/meetingfee')}>
                 Manage →
               </Button>
             </div>
@@ -293,7 +293,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('events')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/events')}>
+              <Button size="sm" className="flex-1 nm-btn-primary text-xs" onClick={() => navigate('/app/fund/events')}>
                 Manage →
               </Button>
             </div>
@@ -303,17 +303,17 @@ export default function FundManagementHub() {
         {/* Verify Payments + Manual Entry */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mt-4 md:mt-6">
           {/* Verify Payments Card */}
-          <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-indigo-500"
+          <Card className="p-4 md:p-6 nm-interactive cursor-pointer border-l-4 border-l-[#CF2030]"
                 onClick={() => navigate('/app/verify-payments')}>
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck className="h-6 w-6 text-indigo-600" />
+              <div className="h-12 w-12 rounded-xl bg-[#CF2030]/10 flex items-center justify-center flex-shrink-0">
+                <ShieldCheck className="h-6 w-6 text-[#CF2030]" />
               </div>
               <div className="flex-1">
                 <h3 className="text-base md:text-lg font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Verify Payments</h3>
                 <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Review & confirm member submissions</p>
               </div>
-              <span className="text-indigo-600 text-sm">Review &rarr;</span>
+              <span className="text-[#CF2030] text-sm">Review &rarr;</span>
             </div>
           </Card>
 
@@ -403,26 +403,28 @@ export default function FundManagementHub() {
               <p className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summaryData.paidCount + summaryData.pendingCount}</p>
               <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Total</p>
             </button>
-            <button 
+            <button
               onClick={() => setSummaryView('paid')}
-              className={`flex-1 p-3 rounded-lg text-center transition-colors ${summaryView === 'paid' ? 'bg-green-200' : 'bg-green-100'}`}
+              className="flex-1 p-3 rounded-lg text-center transition-colors"
+              style={{ background: summaryView === 'paid' ? 'var(--nm-bg)' : 'var(--nm-surface)' }}
             >
-              <p className="text-lg font-bold text-green-700">{summaryData.paidCount}</p>
-              <p className="text-xs text-green-600">Paid</p>
+              <p className="text-lg font-bold text-emerald-600">{summaryData.paidCount}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Paid</p>
             </button>
-            <button 
+            <button
               onClick={() => setSummaryView('pending')}
-              className={`flex-1 p-3 rounded-lg text-center transition-colors ${summaryView === 'pending' ? 'bg-red-200' : 'bg-red-100'}`}
+              className="flex-1 p-3 rounded-lg text-center transition-colors"
+              style={{ background: summaryView === 'pending' ? 'var(--nm-bg)' : 'var(--nm-surface)' }}
             >
-              <p className="text-lg font-bold text-red-700">{summaryData.pendingCount}</p>
-              <p className="text-xs text-red-600">Pending</p>
+              <p className="text-lg font-bold text-red-500">{summaryData.pendingCount}</p>
+              <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Pending</p>
             </button>
           </div>
 
           {/* Collection */}
-          <div className="p-3 bg-green-50 rounded-lg mb-3">
-            <p className="text-xs text-green-600">Collection</p>
-            <p className="text-xl font-bold text-green-700">{formatCurrency(summaryData.total)}</p>
+          <div className="p-3 rounded-lg mb-3" style={{ background: 'var(--nm-surface)', border: '1px solid var(--nm-border)' }}>
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Collection</p>
+            <p className="text-xl font-bold text-emerald-600">{formatCurrency(summaryData.total)}</p>
           </div>
 
           {/* Member List */}
@@ -493,15 +495,15 @@ export default function FundManagementHub() {
           </div>
 
           {/* Total Collection for the day */}
-          <div className="p-3 bg-green-50 rounded-lg mb-3">
+          <div className="p-3 rounded-lg mb-3" style={{ background: 'var(--nm-surface)', border: '1px solid var(--nm-border)' }}>
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-xs text-green-600">Collection on this day</p>
-                <p className="text-xl font-bold text-green-700">{formatCurrency(quickViewData.total_amount)}</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Collection on this day</p>
+                <p className="text-xl font-bold text-emerald-600">{formatCurrency(quickViewData.total_amount)}</p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-green-600">Payments</p>
-                <p className="text-xl font-bold text-green-700">{quickViewData.count}</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Payments</p>
+                <p className="text-xl font-bold text-emerald-600">{quickViewData.count}</p>
               </div>
             </div>
           </div>
@@ -512,12 +514,12 @@ export default function FundManagementHub() {
               <p className="text-xs font-semibold mb-2" style={{ color: 'var(--nm-text-secondary)' }}>Month-wise Breakdown:</p>
               <div className="grid grid-cols-2 gap-2">
                 {quickViewData.month_breakdown.map((item, idx) => (
-                  <div key={idx} className="bg-blue-50 rounded-lg p-2 text-center">
-                    <p className="text-xs font-medium text-blue-700">
+                  <div key={idx} className="rounded-lg p-2 text-center" style={{ background: 'var(--nm-surface)', border: '1px solid var(--nm-border)' }}>
+                    <p className="text-xs font-medium" style={{ color: 'var(--nm-text-primary)' }}>
                       {item.month_name ? `${item.month_name} ${item.year}` : item.event_name}
                     </p>
-                    <p className="text-sm font-bold text-blue-800">{formatCurrency(item.amount)}</p>
-                    <p className="text-xs text-blue-600">{item.count} payment{item.count > 1 ? 's' : ''}</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--nm-text-primary)' }}>{formatCurrency(item.amount)}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{item.count} payment{item.count > 1 ? 's' : ''}</p>
                   </div>
                 ))}
               </div>

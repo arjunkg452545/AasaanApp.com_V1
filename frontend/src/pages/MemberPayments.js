@@ -71,9 +71,7 @@ export default function MemberPayments() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-3 py-2.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab.id
-                ? 'bg-[#CF2030] text-white'
-                : ''
+              activeTab === tab.id ? 'nm-tab-active' : 'nm-tab'
             }`}
             style={activeTab !== tab.id ? { color: 'var(--nm-text-secondary)' } : undefined}
           >
@@ -96,7 +94,7 @@ export default function MemberPayments() {
           {fees.map(fee => (
             <Card
               key={fee.ledger_id}
-              className="p-3 md:p-4 cursor-pointer hover:shadow-sm transition-shadow"
+              className="p-3 md:p-4 cursor-pointer nm-interactive"
               onClick={() => navigate(`/app/my-payments/${fee.ledger_id}`)}
             >
               <div className="flex items-center justify-between">

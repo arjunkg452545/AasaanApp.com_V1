@@ -1,5 +1,5 @@
 // MAX 300 LINES — Unified layout for ALL members (regular + role holders)
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -47,8 +47,35 @@ function formatRole(role) {
 export default function UnifiedMemberLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminSheetOpen, setAdminSheetOpen] = useState(false);
+  const [sheetClosing, setSheetClosing] = useState(false);
+  const touchStartY = useRef(0);
+  const touchDeltaY = useRef(0);
+  const sheetRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  const closeSheet = useCallback(() => {
+    setSheetClosing(true);
+    setTimeout(() => { setAdminSheetOpen(false); setSheetClosing(false); }, 200);
+  }, []);
+
+  const onSheetTouchStart = useCallback((e) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchDeltaY.current = 0;
+  }, []);
+
+  const onSheetTouchMove = useCallback((e) => {
+    const delta = e.touches[0].clientY - touchStartY.current;
+    touchDeltaY.current = delta;
+    if (delta > 0 && sheetRef.current) {
+      sheetRef.current.style.transform = `translateY(${delta}px)`;
+    }
+  }, []);
+
+  const onSheetTouchEnd = useCallback(() => {
+    if (sheetRef.current) sheetRef.current.style.transform = '';
+    if (touchDeltaY.current > 100) closeSheet();
+  }, [closeSheet]);
 
   const memberName = localStorage.getItem('member_name') || 'Member';
   const chapterName = localStorage.getItem('chapter_name') || '';
@@ -163,11 +190,22 @@ export default function UnifiedMemberLayout() {
       {/* ===== ADMIN BOTTOM SHEET (mobile) ===== */}
       {adminSheetOpen && (
         <>
-          <div className="fixed inset-0 z-40 lg:hidden" style={{ background: 'var(--nm-overlay)' }} onClick={() => setAdminSheetOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 lg:hidden rounded-t-2xl safe-area-bottom animate-in slide-in-from-bottom duration-200" style={{ background: 'var(--nm-surface)', borderTop: '1px solid var(--nm-border)' }}>
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+          <div className="fixed inset-0 z-40 lg:hidden" style={{ background: 'var(--nm-overlay)' }} onClick={closeSheet} />
+          <div
+            ref={sheetRef}
+            className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden rounded-t-2xl safe-area-bottom ${sheetClosing ? 'animate-out-slide-bottom' : 'animate-in slide-in-from-bottom'} duration-200`}
+            style={{ background: 'var(--nm-surface)', borderTop: '1px solid var(--nm-border)' }}
+            onTouchStart={onSheetTouchStart}
+            onTouchMove={onSheetTouchMove}
+            onTouchEnd={onSheetTouchEnd}
+          >
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full" style={{ background: 'var(--nm-text-muted)', opacity: 0.4 }} />
+            </div>
+            <div className="flex items-center justify-between px-5 pt-1 pb-2">
               <p className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Chapter Admin</p>
-              <button onClick={() => setAdminSheetOpen(false)} className="p-1 rounded-lg" style={{ color: 'var(--nm-text-muted)' }}><X className="h-5 w-5" /></button>
+              <button onClick={closeSheet} className="p-1 rounded-lg" style={{ color: 'var(--nm-text-muted)' }}><X className="h-5 w-5" /></button>
             </div>
             <div className="grid grid-cols-3 gap-2 px-4 pb-6">
               {adminNav.map(item => {

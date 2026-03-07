@@ -64,7 +64,7 @@ export default function MeetingManagementHub() {
         {/* Cards Grid - Responsive: 2 cols mobile, 2 cols tablet, 4 cols desktop */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-5">
           {/* Total Meetings Stat Card */}
-          <Card className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] border-l-4 border-l-[#005596] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]" data-testid="meetings-stat-card">
+          <Card className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] border-l-4 border-l-[#005596] rounded-[10px]" data-testid="meetings-stat-card">
             <div className="flex flex-col items-start gap-2">
               <div className="h-10 w-10 md:h-11 md:w-11 lg:h-12 lg:w-12 rounded-xl bg-[#005596]/10 flex items-center justify-center flex-shrink-0">
                 <Calendar className="h-5 w-5 md:h-6 md:w-6 text-[#005596]" />
@@ -78,7 +78,7 @@ export default function MeetingManagementHub() {
 
           {/* Create Meetings Card */}
           <Card 
-            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] nm-interactive cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px]"
             onClick={() => navigate('/app/meetings/list')}
             data-testid="nav-meetings"
           >
@@ -95,7 +95,7 @@ export default function MeetingManagementHub() {
 
           {/* QR Display Card */}
           <Card 
-            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#CF2030] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] nm-interactive cursor-pointer border-l-4 border-l-[#CF2030] group active:scale-[0.98] rounded-[10px]"
             onClick={() => navigate('/app/meetings/qr')}
             data-testid="nav-qr"
           >
@@ -112,7 +112,7 @@ export default function MeetingManagementHub() {
 
           {/* Reports Card */}
           <Card 
-            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+            className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] nm-interactive cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px]"
             onClick={() => navigate('/app/reports')}
             data-testid="nav-reports"
           >
