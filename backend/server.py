@@ -140,6 +140,80 @@ async def startup():
     if migrated_roles.modified_count > 0:
         logger.info(f"Migrated {migrated_roles.modified_count} members with chapter_role field")
 
+    # Migration: Auto-generate chapter_code for existing chapters
+    from routes.superadmin import _generate_chapter_code
+    chapters_without_code = await db.chapters.find(
+        {"chapter_code": {"$exists": False}}, {"_id": 0, "chapter_id": 1, "name": 1}
+    ).to_list(1000)
+    used_codes = set()
+    existing_codes = await db.chapters.find(
+        {"chapter_code": {"$exists": True}}, {"_id": 0, "chapter_code": 1}
+    ).to_list(1000)
+    for ec in existing_codes:
+        used_codes.add(ec["chapter_code"])
+    for ch in chapters_without_code:
+        code = _generate_chapter_code(ch["name"])
+        if code in used_codes:
+            for i in range(2, 100):
+                candidate = f"{code[:2]}{i}"
+                if candidate not in used_codes:
+                    code = candidate
+                    break
+        used_codes.add(code)
+        await db.chapters.update_one(
+            {"chapter_id": ch["chapter_id"]}, {"$set": {"chapter_code": code}}
+        )
+    if chapters_without_code:
+        logger.info(f"Migrated {len(chapters_without_code)} chapters with auto-generated chapter_code")
+
+    # Migration: Re-generate member IDs to BNI-{CODE}-{NNN} format
+    all_chapters = await db.chapters.find(
+        {"chapter_code": {"$exists": True}}, {"_id": 0, "chapter_id": 1, "chapter_code": 1}
+    ).to_list(1000)
+    for ch in all_chapters:
+        chapter_id = ch["chapter_id"]
+        chapter_code = ch["chapter_code"]
+        prefix = f"BNI-{chapter_code}-"
+        # Find members with old-format IDs (not starting with BNI-)
+        old_members = await db.members.find(
+            {"chapter_id": chapter_id, "unique_member_id": {"$not": {"$regex": "^BNI-"}}},
+            {"_id": 0, "member_id": 1, "unique_member_id": 1}
+        ).sort("created_at", 1).to_list(5000)
+        if not old_members:
+            continue
+        # Find current max number for this chapter
+        existing_bni = await db.members.find(
+            {"chapter_id": chapter_id, "unique_member_id": {"$regex": f"^{prefix}"}},
+            {"_id": 0, "unique_member_id": 1}
+        ).to_list(5000)
+        max_num = 0
+        for em in existing_bni:
+            try:
+                num = int(em["unique_member_id"].split("-")[-1])
+                if num > max_num:
+                    max_num = num
+            except (ValueError, IndexError):
+                pass
+        for m in old_members:
+            max_num += 1
+            new_id = f"{prefix}{max_num:03d}"
+            await db.members.update_one(
+                {"member_id": m["member_id"]},
+                {"$set": {"unique_member_id": new_id, "bni_member_id": new_id}}
+            )
+            logger.info(f"Migrated member ID: {m['unique_member_id']} -> {new_id}")
+
+    # Index: unique chapter_code
+    await db.chapters.create_index("chapter_code", unique=True, sparse=True)
+    # Index: unique member ID across system
+    await db.members.create_index("unique_member_id", unique=True, sparse=True)
+    # Index: unique primary_mobile across system
+    try:
+        await db.members.create_index("primary_mobile", unique=True, sparse=True)
+    except Exception as e:
+        logger.warning(f"Could not create unique primary_mobile index (duplicates may exist): {e}")
+    logger.info("Phase C indexes ensured")
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

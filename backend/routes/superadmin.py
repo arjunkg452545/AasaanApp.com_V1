@@ -10,6 +10,17 @@ import pytz
 
 IST = pytz.timezone('Asia/Kolkata')
 
+VOWELS = set('aeiouAEIOU')
+
+def _generate_chapter_code(name: str) -> str:
+    """Generate 3-letter code from first 3 consonants of name. E.g. 'Sunrise' -> 'SNR'."""
+    consonants = [c.upper() for c in name if c.isalpha() and c not in VOWELS]
+    if len(consonants) >= 3:
+        return ''.join(consonants[:3])
+    # Fallback: use first 3 alpha chars if not enough consonants
+    alphas = [c.upper() for c in name if c.isalpha()]
+    return ''.join(alphas[:3]) if len(alphas) >= 3 else name[:3].upper()
+
 router = APIRouter(prefix="/api", tags=["superadmin"])
 
 
@@ -51,11 +62,28 @@ async def create_chapter(chapter: ChapterCreateEnhanced, user=Depends(get_curren
         if chapters_used >= sub.get("chapters_allowed", 0):
             raise HTTPException(status_code=403, detail="Chapter limit reached. Please upgrade your subscription.")
 
+    # Auto-generate chapter_code from name (first 3 consonants) or use override
+    chapter_code = chapter.chapter_code
+    if not chapter_code:
+        chapter_code = _generate_chapter_code(chapter.name)
+    chapter_code = chapter_code.upper()[:5]  # Safety limit
+
+    # Ensure uniqueness
+    existing_code = await db.chapters.find_one({"chapter_code": chapter_code})
+    if existing_code:
+        # Append number to resolve collision
+        for i in range(2, 100):
+            candidate = f"{chapter_code[:2]}{i}"
+            if not await db.chapters.find_one({"chapter_code": candidate}):
+                chapter_code = candidate
+                break
+
     chapter_data = {
         "chapter_id": f"CH{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
         "name": chapter.name,
         "created_by": user.get("mobile", user.get("email", "")),
         "region": chapter.region, "state": chapter.state, "city": chapter.city,
+        "chapter_code": chapter_code,
         "status": "active", "audit_logs": [],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
