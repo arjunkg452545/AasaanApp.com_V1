@@ -1,6 +1,6 @@
 # MAX 400 LINES - SuperAdmin core endpoints
 """SuperAdmin endpoints: login, chapter CRUD, audit logs, subscription view, dashboard."""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from datetime import datetime, timezone, timedelta
 from database import db
 from deps import get_current_user
@@ -250,15 +250,18 @@ async def superadmin_chapters_overview(user=Depends(get_current_user)):
 # ===== CHAPTER LEADERSHIP MANAGEMENT =====
 
 @router.post("/superadmin/chapters/{chapter_id}/change-leadership")
-async def change_chapter_leadership(chapter_id: str, data: ChangeLeadershipRequest, user=Depends(get_current_user)):
-    """ED assigns or changes leadership (president/VP) for a chapter."""
+async def change_chapter_leadership(chapter_id: str, data: ChangeLeadershipRequest, request: Request, user=Depends(get_current_user)):
+    """ED assigns or changes the Chapter President. VP and other roles are assigned by the Chapter President."""
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    if data.role not in ("president", "vice_president"):
-        raise HTTPException(status_code=400, detail="Role must be 'president' or 'vice_president'")
+    # Only president can be assigned from SuperAdmin panel
+    if data.role != "president":
+        raise HTTPException(status_code=400, detail="VP and other roles are assigned by the Chapter President from the admin panel")
 
-    # Verify chapter exists and belongs to this ED
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Verify chapter exists
     chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
     if not chapter:
         raise HTTPException(status_code=404, detail="Chapter not found")
@@ -266,59 +269,104 @@ async def change_chapter_leadership(chapter_id: str, data: ChangeLeadershipReque
     # Verify member exists and belongs to this chapter
     member = await db.members.find_one(
         {"member_id": data.member_id, "chapter_id": chapter_id},
-        {"_id": 0, "full_name": 1, "member_id": 1}
+        {"_id": 0, "full_name": 1, "member_id": 1, "chapter_role": 1, "membership_status": 1}
     )
     if not member:
         raise HTTPException(status_code=404, detail="Member not found in this chapter")
 
-    # Remove role from previous holder
+    if member.get("membership_status") != "active":
+        raise HTTPException(status_code=400, detail="Member must be active to be assigned President")
+
+    old_role = member.get("chapter_role", "member")
+
+    # Remove role from previous president
     previous_holder = None
     existing = await db.members.find_one(
-        {"chapter_id": chapter_id, "chapter_role": data.role, "member_id": {"$ne": data.member_id}},
-        {"_id": 0, "full_name": 1, "member_id": 1}
+        {"chapter_id": chapter_id, "chapter_role": "president", "member_id": {"$ne": data.member_id}},
+        {"_id": 0, "full_name": 1, "member_id": 1, "chapter_role": 1}
     )
     if existing:
         previous_holder = existing.get("full_name", "Unknown")
         await db.members.update_one(
             {"member_id": existing["member_id"]},
-            {"$set": {"chapter_role": "member"}}
+            {"$set": {
+                "chapter_role": "member",
+                "role_assigned_by": user.get("mobile", user.get("email", "")),
+                "role_assigned_date": now,
+                "role_previous": "president",
+            },
+            "$push": {"role_change_history": {
+                "from_role": "president",
+                "to_role": "member",
+                "changed_by": user.get("mobile", user.get("email", "")),
+                "changed_by_role": user.get("role", "superadmin"),
+                "timestamp": now,
+                "reason": f"Replaced by {member.get('full_name', data.member_id)} as President",
+            }}}
         )
 
-    # Assign new role
+    # Assign president role with history tracking
     await db.members.update_one(
         {"member_id": data.member_id},
-        {"$set": {"chapter_role": data.role}}
+        {"$set": {
+            "chapter_role": "president",
+            "role_assigned_by": user.get("mobile", user.get("email", "")),
+            "role_assigned_date": now,
+            "role_previous": old_role,
+        },
+        "$push": {"role_change_history": {
+            "from_role": old_role,
+            "to_role": "president",
+            "changed_by": user.get("mobile", user.get("email", "")),
+            "changed_by_role": user.get("role", "superadmin"),
+            "timestamp": now,
+            "reason": "",
+        }}}
     )
 
-    # Audit log
+    # Chapter-level audit log (backward compat)
     await db.chapters.update_one(
         {"chapter_id": chapter_id},
         {"$push": {"audit_logs": {
             "changed_by": user.get("mobile", user.get("email", "")),
-            "changed_at": datetime.now(timezone.utc).isoformat(),
-            "action": "leadership_change",
-            "new_role": data.role,
+            "changed_at": now,
+            "action": "president_assignment",
+            "new_role": "president",
             "new_holder": member.get("full_name", ""),
             "previous_holder": previous_holder,
         }}}
     )
 
-    msg = f"{member.get('full_name', '')} is now {data.role.replace('_', ' ').title()}"
+    # Global audit log
+    from routes.audit_log import log_audit
+    client_ip = request.client.host if request.client else ""
+    await log_audit(
+        user_id=user.get("mobile", user.get("email", "")),
+        role=user.get("role", ""),
+        action="president_assignment",
+        entity_type="chapter",
+        entity_id=chapter_id,
+        details=f"Assigned {member.get('full_name', '')} as President. Previous: {previous_holder or 'none'}",
+        ip=client_ip,
+    )
+
+    msg = f"{member.get('full_name', '')} is now President"
     if previous_holder:
-        msg += f". Previous holder {previous_holder} has been set to 'member'."
+        msg += f". Previous President {previous_holder} has been set to 'member'."
 
     return {"message": msg, "previous_holder": previous_holder}
 
 
 @router.get("/superadmin/chapters/{chapter_id}/leadership")
 async def get_chapter_leadership(chapter_id: str, user=Depends(get_current_user)):
-    """Get current leadership for a chapter."""
+    """Get current leadership for a chapter, including role assignment history."""
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
     leaders = await db.members.find(
         {"chapter_id": chapter_id, "chapter_role": {"$ne": "member"}, "membership_status": "active"},
-        {"_id": 0, "member_id": 1, "full_name": 1, "primary_mobile": 1, "chapter_role": 1}
+        {"_id": 0, "member_id": 1, "full_name": 1, "primary_mobile": 1, "chapter_role": 1,
+         "role_assigned_date": 1, "role_change_history": {"$slice": -10}}
     ).to_list(20)
 
     all_members = await db.members.find(

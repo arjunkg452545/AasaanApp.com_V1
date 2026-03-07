@@ -75,6 +75,12 @@ export default function MembersManagement() {
   const [selectedRole, setSelectedRole] = useState('member');
   const [roleWarning, setRoleWarning] = useState('');
 
+  // Current user's chapter role and member_id for permission checks
+  const myChapterRole = localStorage.getItem('chapter_role') || 'member';
+  const myMemberId = localStorage.getItem('member_id') || '';
+  const isPresident = myChapterRole === 'president';
+  const isDeveloper = localStorage.getItem('role') === 'developer';
+
   // ---- Data Loading ----
   useEffect(() => { loadData(); }, []); // eslint-disable-line
 
@@ -494,16 +500,25 @@ export default function MembersManagement() {
                       }}>
                       <Edit className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
-                      title="Assign Role"
-                      onClick={() => {
-                        setSelectedMember(member);
-                        setSelectedRole(member.chapter_role || 'member');
-                        setRoleWarning('');
-                        setRoleOpen(true);
-                      }}>
-                      <Crown className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
-                    </Button>
+                    {/* Crown button: only visible to president (not on own card) or developer */}
+                    {(isDeveloper || (isPresident && member.member_id !== myMemberId)) && (
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
+                        title="Assign Role"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setSelectedRole(member.chapter_role || 'member');
+                          setRoleWarning('');
+                          setRoleOpen(true);
+                        }}>
+                        <Crown className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
+                      </Button>
+                    )}
+                    {/* President's own card — informational text */}
+                    {isPresident && member.member_id === myMemberId && (
+                      <span className="text-[10px] px-1 self-center" style={{ color: 'var(--nm-text-muted)' }}>
+                        Managed by ED
+                      </span>
+                    )}
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
                       onClick={() => {
                         setSelectedMember(member);
@@ -593,7 +608,6 @@ export default function MembersManagement() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="member">Member (default)</SelectItem>
-                  <SelectItem value="president">President</SelectItem>
                   <SelectItem value="vice_president">Vice President</SelectItem>
                   <SelectItem value="secretary">Secretary</SelectItem>
                   <SelectItem value="treasurer">Treasurer</SelectItem>

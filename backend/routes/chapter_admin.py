@@ -2,7 +2,7 @@
 """Chapter Admin endpoints: profile, member CRUD, bulk upload, template, excel upload.
 Login is now handled via member_auth (President/VP get admin role automatically).
 """
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Request
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone, timedelta
 from database import db
@@ -308,19 +308,41 @@ async def deactivate_member(member_id: str, user=Depends(get_current_user)):
 
 # ===== MEMBER ROLE MANAGEMENT =====
 from models import MemberRoleUpdate
+from routes.audit_log import log_audit
 
 
 @router.put("/admin/members/{member_id}/role")
-async def update_member_role(member_id: str, data: MemberRoleUpdate, user=Depends(get_current_user)):
-    """Update a member's chapter role. Only one member per role per chapter (except 'member')."""
-    if user["role"] not in ("admin", "superadmin", "developer"):
+async def update_member_role(member_id: str, data: MemberRoleUpdate, request: Request, user=Depends(get_current_user)):
+    """Update a member's chapter role. Enforces BNI hierarchy:
+    - Developer: bypass (full access)
+    - President role: can only be assigned by ED from SuperAdmin panel
+    - Only Chapter President can assign other leadership roles
+    - Cannot change your own role
+    """
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Developer bypass
+    if user["role"] == "developer":
+        pass  # allowed
+    elif data.chapter_role == "president":
+        raise HTTPException(status_code=403, detail="President is assigned by the Executive Director from the SuperAdmin panel")
+    elif user["role"] == "superadmin":
+        raise HTTPException(status_code=403, detail="Use the SuperAdmin panel to manage chapter leadership")
+    elif user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Forbidden")
+    elif user.get("chapter_role") != "president":
+        raise HTTPException(status_code=403, detail="Only the Chapter President can assign roles")
+    elif user.get("member_id") == member_id:
+        raise HTTPException(status_code=400, detail="Cannot change your own role")
 
     chapter_id = user.get("chapter_id")
     if not chapter_id:
         raise HTTPException(status_code=400, detail="Chapter ID required")
 
-    valid_roles = ["president", "vice_president", "secretary", "treasurer", "secretary_treasurer", "lvh", "member"]
+    valid_roles = ["vice_president", "secretary", "treasurer", "secretary_treasurer", "lvh", "member"]
+    # Developer can also assign president
+    if user["role"] == "developer":
+        valid_roles.insert(0, "president")
     if data.chapter_role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
 
@@ -328,24 +350,70 @@ async def update_member_role(member_id: str, data: MemberRoleUpdate, user=Depend
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
+    if member.get("membership_status") != "active":
+        raise HTTPException(status_code=400, detail="Member must be active to be assigned a role")
+
+    old_role = member.get("chapter_role", "member")
+    if old_role == data.chapter_role:
+        return {"message": f"Member already has role {data.chapter_role}", "previous_holder": None}
+
     # Check if role is already assigned to another member (except 'member' role)
     current_holder = None
     if data.chapter_role != "member":
         existing = await db.members.find_one(
             {"chapter_id": chapter_id, "chapter_role": data.chapter_role, "member_id": {"$ne": member_id}},
-            {"_id": 0, "full_name": 1, "member_id": 1}
+            {"_id": 0, "full_name": 1, "member_id": 1, "chapter_role": 1}
         )
         if existing:
             current_holder = existing.get("full_name", "Unknown")
-            # Remove role from previous holder
+            # Demote previous holder and track history
             await db.members.update_one(
                 {"member_id": existing["member_id"]},
-                {"$set": {"chapter_role": "member"}}
+                {"$set": {
+                    "chapter_role": "member",
+                    "role_assigned_by": user.get("member_id", user.get("mobile", "")),
+                    "role_assigned_date": now,
+                    "role_previous": existing.get("chapter_role", "member"),
+                },
+                "$push": {"role_change_history": {
+                    "from_role": existing.get("chapter_role", "member"),
+                    "to_role": "member",
+                    "changed_by": user.get("member_id", user.get("mobile", "")),
+                    "changed_by_role": user.get("chapter_role", user.get("role", "")),
+                    "timestamp": now,
+                    "reason": f"Replaced by {member.get('full_name', member_id)} as {data.chapter_role}",
+                }}}
             )
 
+    # Assign new role and track history
     await db.members.update_one(
         {"member_id": member_id},
-        {"$set": {"chapter_role": data.chapter_role}}
+        {"$set": {
+            "chapter_role": data.chapter_role,
+            "role_assigned_by": user.get("member_id", user.get("mobile", "")),
+            "role_assigned_date": now,
+            "role_previous": old_role,
+        },
+        "$push": {"role_change_history": {
+            "from_role": old_role,
+            "to_role": data.chapter_role,
+            "changed_by": user.get("member_id", user.get("mobile", "")),
+            "changed_by_role": user.get("chapter_role", user.get("role", "")),
+            "timestamp": now,
+            "reason": data.reason if hasattr(data, "reason") and data.reason else "",
+        }}}
+    )
+
+    # Global audit log
+    client_ip = request.client.host if request.client else ""
+    await log_audit(
+        user_id=user.get("mobile", ""),
+        role=user.get("role", ""),
+        action="role_assignment",
+        entity_type="member",
+        entity_id=member_id,
+        details=f"Changed role from {old_role} to {data.chapter_role} for {member.get('full_name', '')}. Previous holder: {current_holder or 'none'}",
+        ip=client_ip,
     )
 
     msg = f"Role updated to {data.chapter_role}"

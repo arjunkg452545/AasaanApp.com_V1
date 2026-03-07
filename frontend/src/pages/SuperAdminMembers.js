@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import {
   ArrowLeft, Loader2, Search, Users, Building2,
-  ArrowRightLeft, UserCheck, Shield,
+  ArrowRightLeft, UserCheck, Shield, Crown, AlertTriangle,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
@@ -38,6 +38,11 @@ export default function SuperAdminMembers() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [targetChapter, setTargetChapter] = useState('');
   const [transferReason, setTransferReason] = useState('');
+  // Make President state
+  const [presidentOpen, setPresidentOpen] = useState(false);
+  const [selectedPresCandidate, setSelectedPresCandidate] = useState(null);
+  const [presidentSaving, setPresidentSaving] = useState(false);
+  const [confirmStep, setConfirmStep] = useState(1); // 1 = select, 2 = confirm
   const navigate = useNavigate();
 
   useEffect(() => { loadData(); }, []);
@@ -90,6 +95,46 @@ export default function SuperAdminMembers() {
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Transfer failed');
     }
+  };
+
+  // Derive current president for selected chapter
+  const currentPresident = useMemo(() => {
+    if (!chapterFilter) return null;
+    return members.find(m => m.chapter_id === chapterFilter && m.chapter_role === 'president');
+  }, [members, chapterFilter]);
+
+  const selectedChapterName = useMemo(() => {
+    if (!chapterFilter) return '';
+    const ch = chapters.find(c => c.chapter_id === chapterFilter);
+    return ch ? ch.name : '';
+  }, [chapters, chapterFilter]);
+
+  // Active members in selected chapter (excluding current president)
+  const eligibleCandidates = useMemo(() => {
+    if (!chapterFilter) return [];
+    return filteredMembers.filter(m =>
+      m.membership_status === 'active' &&
+      m.chapter_id === chapterFilter &&
+      m.member_id !== currentPresident?.member_id
+    );
+  }, [filteredMembers, chapterFilter, currentPresident]);
+
+  const handleMakePresident = async () => {
+    if (!selectedPresCandidate || !chapterFilter) return;
+    setPresidentSaving(true);
+    try {
+      const res = await api.post(`/superadmin/chapters/${chapterFilter}/change-leadership`, {
+        member_id: selectedPresCandidate.member_id,
+        role: 'president',
+      });
+      toast.success(res.data.message || 'President assigned');
+      setPresidentOpen(false);
+      setSelectedPresCandidate(null);
+      setConfirmStep(1);
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to assign President');
+    } finally { setPresidentSaving(false); }
   };
 
   if (loading) {
@@ -151,6 +196,30 @@ export default function SuperAdminMembers() {
             </SelectContent>
           </Select>
         </div>
+
+        {/* President Banner — shown when a chapter is selected */}
+        {chapterFilter && (
+          <Card className="p-3 md:p-4 border-l-4 border-l-yellow-400">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <Crown className="h-5 w-5 shrink-0 text-yellow-600" />
+                <div className="min-w-0">
+                  <p className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>
+                    Current President — {selectedChapterName}
+                  </p>
+                  <p className="text-sm font-semibold truncate" style={{ color: 'var(--nm-text-primary)' }}>
+                    {currentPresident ? toTitleCase(currentPresident.full_name) : 'No president assigned'}
+                  </p>
+                </div>
+              </div>
+              <Button size="sm" variant="outline"
+                onClick={() => { setPresidentOpen(true); setConfirmStep(1); setSelectedPresCandidate(null); }}
+                className="shrink-0 text-xs">
+                <Crown className="h-3.5 w-3.5 mr-1" /> {currentPresident ? 'Change' : 'Assign'} President
+              </Button>
+            </div>
+          </Card>
+        )}
 
         {/* Member List */}
         {filteredMembers.length === 0 ? (
@@ -238,6 +307,103 @@ export default function SuperAdminMembers() {
               Confirm Transfer
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change President Dialog — 2-step */}
+      <Dialog open={presidentOpen} onOpenChange={(v) => { setPresidentOpen(v); if (!v) { setConfirmStep(1); setSelectedPresCandidate(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {confirmStep === 1 ? 'Select New President' : 'Confirm President Change'}
+            </DialogTitle>
+          </DialogHeader>
+
+          {confirmStep === 1 && (
+            <div className="space-y-3">
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+                Chapter: <strong>{selectedChapterName}</strong>
+              </p>
+              <div className="max-h-[50vh] overflow-y-auto space-y-1.5 pr-1">
+                {eligibleCandidates.length === 0 ? (
+                  <p className="text-sm text-center py-4" style={{ color: 'var(--nm-text-muted)' }}>No eligible active members</p>
+                ) : (
+                  eligibleCandidates.map((m) => (
+                    <button key={m.member_id}
+                      onClick={() => setSelectedPresCandidate(m)}
+                      className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                        selectedPresCandidate?.member_id === m.member_id
+                          ? 'border-[#CF2030] shadow-sm' : 'border-transparent'
+                      }`}
+                      style={{ background: 'var(--nm-surface)' }}>
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-[#CF2030]/10 flex items-center justify-center shrink-0">
+                          <span className="text-xs font-semibold text-[#CF2030]">{m.unique_member_id}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(m.full_name)}</p>
+                          <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+                            {m.primary_mobile}
+                            {m.chapter_role && m.chapter_role !== 'member' && ` · ${m.chapter_role.replace('_', ' ')}`}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+              <Button disabled={!selectedPresCandidate}
+                onClick={() => setConfirmStep(2)}
+                className="w-full nm-btn-primary">
+                Continue
+              </Button>
+            </div>
+          )}
+
+          {confirmStep === 2 && selectedPresCandidate && (
+            <div className="space-y-4">
+              {/* Warnings */}
+              <div className="space-y-2">
+                {currentPresident && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg border" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+                      <strong>{toTitleCase(currentPresident.full_name)}</strong> will be demoted from President to Member.
+                    </p>
+                  </div>
+                )}
+                {selectedPresCandidate.chapter_role && selectedPresCandidate.chapter_role !== 'member' && (
+                  <div className="flex items-start gap-2 p-3 rounded-lg border" style={{ background: 'var(--nm-surface)', borderColor: 'var(--nm-border)' }}>
+                    <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
+                    <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+                      <strong>{toTitleCase(selectedPresCandidate.full_name)}</strong> is currently{' '}
+                      {selectedPresCandidate.chapter_role.replace('_', ' ')}. They will become President.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4 rounded-xl text-center" style={{ background: 'var(--nm-surface)' }}>
+                <Crown className="h-6 w-6 mx-auto mb-2 text-yellow-600" />
+                <p className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>
+                  {toTitleCase(selectedPresCandidate.full_name)}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+                  will become President of {selectedChapterName}
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setConfirmStep(1)} className="flex-1">
+                  Back
+                </Button>
+                <Button onClick={handleMakePresident} disabled={presidentSaving}
+                  className="flex-1 bg-[#CF2030] hover:bg-[#A61926]">
+                  {presidentSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
