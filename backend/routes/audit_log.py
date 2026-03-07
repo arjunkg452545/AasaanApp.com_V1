@@ -52,3 +52,42 @@ async def get_audit_logs(
     logs = await db.audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
 
     return {"logs": logs, "total": total, "page": page, "limit": limit}
+
+
+@router.get("/superadmin/audit-logs")
+async def get_superadmin_audit_logs(
+    role: Optional[str] = Query(None),
+    action: Optional[str] = Query(None),
+    from_date: Optional[str] = Query(None),
+    to_date: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=200),
+    user=Depends(require_role("superadmin")),
+):
+    """Get audit logs filtered to the superadmin's chapters."""
+    chapters = await db.chapters.find(
+        {"superadmin_id": user["user_id"]}, {"chapter_id": 1}
+    ).to_list(100)
+    chapter_ids = [c["chapter_id"] for c in chapters]
+
+    query = {
+        "$or": [
+            {"entity_id": {"$in": chapter_ids}},
+            {"user_id": user["user_id"]},
+            {"role": {"$in": ["admin", "member", "accountant"]}},
+        ]
+    }
+    if role:
+        query["role"] = role
+    if action:
+        query["action"] = action
+    if from_date:
+        query.setdefault("timestamp", {})["$gte"] = from_date
+    if to_date:
+        query.setdefault("timestamp", {})["$lte"] = to_date
+
+    total = await db.audit_logs.count_documents(query)
+    skip = (page - 1) * limit
+    logs = await db.audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).skip(skip).limit(limit).to_list(limit)
+
+    return {"logs": logs, "total": total, "page": page, "limit": limit}

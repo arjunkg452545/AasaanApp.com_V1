@@ -168,6 +168,7 @@ function App() {
             <Route path="gateway-setup" element={<PaymentGatewaySetup />} />
             <Route path="manage-admins" element={<ManageAdmins />} />
             <Route path="reports" element={<SuperAdminReports />} />
+            <Route path="audit-log" element={<AuditLog />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
 

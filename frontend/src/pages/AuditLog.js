@@ -52,7 +52,9 @@ export default function AuditLog() {
       if (actionFilter) params.append('action', actionFilter);
       if (fromDate) params.append('from_date', fromDate);
       if (toDate) params.append('to_date', toDate);
-      const res = await api.get(`/developer/audit-logs?${params}`);
+      const userRole = localStorage.getItem('role');
+      const endpoint = userRole === 'superadmin' ? '/superadmin/audit-logs' : '/developer/audit-logs';
+      const res = await api.get(`${endpoint}?${params}`);
       setLogs(res.data.logs || []);
       setTotal(res.data.total || 0);
     } catch { toast.error('Failed to load audit logs'); }

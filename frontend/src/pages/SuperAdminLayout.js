@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, Users, CreditCard, Settings,
-  LogOut, Menu, X, UserCheck, Calculator, Shield, BarChart3
+  LogOut, Menu, X, UserCheck, Calculator, Shield, BarChart3, ScrollText
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import api from '../utils/api';
@@ -19,6 +19,7 @@ const navItems = [
   { label: 'Reports', path: '/superadmin/reports', icon: BarChart3 },
   { label: 'Gateway Setup', path: '/superadmin/gateway-setup', icon: Settings },
   { label: 'Leadership', path: '/superadmin/manage-admins', icon: Shield },
+  { label: 'Audit Log', path: '/superadmin/audit-log', icon: ScrollText },
 ];
 
 export default function SuperAdminLayout() {
