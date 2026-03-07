@@ -1,8 +1,10 @@
-import React, { useEffect, Suspense, lazy } from "react";
+import React, { useEffect, useState, Suspense, lazy } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "./components/ui/sonner";
+import { tryRefreshToken } from "./utils/api";
+import { APP_VERSION } from "./version";
 
 // Login loads immediately (entry point)
 import Login from "./pages/Login";
@@ -76,6 +78,63 @@ const AccountantReports = lazy(() => import("./pages/AccountantReports"));
 // Audit
 const AuditLog = lazy(() => import("./pages/AuditLog"));
 
+// Developer OTP Config
+const DeveloperOTPConfig = lazy(() => import("./pages/DeveloperOTPConfig"));
+
+// ─── Semver comparison ────────────────────────────────
+function semverCompare(a, b) {
+  const pa = a.split('.').map(Number);
+  const pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+  }
+  return 0;
+}
+
+// ─── Force Update Modal (full screen) ─────────────────
+function ForceUpdateModal({ message }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'var(--nm-bg)' }}>
+      <div className="nm-raised rounded-2xl p-8 max-w-sm w-full text-center">
+        <div className="text-5xl mb-4">&#128274;</div>
+        <h2 className="text-lg font-bold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Update Required</h2>
+        <p className="text-sm mb-6" style={{ color: 'var(--nm-text-secondary)' }}>
+          {message || 'A critical update is available. Please refresh to continue using the app.'}
+        </p>
+        <button
+          onClick={() => window.location.reload()}
+          className="nm-btn-primary px-6 py-3 rounded-xl text-sm font-semibold min-h-[48px] w-full"
+        >
+          Update Now
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Optional Update Banner (dismissible) ─────────────
+function UpdateBanner({ message, onDismiss }) {
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-[9998] px-4 py-3 flex items-center justify-between gap-3"
+      style={{ background: 'var(--nm-accent)', color: '#fff' }}
+    >
+      <p className="text-sm font-medium flex-1">{message || 'A new version is available.'}</p>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={() => window.location.reload()}
+          className="px-3 py-1 rounded-lg text-xs font-bold"
+          style={{ background: 'rgba(255,255,255,0.2)' }}
+        >
+          Refresh
+        </button>
+        <button onClick={onDismiss} className="text-white/80 text-lg leading-none">&times;</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Loading Spinner (neumorphic) ──────────────────────
 function LoadingSpinner() {
   return (
@@ -127,27 +186,104 @@ class ErrorBoundary extends React.Component {
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
+  const expiresAt = localStorage.getItem('token_expires_at');
+
   if (!token) return <Navigate to="/" replace />;
+
+  // Check if token has expired
+  if (expiresAt) {
+    const expiry = new Date(expiresAt);
+    if (expiry <= new Date()) {
+      localStorage.clear();
+      return <Navigate to="/" replace />;
+    }
+  }
+
   if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/" replace />;
   return children;
 };
 
 // ─── App ───────────────────────────────────────────────
 function App() {
+  const [forceUpdate, setForceUpdate] = useState(null);
+  const [optionalUpdate, setOptionalUpdate] = useState(null);
+
   useEffect(() => {
+    // Service worker registration + update listener
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+      navigator.serviceWorker.register('/service-worker.js').then((reg) => {
+        // Listen for new service worker updates
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'activated') {
+                toast('App updated! Refresh for latest version.', { duration: 5000 });
+              }
+            });
+          }
+        });
+      }).catch(() => {});
+
+      // Listen for SW messages
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'NEW_VERSION_AVAILABLE') {
+          toast('New version available! Refresh to update.', { duration: 8000 });
+        }
+      });
     }
+
+    // Version check against backend
+    const checkVersion = async () => {
+      try {
+        const apiBase = process.env.REACT_APP_API_URL || process.env.REACT_APP_BACKEND_URL || '';
+        const res = await fetch(`${apiBase}/api/app/version`);
+        if (res.ok) {
+          const data = await res.json();
+          const { latest_version, min_supported_version, force_update, update_message } = data;
+          // Force update: current version below min_supported
+          if (min_supported_version && semverCompare(APP_VERSION, min_supported_version) < 0) {
+            setForceUpdate(update_message || 'A critical update is required.');
+          }
+          // Optional update: current version below latest but above min
+          else if (latest_version && semverCompare(APP_VERSION, latest_version) < 0) {
+            if (force_update) {
+              setForceUpdate(update_message || 'An update is required.');
+            } else {
+              setOptionalUpdate(update_message || `Version ${latest_version} is available.`);
+            }
+          }
+        }
+      } catch {
+        // Silent fail — offline or backend unreachable
+      }
+    };
+    checkVersion();
+
     const handleOnline = () => toast.success('You\'re back online', { duration: 3000 });
     const handleOffline = () => toast('You\'re offline', { duration: 5000, style: { background: '#FEFCE8', color: '#854D0E', border: '1px solid #FDE68A' } });
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Auto-login: if token exists and not expired, try refreshing silently
+    const token = localStorage.getItem('token');
+    const userName = localStorage.getItem('user_name') || localStorage.getItem('dev_name') || localStorage.getItem('accountant_name');
+    if (token) {
+      tryRefreshToken();
+      // Show welcome back toast only on fresh app load (not navigations)
+      if (userName && window.location.pathname === '/') {
+        toast.success(`Welcome back, ${userName}!`, { duration: 3000 });
+      }
+    }
+
     return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   }, []);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" storageKey="aasaan-theme" enableSystem={false}>
     <ErrorBoundary>
+    {forceUpdate && <ForceUpdateModal message={forceUpdate} />}
+    {optionalUpdate && !forceUpdate && <UpdateBanner message={optionalUpdate} onDismiss={() => setOptionalUpdate(null)} />}
     <div className="App">
       <BrowserRouter>
         <Suspense fallback={<LoadingSpinner />}>
@@ -160,6 +296,7 @@ function App() {
             <Route path="eds" element={<DeveloperEDs />} />
             <Route path="subscriptions" element={<DeveloperSubscriptions />} />
             <Route path="settings" element={<DeveloperSettings />} />
+            <Route path="otp-config" element={<DeveloperOTPConfig />} />
             <Route path="audit-log" element={<AuditLog />} />
             <Route path="messaging-config" element={<DeveloperMessagingConfig />} />
             <Route path="superadmin/create" element={<CreateSuperAdmin />} />

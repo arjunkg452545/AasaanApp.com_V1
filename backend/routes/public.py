@@ -11,6 +11,29 @@ IST = pytz.timezone('Asia/Kolkata')
 
 router = APIRouter(prefix="/api", tags=["public"])
 
+
+# ===== APP VERSION (public, no auth) =====
+@router.get("/app/version")
+async def get_app_version():
+    """Returns latest app version info for PWA update check."""
+    config = await db.app_config.find_one({"config_id": "app_version"}, {"_id": 0})
+    if not config:
+        return {
+            "latest_version": "1.0.0",
+            "min_supported_version": "1.0.0",
+            "force_update": False,
+            "update_message": "",
+            "release_notes": "",
+        }
+    return {
+        "latest_version": config.get("latest_version", "1.0.0"),
+        "min_supported_version": config.get("min_supported_version", "1.0.0"),
+        "force_update": config.get("force_update", False),
+        "update_message": config.get("update_message", ""),
+        "release_notes": config.get("release_notes", ""),
+    }
+
+
 # ===== PUBLIC ENDPOINTS =====
 @router.get("/qr/verify/{token}")
 async def verify_qr(token: str):

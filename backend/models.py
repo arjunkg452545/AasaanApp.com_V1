@@ -10,6 +10,7 @@ class LoginResponse(BaseModel):
     token: str
     role: str
     mobile: str
+    expires_at: Optional[str] = None
     chapter_id: Optional[str] = None
     chapter_name: Optional[str] = None
 
@@ -29,13 +30,14 @@ class ChapterResponse(BaseModel):
     state: Optional[str] = None
     city: Optional[str] = None
     status: Optional[str] = "active"
+    chapter_code: Optional[str] = None
 
 class UpdateCredentials(BaseModel):
     new_mobile: str
     new_password: str
 
 class MemberCreate(BaseModel):
-    unique_member_id: str
+    unique_member_id: Optional[str] = None  # Auto-generated if not provided
     full_name: str
     primary_mobile: str
     secondary_mobile: Optional[str] = None
@@ -321,6 +323,7 @@ class DeveloperLoginResponse(BaseModel):
     role: str
     email: str
     name: str
+    expires_at: Optional[str] = None
 
 class SuperAdminCreate(BaseModel):
     name: str
@@ -407,6 +410,7 @@ class ChapterCreateEnhanced(BaseModel):
     region: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
+    chapter_code: Optional[str] = None   # ED can override auto-generated 3-letter code
 
 
 class ChangeLeadershipRequest(BaseModel):

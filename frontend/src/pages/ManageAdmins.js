@@ -162,25 +162,17 @@ export default function ManageAdmins() {
                       </Button>
                     </div>
 
-                    {/* Vice President */}
+                    {/* Vice President — assigned by Chapter President */}
                     <div className="flex items-center justify-between p-3 rounded-lg" style={{ background: 'var(--nm-surface)', border: '1px solid var(--nm-border)' }}>
                       <div className="flex items-center gap-2 min-w-0">
                         <UserCheck className="h-4 w-4 text-blue-500 shrink-0" />
                         <div className="min-w-0">
                           <p className="text-[10px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Vice President</p>
-                          <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-muted)' }}>
-                            View in chapter
+                          <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
+                            Assigned by Chapter President
                           </p>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleChangeLeadership(ch, 'vice_president')}
-                        className="shrink-0 text-xs h-7"
-                      >
-                        Assign
-                      </Button>
                     </div>
                   </div>
                 </div>

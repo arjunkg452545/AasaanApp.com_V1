@@ -159,7 +159,7 @@ async def accountant_login(data: AccountantLoginRequest):
     if not creds.get("is_active", True):
         raise HTTPException(status_code=403, detail="Account is deactivated")
 
-    token = create_access_token({
+    token, expires_at = create_access_token({
         "mobile": data.mobile,
         "role": "accountant",
         "accountant_id": creds["accountant_id"],
@@ -172,6 +172,7 @@ async def accountant_login(data: AccountantLoginRequest):
         accountant_id=creds["accountant_id"],
         name=creds.get("name", ""),
         superadmin_id=creds["superadmin_id"],
+        expires_at=expires_at,
     )
 
 

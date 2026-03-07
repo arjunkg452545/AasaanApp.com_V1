@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from database import db
-from auth import create_access_token, verify_password, ACCESS_TOKEN_EXPIRE_DAYS
+from auth import create_access_token, verify_password, STAFF_TOKEN_EXPIRE_DAYS
 
 router = APIRouter(prefix="/api")
 
@@ -23,6 +23,7 @@ class AdminLoginResponse(BaseModel):
     token: str
     role: str
     redirect: str
+    expires_at: Optional[str] = None
     # Role-specific fields (optional)
     mobile: Optional[str] = None
     chapter_id: Optional[str] = None
@@ -36,10 +37,10 @@ class AdminLoginResponse(BaseModel):
 async def unified_admin_login(data: AdminLoginRequest, response: Response):
     """Staff login: tries superadmin → accountant. Chapter admins login via member login."""
 
-    def _set_cookie(resp: Response, token: str):
+    def _set_cookie(resp: Response, token: str, expire_days: int = STAFF_TOKEN_EXPIRE_DAYS):
         resp.set_cookie(
             key="access_token", value=token, httponly=True, samesite="lax",
-            max_age=ACCESS_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+            max_age=expire_days * 86400, secure=False, path="/",
         )
 
     # 1. Try superadmins collection
@@ -47,13 +48,14 @@ async def unified_admin_login(data: AdminLoginRequest, response: Response):
     if sa and verify_password(data.password, sa.get("password_hash", "")):
         if sa.get("is_active") is False:
             raise HTTPException(status_code=403, detail="Account is deactivated. Contact developer admin.")
-        token = create_access_token({"mobile": data.login_id, "role": "superadmin"})
+        token, expires_at = create_access_token({"mobile": data.login_id, "role": "superadmin"})
         _set_cookie(response, token)
         return AdminLoginResponse(
             token=token,
             role="superadmin",
             redirect="/superadmin/dashboard",
             mobile=data.login_id,
+            expires_at=expires_at,
         )
 
     # 2. Try accountant_credentials collection
@@ -61,7 +63,7 @@ async def unified_admin_login(data: AdminLoginRequest, response: Response):
     if acc and verify_password(data.password, acc.get("password_hash", "")):
         if not acc.get("is_active", True):
             raise HTTPException(status_code=403, detail="Account is deactivated")
-        token = create_access_token({
+        token, expires_at = create_access_token({
             "mobile": data.login_id,
             "role": "accountant",
             "accountant_id": acc["accountant_id"],
@@ -76,6 +78,7 @@ async def unified_admin_login(data: AdminLoginRequest, response: Response):
             accountant_id=acc["accountant_id"],
             name=acc.get("name", ""),
             superadmin_id=acc["superadmin_id"],
+            expires_at=expires_at,
         )
 
     # 3. None matched

@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'aasaanapp-v5';
+const CACHE_NAME = 'aasaanapp-v6';
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -17,6 +17,19 @@ self.addEventListener('install', (event) => {
     })
   );
   self.skipWaiting();
+  // Notify all clients that a new version is available
+  self.clients.matchAll({ type: 'window' }).then((clients) => {
+    clients.forEach((client) => {
+      client.postMessage({ type: 'NEW_VERSION_AVAILABLE' });
+    });
+  });
+});
+
+// Message handler — respond to SKIP_WAITING from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate — clean old caches & claim clients

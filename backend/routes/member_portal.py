@@ -7,16 +7,60 @@ Member Portal Routes
 - UPI deep link generation
 - Own profile, history
 """
-from fastapi import APIRouter, HTTPException, Depends, Query, File, UploadFile, Form
-from datetime import datetime, timezone
+from fastapi import APIRouter, HTTPException, Depends, Query, File, UploadFile, Form, Response
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 import urllib.parse
 
 from database import db
 from deps import require_role
+from auth import create_access_token, verify_token, MEMBER_TOKEN_EXPIRE_DAYS
 from file_storage import file_storage
 
 router = APIRouter(prefix="/api")
+
+
+# ===== TOKEN REFRESH =====
+
+@router.post("/member/refresh-token")
+async def refresh_token(user=Depends(require_role("member", "admin")), response: Response = None):
+    """Refresh JWT if within 7 days of expiry. Returns new token + expires_at."""
+    expires_at_str = user.get("expires_at")
+    if not expires_at_str:
+        raise HTTPException(status_code=400, detail="Token has no expiry info")
+
+    expires_at = datetime.fromisoformat(expires_at_str)
+    if not expires_at.tzinfo:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    days_left = (expires_at - now).total_seconds() / 86400
+
+    if days_left > 7:
+        return {"refreshed": False, "message": "Token still valid", "expires_at": expires_at_str}
+
+    # Build new payload from existing claims
+    new_payload = {
+        "mobile": user.get("mobile"),
+        "role": user.get("role"),
+        "member_id": user.get("member_id"),
+        "chapter_id": user.get("chapter_id"),
+    }
+    if user.get("chapter_role"):
+        new_payload["chapter_role"] = user["chapter_role"]
+
+    new_token, new_expires_at = create_access_token(new_payload)
+
+    if response:
+        response.set_cookie(
+            key="access_token", value=new_token, httponly=True, samesite="lax",
+            max_age=MEMBER_TOKEN_EXPIRE_DAYS * 86400, secure=False, path="/",
+        )
+
+    return {
+        "refreshed": True,
+        "token": new_token,
+        "expires_at": new_expires_at,
+    }
 
 
 # ===== MEMBER DASHBOARD =====
