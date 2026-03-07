@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import {
   Loader2, AlertCircle, Clock, CheckCircle2, ChevronRight,
-  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee, UserPlus,
+  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
