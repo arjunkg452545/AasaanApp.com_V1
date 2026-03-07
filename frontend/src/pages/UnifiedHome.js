@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import {
   Loader2, AlertCircle, Clock, CheckCircle2, ChevronRight,
-  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee, RefreshCw, ScanLine,
+  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee, RefreshCw, Camera,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
@@ -119,17 +119,17 @@ export default function UnifiedHome() {
         )}
       </div>
 
-      {/* Scan QR Card — visible to ALL users */}
-      <Card className="p-4 cursor-pointer hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(135deg, #CF2030 0%, #A61926 100%)' }} onClick={() => navigate('/app/scan-attendance')}>
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-            <ScanLine className="h-6 w-6 text-white" />
+      {/* Scan for Attendance — one-tap to camera */}
+      <Card className="p-3 cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #CF2030 0%, #A61926 100%)' }} onClick={() => navigate('/app/scan-attendance')}>
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+            <Camera className="h-5 w-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white">Scan QR for Attendance</p>
-            <p className="text-xs text-white/70">Scan meeting QR code to mark your attendance</p>
+            <p className="text-sm font-bold text-white">Scan for Attendance</p>
+            <p className="text-[11px] text-white/60">Tap to mark attendance</p>
           </div>
-          <ChevronRight className="h-5 w-5 text-white/60 shrink-0" />
+          <ChevronRight className="h-4 w-4 text-white/50 shrink-0" />
         </div>
       </Card>
 
