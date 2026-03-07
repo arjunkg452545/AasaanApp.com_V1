@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, Users, CreditCard, Settings,
-  LogOut, Menu, X, Code2
+  LogOut, Menu, X, Code2, ScrollText
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -13,6 +13,7 @@ const navItems = [
   { label: 'Dashboard', path: '/developer/dashboard', icon: LayoutDashboard },
   { label: 'Executive Directors', path: '/developer/eds', icon: Users },
   { label: 'Subscriptions', path: '/developer/subscriptions', icon: CreditCard },
+  { label: 'Audit Log', path: '/developer/audit-log', icon: ScrollText },
   { label: 'Settings', path: '/developer/settings', icon: Settings },
 ];
 

@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, Users, CreditCard, Settings,
-  LogOut, Menu, X, UserCheck, Calculator, Shield
+  LogOut, Menu, X, UserCheck, Calculator, Shield, BarChart3
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
+import api from '../utils/api';
 
 const navItems = [
   { label: 'Dashboard', path: '/superadmin/dashboard', icon: LayoutDashboard },
@@ -15,6 +16,7 @@ const navItems = [
   { label: 'Pending', path: '/superadmin/members/pending', icon: UserCheck },
   { label: 'Payment Config', path: '/superadmin/payment-config', icon: CreditCard },
   { label: 'Accountants', path: '/superadmin/accountants', icon: Calculator },
+  { label: 'Reports', path: '/superadmin/reports', icon: BarChart3 },
   { label: 'Gateway Setup', path: '/superadmin/gateway-setup', icon: Settings },
   { label: 'Manage Admins', path: '/superadmin/manage-admins', icon: Shield },
 ];
@@ -25,6 +27,13 @@ export default function SuperAdminLayout() {
   const location = useLocation();
 
   const edMobile = localStorage.getItem('mobile') || 'Super Admin';
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    api.get('/superadmin/members/pending').then(res => {
+      setPendingCount(Array.isArray(res.data) ? res.data.length : 0);
+    }).catch(() => {});
+  }, []);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -110,6 +119,11 @@ export default function SuperAdminLayout() {
               >
                 <Icon className="h-5 w-5 shrink-0" />
                 {item.label}
+                {item.label === 'Pending' && pendingCount > 0 && (
+                  <span className="ml-auto bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                    {pendingCount}
+                  </span>
+                )}
               </button>
             );
           })}

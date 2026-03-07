@@ -3,13 +3,14 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import {
-  LayoutDashboard, ShieldCheck, Users, LogOut, Menu, X, Calculator,
+  LayoutDashboard, ShieldCheck, Users, LogOut, Menu, X, Calculator, FileText,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
 const navItems = [
   { label: 'Dashboard', path: '/accountant/dashboard', icon: LayoutDashboard },
   { label: 'Approvals', path: '/accountant/approvals', icon: ShieldCheck },
+  { label: 'Reports', path: '/accountant/reports', icon: FileText },
 ];
 
 export default function AccountantLayout() {

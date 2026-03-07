@@ -75,6 +75,15 @@ export default function MemberDashboard() {
           Welcome, {toTitleCase(data.member_name)}
         </h1>
         <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{data.chapter_name}</p>
+        {data.chapter_role && data.chapter_role !== 'member' && (
+          <Badge className={`mt-2 text-xs px-2 py-1 ${
+            data.chapter_role === 'president' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+            data.chapter_role === 'vice_president' ? 'bg-slate-200 text-slate-700' :
+            'bg-blue-100 text-blue-700'
+          }`}>
+            Your Role: {data.chapter_role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </Badge>
+        )}
       </div>
 
       {/* Stats Cards */}

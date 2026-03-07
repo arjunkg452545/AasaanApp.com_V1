@@ -77,6 +77,7 @@ async def member_dashboard(user=Depends(require_role("member"))):
     return {
         "member_name": member.get("full_name", ""),
         "chapter_name": chapter_name,
+        "chapter_role": member.get("chapter_role", "member"),
         "member_id": member_id,
         "pending_count": pending.get("count", 0),
         "pending_total": pending.get("total", 0),

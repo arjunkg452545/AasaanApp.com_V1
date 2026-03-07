@@ -116,7 +116,10 @@ export default function MemberPendingApprovals() {
                       {member.business_name && (
                         <p className="text-xs mt-0.5" style={{ color: 'var(--nm-text-muted)' }}>{member.business_name}</p>
                       )}
-                      <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>Added {formatDate(member.created_at)}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>
+                        Added: {formatDate(member.created_at)}
+                        {member.status_history?.[0]?.changed_by && ` by ${member.status_history[0].changed_by}`}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">

@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import {
   Plus, ArrowLeft, Edit, Upload, Download,
   Search, Users, UserCheck, UserX, Clock, AlertTriangle,
-  FileDown, Loader2, Shield, ChevronRight,
+  FileDown, Loader2, Shield, ChevronRight, MessageCircle,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
@@ -121,7 +121,8 @@ export default function MembersManagement() {
         if (payload[k] === '' || payload[k] === null) delete payload[k];
       });
       await api.post('/admin/members', payload);
-      toast.success('Member added successfully');
+      const isAdmin = localStorage.getItem('role') === 'admin';
+      toast.success(isAdmin ? 'Member added. Pending ED approval.' : 'Member added successfully');
       setCreateOpen(false);
       setFormData(emptyForm);
       loadData();
@@ -432,9 +433,25 @@ export default function MembersManagement() {
                         <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
+                        {member.chapter_role && member.chapter_role !== 'member' && (
+                          <Badge className={`text-[10px] ml-1 ${
+                            member.chapter_role === 'president' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+                            member.chapter_role === 'vice_president' ? 'bg-slate-200 text-slate-700' :
+                            'bg-blue-50 text-blue-700'
+                          }`}>
+                            {member.chapter_role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs truncate" style={{ color: 'var(--nm-text-secondary)' }}>
+                      <p className="text-xs truncate flex items-center" style={{ color: 'var(--nm-text-secondary)' }}>
                         {member.primary_mobile}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); window.open(`https://wa.me/91${member.primary_mobile?.replace(/\D/g, '').slice(-10)}`, '_blank'); }}
+                          className="ml-1 text-green-600 hover:text-green-700"
+                          title="WhatsApp"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                        </button>
                         {member.business_name ? ` · ${member.business_name}` : ''}
                       </p>
                     </div>

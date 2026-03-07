@@ -97,6 +97,8 @@ async def confirm_payment(
         {"$set": {
             "status": "admin_confirmed",
             "timeline": timeline,
+            "verified_by": user.get("mobile", ""),
+            "verified_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }}
     )

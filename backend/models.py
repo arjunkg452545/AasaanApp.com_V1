@@ -56,6 +56,9 @@ class MemberUpdate(BaseModel):
     induction_fee: Optional[float] = None
     status: Optional[str] = None
 
+class MemberRoleUpdate(BaseModel):
+    chapter_role: str  # president, vice_president, secretary, treasurer, lvh, member
+
 class MemberResponse(BaseModel):
     member_id: str
     chapter_id: str
@@ -78,6 +81,7 @@ class MemberResponse(BaseModel):
     archived: bool = False
     transfer_from_chapter: Optional[str] = None
     transfer_date: Optional[str] = None
+    chapter_role: str = "member"
 
 class MemberStatusChange(BaseModel):
     action: str          # deactivate, suspend, reactivate

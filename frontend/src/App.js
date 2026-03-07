@@ -67,6 +67,12 @@ const MiscPayment = lazy(() => import("./pages/MiscPayment"));
 const EventPayment = lazy(() => import("./pages/EventPayment"));
 const FundReports = lazy(() => import("./pages/FundReports"));
 
+// New Feature Pages
+const VisitorManagement = lazy(() => import("./pages/VisitorManagement"));
+const AccountantReports = lazy(() => import("./pages/AccountantReports"));
+const SuperAdminReports = lazy(() => import("./pages/SuperAdminReports"));
+const AuditLog = lazy(() => import("./pages/AuditLog"));
+
 // ─── Loading Spinner (neumorphic) ──────────────────────
 function LoadingSpinner() {
   return (
@@ -158,6 +164,7 @@ function App() {
             <Route path="eds" element={<DeveloperEDs />} />
             <Route path="subscriptions" element={<DeveloperSubscriptions />} />
             <Route path="settings" element={<DeveloperSettings />} />
+            <Route path="audit-log" element={<AuditLog />} />
             <Route path="superadmin/create" element={<CreateSuperAdmin />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
@@ -171,6 +178,7 @@ function App() {
             <Route path="accountants" element={<AccountantManagement />} />
             <Route path="gateway-setup" element={<PaymentGatewaySetup />} />
             <Route path="manage-admins" element={<ManageAdmins />} />
+            <Route path="reports" element={<SuperAdminReports />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -195,6 +203,7 @@ function App() {
             <Route path="fund/misc" element={<MiscPayment />} />
             <Route path="fund/events" element={<EventPayment />} />
             <Route path="fund/reports" element={<FundReports />} />
+            <Route path="visitors" element={<VisitorManagement />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
 
@@ -213,6 +222,7 @@ function App() {
           <Route path="/accountant" element={<ProtectedRoute requiredRole="accountant"><AccountantLayout /></ProtectedRoute>}>
             <Route path="dashboard" element={<AccountantDashboard />} />
             <Route path="approvals" element={<AccountantApprovals />} />
+            <Route path="reports" element={<AccountantReports />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
 

@@ -48,6 +48,10 @@ from routes.ed_approval import router as ed_approval_router
 from routes.payment_reminders import router as payment_reminders_router
 from routes.payment_gateway import router as payment_gateway_router
 from routes.admin_auth import router as admin_auth_router
+from routes.visitors import router as visitors_router
+from routes.accountant_reports import router as accountant_reports_router
+from routes.superadmin_reports import router as superadmin_reports_router
+from routes.audit_log import router as audit_log_router
 
 for r in [
     superadmin_router, superadmin_members_router,
@@ -59,6 +63,7 @@ for r in [
     member_auth_router, payment_config_router, fee_ledger_router,
     member_portal_router, admin_verification_router, ed_approval_router,
     payment_reminders_router, payment_gateway_router, admin_auth_router,
+    visitors_router, accountant_reports_router, superadmin_reports_router, audit_log_router,
 ]:
     app.include_router(r)
 
@@ -117,7 +122,18 @@ async def startup():
     await db.fee_ledger.create_index([("chapter_id", 1), ("status", 1), ("fee_type", 1)])
     await db.fee_ledger.create_index([("member_id", 1), ("status", 1)])
     await db.accountant_credentials.create_index("mobile", unique=True)
+    await db.visitors.create_index([("chapter_id", 1), ("created_at", -1)])
+    await db.audit_logs.create_index([("timestamp", -1)])
+    await db.audit_logs.create_index([("role", 1), ("action", 1)])
     logger.info("All indexes ensured")
+
+    # Migration: Add chapter_role to members
+    migrated_roles = await db.members.update_many(
+        {"chapter_role": {"$exists": False}},
+        {"$set": {"chapter_role": "member"}}
+    )
+    if migrated_roles.modified_count > 0:
+        logger.info(f"Migrated {migrated_roles.modified_count} members with chapter_role field")
 
 
 @app.on_event("shutdown")

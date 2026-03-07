@@ -388,24 +388,60 @@ export default function MemberPaymentDetail() {
         </Card>
       )}
 
-      {/* Timeline */}
-      {fee.timeline && fee.timeline.length > 0 && (
-        <Card className="p-4">
-          <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Status Timeline</h2>
-          <div className="space-y-3">
+      {/* Payment Status Timeline */}
+      <Card className="p-4">
+        <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Payment Progress</h2>
+        {/* 4-Step Progress */}
+        <div className="flex items-center mb-6">
+          {[
+            { label: 'Generated', step: 1 },
+            { label: 'Submitted', step: 2 },
+            { label: 'Admin Verified', step: 3 },
+            { label: 'Approved', step: 4 },
+          ].map((s, i) => {
+            const currentStep = fee.status === 'pending' ? 1 : fee.status === 'submitted' ? 2 : fee.status === 'admin_confirmed' ? 3 : fee.status === 'verified' ? 4 : fee.status === 'rejected' ? 0 : 1;
+            const isComplete = s.step <= currentStep;
+            const isCurrent = s.step === currentStep;
+            return (
+              <React.Fragment key={s.step}>
+                <div className="flex flex-col items-center flex-1">
+                  <div className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    isComplete ? 'bg-[#CF2030] text-white' : 'border-2'
+                  }`} style={!isComplete ? { borderColor: 'var(--nm-border)', color: 'var(--nm-text-muted)' } : {}}>
+                    {isComplete ? '\u2713' : s.step}
+                  </div>
+                  <span className={`text-[9px] mt-1 text-center ${isCurrent ? 'font-bold' : ''}`} style={{ color: isComplete ? 'var(--nm-text-primary)' : 'var(--nm-text-muted)' }}>
+                    {s.label}
+                  </span>
+                </div>
+                {i < 3 && <div className="flex-1 h-0.5 mx-1" style={{ background: s.step < currentStep ? '#CF2030' : 'var(--nm-border)' }} />}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {/* Detailed Timeline */}
+        {fee.timeline && fee.timeline.length > 0 && (
+          <div className="space-y-3 pt-3" style={{ borderTop: '1px solid var(--nm-border)' }}>
             {fee.timeline.map((event, i) => (
               <div key={i} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div className={`h-2.5 w-2.5 rounded-full ${
                     event.action === 'verified' ? 'bg-green-500' :
                     event.action === 'rejected' ? 'bg-red-500' :
+                    event.action === 'admin_confirmed' ? 'bg-indigo-500' :
                     event.action === 'submitted' || event.action === 'resubmitted' ? 'bg-blue-500' :
                     'bg-slate-300'
                   }`} />
                   {i < fee.timeline.length - 1 && <div className="w-px flex-1 my-1" style={{ background: 'var(--nm-border)' }} />}
                 </div>
                 <div className="min-w-0 pb-2">
-                  <p className="text-xs font-medium capitalize" style={{ color: 'var(--nm-text-primary)' }}>{event.action?.replace('_', ' ')}</p>
+                  <p className="text-xs font-medium capitalize" style={{ color: 'var(--nm-text-primary)' }}>
+                    {event.action === 'admin_confirmed' ? 'Verified by Admin' :
+                     event.action === 'verified' ? 'Approved by ED/Accountant' :
+                     event.action?.replace('_', ' ')}
+                  </p>
+                  {event.by && <p className="text-[10px]" style={{ color: 'var(--nm-text-secondary)' }}>By: {event.by} ({event.role})</p>}
                   {event.note && <p className="text-xs truncate" style={{ color: 'var(--nm-text-muted)' }}>{event.note}</p>}
                   <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>
                     {new Date(event.at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -414,8 +450,8 @@ export default function MemberPaymentDetail() {
               </div>
             ))}
           </div>
-        </Card>
-      )}
+        )}
+      </Card>
     </div>
   );
 }

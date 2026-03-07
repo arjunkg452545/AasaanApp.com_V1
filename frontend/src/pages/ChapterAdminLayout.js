@@ -5,7 +5,7 @@ import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   LayoutDashboard, Users, ClipboardList, Wallet, FileText,
-  Settings, MessageCircle, LogOut, Menu, X, Shield
+  Settings, MessageCircle, LogOut, Menu, X, Shield, UserPlus
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -17,6 +17,7 @@ const navItems = [
   { label: 'Reports', path: '/admin/reports', icon: FileText },
   { label: 'Fee Config', path: '/admin/fee-config', icon: Settings },
   { label: 'Reminders', path: '/admin/reminders', icon: MessageCircle },
+  { label: 'Visitors', path: '/admin/visitors', icon: UserPlus },
 ];
 
 export default function ChapterAdminLayout() {

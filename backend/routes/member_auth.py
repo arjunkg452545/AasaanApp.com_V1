@@ -47,6 +47,9 @@ async def member_login(data: MemberLoginRequest, response: Response):
     if member.get("membership_status") in ("suspended", "rejected"):
         raise HTTPException(status_code=403, detail="Your membership is suspended or rejected")
 
+    if member.get("membership_status") == "pending":
+        raise HTTPException(status_code=403, detail="Your account is pending approval")
+
     # Get chapter name
     chapter = await db.chapters.find_one(
         {"chapter_id": member["chapter_id"]},

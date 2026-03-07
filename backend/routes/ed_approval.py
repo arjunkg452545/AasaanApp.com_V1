@@ -264,6 +264,8 @@ async def approve_payment(
         {"$set": {
             "status": "verified",
             "timeline": timeline,
+            "approved_by": user.get("mobile", ""),
+            "approved_at": datetime.now(timezone.utc).isoformat(),
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }}
     )
@@ -360,6 +362,8 @@ async def bulk_approve_payments(data: BulkApproveRequest, user=Depends(require_r
             {"$set": {
                 "status": "verified",
                 "timeline": timeline,
+                "approved_by": user.get("mobile", ""),
+                "approved_at": datetime.now(timezone.utc).isoformat(),
                 "updated_at": datetime.now(timezone.utc).isoformat(),
             }}
         )

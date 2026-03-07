@@ -308,3 +308,52 @@ async def deactivate_member(member_id: str, user=Depends(get_current_user)):
         {"$set": {"membership_status": new_status, "updated_at": datetime.now(timezone.utc).isoformat()}}
     )
     return {"message": f"Member {'reactivated' if new_status == 'active' else 'deactivated'} successfully", "new_status": new_status}
+
+
+# ===== MEMBER ROLE MANAGEMENT =====
+from models import MemberRoleUpdate
+
+
+@router.put("/admin/members/{member_id}/role")
+async def update_member_role(member_id: str, data: MemberRoleUpdate, user=Depends(get_current_user)):
+    """Update a member's chapter role. Only one member per role per chapter (except 'member')."""
+    if user["role"] not in ("admin", "superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    chapter_id = user.get("chapter_id")
+    if not chapter_id:
+        raise HTTPException(status_code=400, detail="Chapter ID required")
+
+    valid_roles = ["president", "vice_president", "secretary", "treasurer", "lvh", "member"]
+    if data.chapter_role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+
+    member = await db.members.find_one({"member_id": member_id, "chapter_id": chapter_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    # Check if role is already assigned to another member (except 'member' role)
+    current_holder = None
+    if data.chapter_role != "member":
+        existing = await db.members.find_one(
+            {"chapter_id": chapter_id, "chapter_role": data.chapter_role, "member_id": {"$ne": member_id}},
+            {"_id": 0, "full_name": 1, "member_id": 1}
+        )
+        if existing:
+            current_holder = existing.get("full_name", "Unknown")
+            # Remove role from previous holder
+            await db.members.update_one(
+                {"member_id": existing["member_id"]},
+                {"$set": {"chapter_role": "member"}}
+            )
+
+    await db.members.update_one(
+        {"member_id": member_id},
+        {"$set": {"chapter_role": data.chapter_role}}
+    )
+
+    msg = f"Role updated to {data.chapter_role}"
+    if current_holder:
+        msg += f". Previous holder {current_holder} has been set to 'member'."
+
+    return {"message": msg, "previous_holder": current_holder}
