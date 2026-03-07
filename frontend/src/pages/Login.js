@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'sonner';
-import { Settings, Mail, Lock, Phone, ArrowLeft, User } from 'lucide-react';
+import { Settings, Mail, Lock, Phone, ArrowLeft, User, Eye, EyeOff } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
@@ -20,6 +20,11 @@ export default function Login() {
   const [adminMobile, setAdminMobile] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [adminLoading, setAdminLoading] = useState(false);
+
+  // Password visibility toggles
+  const [showMemberPassword, setShowMemberPassword] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
+  const [showDevPassword, setShowDevPassword] = useState(false);
 
   // Developer login modal state (gear icon — unchanged)
   const [devModalOpen, setDevModalOpen] = useState(false);
@@ -224,13 +229,23 @@ export default function Login() {
                     />
                     <input
                       id="member-password"
-                      type="password"
+                      type={showMemberPassword ? 'text' : 'password'}
                       value={memberPassword}
                       onChange={(e) => setMemberPassword(e.target.value)}
                       placeholder="Enter password"
                       required
                       className="nm-inset-input"
+                      style={{ paddingRight: '2.75rem' }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowMemberPassword(!showMemberPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg"
+                      style={{ color: 'var(--nm-text-muted)', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      tabIndex={-1}
+                    >
+                      {showMemberPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -322,13 +337,23 @@ export default function Login() {
                     />
                     <input
                       id="admin-password"
-                      type="password"
+                      type={showAdminPassword ? 'text' : 'password'}
                       value={adminPassword}
                       onChange={(e) => setAdminPassword(e.target.value)}
                       placeholder="Enter password"
                       required
                       className="nm-inset-input"
+                      style={{ paddingRight: '2.75rem' }}
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPassword(!showAdminPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg"
+                      style={{ color: 'var(--nm-text-muted)', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      tabIndex={-1}
+                    >
+                      {showAdminPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -410,14 +435,23 @@ export default function Login() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
                   <input
                     id="dev-password"
-                    type="password"
+                    type={showDevPassword ? 'text' : 'password'}
                     value={devPassword}
                     onChange={(e) => setDevPassword(e.target.value)}
                     placeholder="Enter password"
                     required
                     className="nm-inset-input text-sm"
-                    style={{ paddingLeft: '2.25rem', height: '2.5rem' }}
+                    style={{ paddingLeft: '2.25rem', paddingRight: '2.75rem', height: '2.5rem' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowDevPassword(!showDevPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg"
+                    style={{ color: 'var(--nm-text-muted)', minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    tabIndex={-1}
+                  >
+                    {showDevPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  </button>
                 </div>
               </div>
               <button
