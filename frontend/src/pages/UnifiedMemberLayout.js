@@ -1,23 +1,24 @@
 // MAX 300 LINES — Unified layout for ALL members (regular + role holders)
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   Home, Wallet, ClipboardList, User, LogOut, Menu, X, Shield,
-  Users, FileText, Settings, MessageCircle, UserPlus, LayoutGrid,
+  Users, FileText, Settings, MessageCircle, UserPlus, LayoutGrid, Bell,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { toTitleCase } from '../utils/formatDate';
+import api from '../utils/api';
 
 const ROLE_PERMISSIONS = {
-  president:            { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true },
-  vice_president:       { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true },
-  secretary:            { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false },
-  treasurer:            { members: false, meetings: false, fundHub: true, reports: true, visitors: false, reminders: true, settings: false },
-  secretary_treasurer:  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false },
-  lvh:                  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false },
+  president:            { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true, notifications: true },
+  vice_president:       { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true, notifications: true },
+  secretary:            { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
+  treasurer:            { members: false, meetings: false, fundHub: true, reports: true, visitors: false, reminders: true, settings: false, notifications: true },
+  secretary_treasurer:  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
+  lvh:                  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
   member:               {},
 };
 
@@ -35,6 +36,7 @@ const adminNavConfig = [
   { label: 'Reports', path: '/app/reports', icon: FileText, perm: 'reports' },
   { label: 'Visitors', path: '/app/visitors', icon: UserPlus, perm: 'visitors' },
   { label: 'Reminders', path: '/app/reminders', icon: MessageCircle, perm: 'reminders' },
+  { label: 'Notifications', path: '/app/send-notification', icon: Bell, perm: 'notifications' },
   { label: 'Chapter Settings', path: '/app/settings', icon: Settings, perm: 'settings' },
 ];
 
@@ -48,11 +50,22 @@ export default function UnifiedMemberLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminSheetOpen, setAdminSheetOpen] = useState(false);
   const [sheetClosing, setSheetClosing] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const touchStartY = useRef(0);
   const touchDeltaY = useRef(0);
   const sheetRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Poll unread notifications every 60s
+  useEffect(() => {
+    const fetchUnread = () => {
+      api.get('/member/notifications/unread-count').then(r => setUnreadCount(r.data?.count || 0)).catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const closeSheet = useCallback(() => {
     setSheetClosing(true);
@@ -112,7 +125,13 @@ export default function UnifiedMemberLayout() {
                 {chapterName && <p className="text-[10px] truncate max-w-[150px]" style={{ color: 'var(--nm-text-muted)' }}>{chapterName}</p>}
               </div>
             </div>
-            <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 rounded-lg nm-btn" style={{ color: 'var(--nm-text-muted)' }}><X className="h-5 w-5" /></button>
+            <div className="flex items-center gap-1">
+              <button onClick={() => { navigate('/app/notifications'); setSidebarOpen(false); }} className="relative p-1 rounded-lg nm-btn" style={{ color: 'var(--nm-text-muted)' }}>
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 h-3.5 min-w-[14px] px-0.5 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: '#CF2030' }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
+              </button>
+              <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 rounded-lg nm-btn" style={{ color: 'var(--nm-text-muted)' }}><X className="h-5 w-5" /></button>
+            </div>
           </div>
         </div>
 
@@ -165,6 +184,10 @@ export default function UnifiedMemberLayout() {
               {roleLabel && <span className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>{roleLabel}</span>}
             </div>
           </div>
+          <button onClick={() => navigate('/app/notifications')} className="relative p-2 rounded-lg nm-btn" style={{ color: 'var(--nm-text-secondary)' }}>
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 h-4 min-w-[16px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ background: '#CF2030' }}>{unreadCount > 99 ? '99+' : unreadCount}</span>}
+          </button>
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8" style={{ color: 'var(--nm-text-muted)' }}><LogOut className="h-4 w-4" /></Button>
         </div>

@@ -55,6 +55,13 @@ const FundReports = lazy(() => import("./pages/FundReports"));
 const VisitorManagement = lazy(() => import("./pages/VisitorManagement"));
 const MemberPendingApprovals = lazy(() => import("./pages/MemberPendingApprovals"));
 
+// Notifications
+const Notifications = lazy(() => import("./pages/Notifications"));
+const SendNotification = lazy(() => import("./pages/SendNotification"));
+
+// Developer Messaging Config
+const DeveloperMessagingConfig = lazy(() => import("./pages/DeveloperMessagingConfig"));
+
 // Super Admin specific
 const PaymentConfig = lazy(() => import("./pages/PaymentConfig"));
 const PaymentGatewaySetup = lazy(() => import("./pages/PaymentGatewaySetup"));
@@ -154,6 +161,7 @@ function App() {
             <Route path="subscriptions" element={<DeveloperSubscriptions />} />
             <Route path="settings" element={<DeveloperSettings />} />
             <Route path="audit-log" element={<AuditLog />} />
+            <Route path="messaging-config" element={<DeveloperMessagingConfig />} />
             <Route path="superadmin/create" element={<CreateSuperAdmin />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
@@ -200,6 +208,8 @@ function App() {
             <Route path="reports" element={<ReportsManagement />} />
             <Route path="visitors" element={<VisitorManagement />} />
             <Route path="reminders" element={<PaymentReminders />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="send-notification" element={<SendNotification />} />
             <Route path="settings" element={<ChapterFeeConfig />} />
             <Route index element={<Navigate to="home" replace />} />
           </Route>
