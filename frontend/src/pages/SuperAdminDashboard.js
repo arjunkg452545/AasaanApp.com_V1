@@ -48,14 +48,9 @@ export default function SuperAdminDashboard() {
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [selectedChapter, setSelectedChapter] = useState(null);
-  const [showCreatePassword, setShowCreatePassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
   const [createForm, setCreateForm] = useState({
-    name: '', admin_mobile: '', admin_password: '', region: '', state: '', city: '',
+    name: '', region: '', state: '', city: '',
   });
-  const [editForm, setEditForm] = useState({ new_mobile: '', new_password: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -115,25 +110,10 @@ export default function SuperAdminDashboard() {
       await api.post('/superadmin/chapters', createForm);
       toast.success('Chapter created successfully');
       setCreateOpen(false);
-      setCreateForm({ name: '', admin_mobile: '', admin_password: '', region: '', state: '', city: '' });
-      setShowCreatePassword(false);
+      setCreateForm({ name: '', region: '', state: '', city: '' });
       loadAll();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create chapter');
-    }
-  };
-
-  const handleUpdateCredentials = async (e) => {
-    e.preventDefault();
-    if (!selectedChapter) return;
-    try {
-      await api.put(`/superadmin/chapters/${selectedChapter.chapter_id}/credentials`, editForm);
-      toast.success('Credentials updated successfully');
-      setEditOpen(false);
-      setShowEditPassword(false);
-      loadAll();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update credentials');
     }
   };
 
@@ -154,13 +134,6 @@ export default function SuperAdminDashboard() {
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update chapter');
     }
-  };
-
-  const handleEditChapter = (chapter) => {
-    setSelectedChapter(chapter);
-    setEditForm({ new_mobile: chapter.admin_mobile || '', new_password: '' });
-    setShowEditPassword(false);
-    setEditOpen(true);
   };
 
   return (
@@ -222,7 +195,7 @@ export default function SuperAdminDashboard() {
           </Button>
           <Button variant="outline" onClick={() => navigate('/superadmin/manage-admins')}>
             <Settings className="h-4 w-4 mr-2" />
-            Manage Admins
+            Leadership
           </Button>
         </div>
 
@@ -231,20 +204,15 @@ export default function SuperAdminDashboard() {
           chapters={chapters} filteredChapters={filteredChapters} loading={loading}
           searchQuery={searchQuery} setSearchQuery={setSearchQuery}
           statusFilter={statusFilter} setStatusFilter={setStatusFilter}
-          onEdit={handleEditChapter} onDeactivate={handleDeactivateChapter}
+          onDeactivate={handleDeactivateChapter}
         />
       </main>
 
       {/* ===== Dialogs ===== */}
       <SAChapterDialogs
         createOpen={createOpen} setCreateOpen={setCreateOpen}
-        editOpen={editOpen} setEditOpen={setEditOpen}
         createForm={createForm} setCreateForm={setCreateForm}
-        editForm={editForm} setEditForm={setEditForm}
-        selectedChapter={selectedChapter}
-        showCreatePassword={showCreatePassword} setShowCreatePassword={setShowCreatePassword}
-        showEditPassword={showEditPassword} setShowEditPassword={setShowEditPassword}
-        onCreateSubmit={handleCreate} onEditSubmit={handleUpdateCredentials}
+        onCreateSubmit={handleCreate}
       />
 
       {/* Deactivate Chapter Confirmation */}

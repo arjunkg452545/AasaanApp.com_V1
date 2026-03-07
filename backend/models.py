@@ -22,9 +22,13 @@ class ChapterResponse(BaseModel):
     chapter_id: str
     name: str
     created_by: str
-    admin_mobile: str
+    admin_mobile: Optional[str] = None
     audit_logs: List[dict] = []
     created_at: str
+    region: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    status: Optional[str] = "active"
 
 class UpdateCredentials(BaseModel):
     new_mobile: str
@@ -398,8 +402,13 @@ class SubscriptionCancel(BaseModel):
 
 class ChapterCreateEnhanced(BaseModel):
     name: str
-    admin_mobile: str
-    admin_password: str
+    admin_mobile: Optional[str] = None   # Deprecated — kept for backward compatibility
+    admin_password: Optional[str] = None  # Deprecated — chapter admin is now the President member
     region: Optional[str] = None
     state: Optional[str] = None
     city: Optional[str] = None
+
+
+class ChangeLeadershipRequest(BaseModel):
+    member_id: str
+    role: str  # president, vice_president

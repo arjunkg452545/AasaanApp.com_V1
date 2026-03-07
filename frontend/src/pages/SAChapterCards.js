@@ -14,12 +14,11 @@ import { Button } from '../components/ui/button';
 import {
   Building2,
   Users,
-  Edit,
   Power,
   Search,
   CalendarDays,
   MapPin,
-  ShieldAlert,
+  Crown,
   Loader2,
 } from 'lucide-react';
 
@@ -51,7 +50,6 @@ export default function SAChapterCards({
   setSearchQuery,
   statusFilter,
   setStatusFilter,
-  onEdit,
   onDeactivate,
 }) {
   return (
@@ -133,8 +131,8 @@ export default function SAChapterCards({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <ShieldAlert className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
-                    <span className="truncate">Admin: {chapter.admin_mobile || 'N/A'}</span>
+                    <Crown className="h-4 w-4 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
+                    <span className="truncate">President: {chapter.admin_name || 'Not Assigned'}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -159,27 +157,18 @@ export default function SAChapterCards({
                 {/* Actions */}
                 <div className="flex gap-2 pt-1">
                   <Button
-                    data-testid={`edit-chapter-btn-${chapter.chapter_id}`}
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => onEdit(chapter)}
-                  >
-                    <Edit className="h-3.5 w-3.5 mr-1.5" />
-                    Edit Credentials
-                  </Button>
-                  <Button
                     data-testid={`deactivate-chapter-btn-${chapter.chapter_id}`}
                     variant="outline"
                     size="sm"
                     className={
                       (chapter.status || '').toLowerCase() === 'inactive'
-                        ? 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200'
-                        : 'text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200'
+                        ? 'flex-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200'
+                        : 'flex-1 text-amber-600 hover:text-amber-700 hover:bg-amber-50 border-amber-200'
                     }
                     onClick={() => onDeactivate(chapter.chapter_id, chapter.name, chapter.status)}
                   >
-                    <Power className="h-3.5 w-3.5" />
+                    <Power className="h-3.5 w-3.5 mr-1.5" />
+                    {(chapter.status || '').toLowerCase() === 'inactive' ? 'Reactivate' : 'Deactivate'}
                   </Button>
                 </div>
               </div>

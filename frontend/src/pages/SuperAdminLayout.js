@@ -18,7 +18,7 @@ const navItems = [
   { label: 'Accountants', path: '/superadmin/accountants', icon: Calculator },
   { label: 'Reports', path: '/superadmin/reports', icon: BarChart3 },
   { label: 'Gateway Setup', path: '/superadmin/gateway-setup', icon: Settings },
-  { label: 'Manage Admins', path: '/superadmin/manage-admins', icon: Shield },
+  { label: 'Leadership', path: '/superadmin/manage-admins', icon: Shield },
 ];
 
 export default function SuperAdminLayout() {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -9,16 +9,23 @@ import {
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
-const navItems = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { label: 'Members', path: '/admin/members', icon: Users },
-  { label: 'Meetings', path: '/admin/meeting-hub', icon: ClipboardList },
-  { label: 'Fund Hub', path: '/admin/fund-hub', icon: Wallet },
-  { label: 'Reports', path: '/admin/reports', icon: FileText },
-  { label: 'Fee Config', path: '/admin/fee-config', icon: Settings },
-  { label: 'Reminders', path: '/admin/reminders', icon: MessageCircle },
-  { label: 'Visitors', path: '/admin/visitors', icon: UserPlus },
+const allNavItems = [
+  { label: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard, fullOnly: false },
+  { label: 'Members', path: '/admin/members', icon: Users, fullOnly: false },
+  { label: 'Meetings', path: '/admin/meeting-hub', icon: ClipboardList, fullOnly: false },
+  { label: 'Fund Hub', path: '/admin/fund-hub', icon: Wallet, fullOnly: true },
+  { label: 'Reports', path: '/admin/reports', icon: FileText, fullOnly: false },
+  { label: 'Fee Config', path: '/admin/fee-config', icon: Settings, fullOnly: true },
+  { label: 'Reminders', path: '/admin/reminders', icon: MessageCircle, fullOnly: true },
+  { label: 'Visitors', path: '/admin/visitors', icon: UserPlus, fullOnly: true },
 ];
+
+const FULL_ADMIN_ROLES = ['president', 'vice_president'];
+
+function formatRole(role) {
+  if (!role) return 'Admin';
+  return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
 
 export default function ChapterAdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,6 +34,15 @@ export default function ChapterAdminLayout() {
 
   const chapterName = localStorage.getItem('chapter_name') || 'Chapter';
   const userName = localStorage.getItem('user_name') || 'Admin';
+  const chapterRole = localStorage.getItem('chapter_role') || '';
+  const isFullAdmin = FULL_ADMIN_ROLES.includes(chapterRole);
+  const roleTitle = formatRole(chapterRole);
+
+  // Limited admin (secretary/treasurer/lvh) sees fewer nav items
+  const navItems = useMemo(() => {
+    if (isFullAdmin || !chapterRole) return allNavItems;
+    return allNavItems.filter(item => !item.fullOnly);
+  }, [isFullAdmin, chapterRole]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -71,7 +87,7 @@ export default function ChapterAdminLayout() {
                 className="h-9 w-auto rounded-lg"
               />
               <div>
-                <h1 className="text-base font-bold leading-tight" style={{ color: 'var(--nm-text-primary)' }}>Chapter Admin</h1>
+                <h1 className="text-base font-bold leading-tight" style={{ color: 'var(--nm-text-primary)' }}>{roleTitle}</h1>
                 <Badge
                   variant="outline"
                   className="text-[10px] mt-1"
@@ -122,7 +138,7 @@ export default function ChapterAdminLayout() {
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <p className="text-xs font-medium truncate" style={{ color: 'var(--nm-text-primary)' }} title={userName}>{userName}</p>
-              <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>Chapter Admin</p>
+              <p className="text-[10px]" style={{ color: 'var(--nm-text-muted)' }}>{roleTitle}</p>
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
@@ -157,7 +173,7 @@ export default function ChapterAdminLayout() {
               alt="Aasaan App"
               className="h-7 w-auto rounded"
             />
-            <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Chapter Admin</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{roleTitle}</span>
           </div>
           <ThemeToggle />
         </div>

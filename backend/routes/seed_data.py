@@ -49,9 +49,8 @@ async def _seed_subscription(superadmin_id, now, now_iso, created):
 
 
 async def _seed_chapter(password_hash, now, now_iso, created):
-    """Seed test chapter."""
-    admin_mobile = "9999900002"
-    existing_chapter = await db.chapters.find_one({"admin_mobile": admin_mobile})
+    """Seed test chapter. No separate admin credentials — President member is the admin."""
+    existing_chapter = await db.chapters.find_one({"name": "BNI Sunrise Test Chapter", "created_by": "9999900001"})
     if existing_chapter:
         created["chapter"] = "skipped"
         return existing_chapter["chapter_id"]
@@ -59,8 +58,7 @@ async def _seed_chapter(password_hash, now, now_iso, created):
     chapter_id = f"CH{now.strftime('%Y%m%d%H%M%S')}"
     await db.chapters.insert_one({
         "chapter_id": chapter_id, "name": "BNI Sunrise Test Chapter",
-        "created_by": "9999900001", "admin_mobile": admin_mobile,
-        "admin_password_hash": hash_password("Test@1234"),
+        "created_by": "9999900001",
         "region": "Raipur", "state": "CG", "city": "Raipur",
         "status": "active", "audit_logs": [], "created_at": now_iso
     })
@@ -380,20 +378,29 @@ async def seed_test_data(user=Depends(require_role("developer"))):
     await _seed_meetings_and_attendance(chapter_id, member_records, now, now_iso, created)
     await _seed_roles_visitors_audit(chapter_id, member_records, password_hash, now_iso, created)
 
+    role_names = {0: "president (admin)", 1: "vice_president (admin)", 2: "secretary (limited admin)"}
     return {
         "message": "Test data seeding complete",
         "created_summary": created,
         "login_credentials": {
             "developer": {"note": "Use your existing developer account", "endpoint": "/api/developer/login", "email": "admin@aasaanapp.com", "password": "AasaanAdmin2026!"},
-            "superadmin_ed": {"endpoint": "/api/superadmin/login", "mobile": "9999900001", "password": "Test@1234", "role": "superadmin", "name": "Arjun Gupta (Test ED)"},
-            "chapter_admin": {"endpoint": "/api/admin/login", "mobile": "9999900002", "password": "Test@1234", "role": "admin", "chapter": "BNI Sunrise Test Chapter"},
-            "members": [{"endpoint": "/api/member/login", "mobile": spec["mobile"], "password": "Test@1234", "role": "member", "name": spec["name"]} for spec in member_specs],
-            "accountant": {"endpoint": "/api/accountant/login", "mobile": "9999900008", "password": "Test@1234", "role": "accountant", "name": "Vikram Accountant"}
+            "superadmin_ed": {"endpoint": "/api/auth/admin-login", "mobile": "9999900001", "password": "Test@1234", "role": "superadmin", "name": "Arjun Gupta (Test ED)"},
+            "members": [
+                {"endpoint": "/api/member/login", "mobile": spec["mobile"], "password": "Test@1234",
+                 "role": role_names.get(idx, "member"), "name": spec["name"]}
+                for idx, spec in enumerate(member_specs)
+            ],
+            "accountant": {"endpoint": "/api/auth/admin-login", "mobile": "9999900008", "password": "Test@1234", "role": "accountant", "name": "Vikram Accountant"},
+            "note": "President (9999900003) and VP (9999900004) login via member login and get admin dashboard. Secretary (9999900005) gets limited admin.",
         },
         "chapter_id": chapter_id,
         "test_data_summary": {
-            "ed": "9999900001 / Test@1234", "admin": "9999900002 / Test@1234",
-            "members": "9999900003-07 / Test@1234", "accountant": "9999900008 / Test@1234",
+            "ed": "9999900001 / Test@1234 (staff login)",
+            "president": "9999900003 / Test@1234 (member login → admin)",
+            "vice_president": "9999900004 / Test@1234 (member login → admin)",
+            "secretary": "9999900005 / Test@1234 (member login → limited admin)",
+            "members": "9999900006-07 / Test@1234 (member login → member)",
+            "accountant": "9999900008 / Test@1234 (staff login)",
             "chapter": "BNI Sunrise Test Chapter",
         }
     }

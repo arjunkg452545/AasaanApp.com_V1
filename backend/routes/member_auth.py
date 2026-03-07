@@ -24,7 +24,9 @@ router = APIRouter(prefix="/api")
 # ===== MEMBER LOGIN =====
 @router.post("/member/login", response_model=MemberLoginResponse)
 async def member_login(data: MemberLoginRequest, response: Response):
-    """Member login with mobile + password. Returns JWT with role='member'."""
+    """Member login with mobile + password. Role determined by chapter_role.
+    President/VP → admin (full), Secretary/Treasurer/LVH → admin (limited), Member → member.
+    """
     # Look up credentials
     creds = await db.member_credentials.find_one({"mobile": data.mobile}, {"_id": 0})
     if not creds:
@@ -36,7 +38,7 @@ async def member_login(data: MemberLoginRequest, response: Response):
     if not creds.get("is_active", True):
         raise HTTPException(status_code=403, detail="Account is disabled")
 
-    # Get the member record for name, chapter_id, etc.
+    # Get the member record for name, chapter_id, chapter_role, etc.
     member = await db.members.find_one(
         {"member_id": creds["member_id"]},
         {"_id": 0}
@@ -57,13 +59,29 @@ async def member_login(data: MemberLoginRequest, response: Response):
     )
     chapter_name = chapter["name"] if chapter else ""
 
-    # Create JWT
-    token = create_access_token({
+    # Determine JWT role based on chapter_role
+    chapter_role = member.get("chapter_role", "member")
+    if chapter_role in ("president", "vice_president"):
+        jwt_role = "admin"
+        redirect_url = "/admin/dashboard"
+    elif chapter_role in ("secretary", "treasurer", "lvh"):
+        jwt_role = "admin"
+        redirect_url = "/admin/dashboard"
+    else:
+        jwt_role = "member"
+        redirect_url = "/member/dashboard"
+
+    # Create JWT with role-based payload
+    jwt_payload = {
         "mobile": data.mobile,
-        "role": "member",
+        "role": jwt_role,
         "member_id": creds["member_id"],
         "chapter_id": member["chapter_id"],
-    })
+    }
+    if jwt_role == "admin":
+        jwt_payload["chapter_role"] = chapter_role
+
+    token = create_access_token(jwt_payload)
 
     response.set_cookie(
         key="access_token", value=token, httponly=True, samesite="lax",
@@ -72,11 +90,13 @@ async def member_login(data: MemberLoginRequest, response: Response):
 
     return MemberLoginResponse(
         token=token,
-        role="member",
+        role=jwt_role,
+        redirect=redirect_url,
         member_id=creds["member_id"],
         chapter_id=member["chapter_id"],
         member_name=member.get("full_name", ""),
         chapter_name=chapter_name,
+        chapter_role=chapter_role,
     )
 
 

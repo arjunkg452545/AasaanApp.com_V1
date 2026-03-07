@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from database import db
 from deps import get_current_user
 from auth import create_access_token, verify_password, hash_password
-from models import LoginRequest, LoginResponse, ChapterCreateEnhanced, ChapterResponse, UpdateCredentials, List
+from models import LoginRequest, LoginResponse, ChapterCreateEnhanced, ChapterResponse, UpdateCredentials, ChangeLeadershipRequest, List
 import pytz
 
 IST = pytz.timezone('Asia/Kolkata')
@@ -51,17 +51,19 @@ async def create_chapter(chapter: ChapterCreateEnhanced, user=Depends(get_curren
         if chapters_used >= sub.get("chapters_allowed", 0):
             raise HTTPException(status_code=403, detail="Chapter limit reached. Please upgrade your subscription.")
 
-    admin_password_hash = hash_password(chapter.admin_password)
     chapter_data = {
         "chapter_id": f"CH{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
         "name": chapter.name,
         "created_by": user.get("mobile", user.get("email", "")),
-        "admin_mobile": chapter.admin_mobile,
-        "admin_password_hash": admin_password_hash,
         "region": chapter.region, "state": chapter.state, "city": chapter.city,
         "status": "active", "audit_logs": [],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
+    # Legacy: if admin_mobile/password provided, store them for backward compatibility
+    if chapter.admin_mobile:
+        chapter_data["admin_mobile"] = chapter.admin_mobile
+    if chapter.admin_password:
+        chapter_data["admin_password_hash"] = hash_password(chapter.admin_password)
 
     await db.chapters.insert_one(chapter_data)
     return {k: v for k, v in chapter_data.items() if k not in ("admin_password_hash", "_id")}
@@ -228,12 +230,100 @@ async def superadmin_chapters_overview(user=Depends(get_current_user)):
         last_meeting = await db.meetings.find_one(
             {"chapter_id": cid}, {"_id": 0, "date": 1, "meeting_id": 1}, sort=[("date", -1)]
         )
-        admin_name = ch.get("admin_mobile", "")
+        # Get current president
+        president = await db.members.find_one(
+            {"chapter_id": cid, "chapter_role": "president", "membership_status": "active"},
+            {"_id": 0, "full_name": 1, "primary_mobile": 1, "member_id": 1}
+        )
+        admin_name = president.get("full_name", "No President") if president else "No President"
 
         result.append({
             **ch, "member_count": member_count,
             "last_meeting_date": last_meeting.get("date", "") if last_meeting else "",
-            "admin_name": admin_name
+            "admin_name": admin_name,
+            "president": president,
         })
 
     return result
+
+
+# ===== CHAPTER LEADERSHIP MANAGEMENT =====
+
+@router.post("/superadmin/chapters/{chapter_id}/change-leadership")
+async def change_chapter_leadership(chapter_id: str, data: ChangeLeadershipRequest, user=Depends(get_current_user)):
+    """ED assigns or changes leadership (president/VP) for a chapter."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    if data.role not in ("president", "vice_president"):
+        raise HTTPException(status_code=400, detail="Role must be 'president' or 'vice_president'")
+
+    # Verify chapter exists and belongs to this ED
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+
+    # Verify member exists and belongs to this chapter
+    member = await db.members.find_one(
+        {"member_id": data.member_id, "chapter_id": chapter_id},
+        {"_id": 0, "full_name": 1, "member_id": 1}
+    )
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found in this chapter")
+
+    # Remove role from previous holder
+    previous_holder = None
+    existing = await db.members.find_one(
+        {"chapter_id": chapter_id, "chapter_role": data.role, "member_id": {"$ne": data.member_id}},
+        {"_id": 0, "full_name": 1, "member_id": 1}
+    )
+    if existing:
+        previous_holder = existing.get("full_name", "Unknown")
+        await db.members.update_one(
+            {"member_id": existing["member_id"]},
+            {"$set": {"chapter_role": "member"}}
+        )
+
+    # Assign new role
+    await db.members.update_one(
+        {"member_id": data.member_id},
+        {"$set": {"chapter_role": data.role}}
+    )
+
+    # Audit log
+    await db.chapters.update_one(
+        {"chapter_id": chapter_id},
+        {"$push": {"audit_logs": {
+            "changed_by": user.get("mobile", user.get("email", "")),
+            "changed_at": datetime.now(timezone.utc).isoformat(),
+            "action": "leadership_change",
+            "new_role": data.role,
+            "new_holder": member.get("full_name", ""),
+            "previous_holder": previous_holder,
+        }}}
+    )
+
+    msg = f"{member.get('full_name', '')} is now {data.role.replace('_', ' ').title()}"
+    if previous_holder:
+        msg += f". Previous holder {previous_holder} has been set to 'member'."
+
+    return {"message": msg, "previous_holder": previous_holder}
+
+
+@router.get("/superadmin/chapters/{chapter_id}/leadership")
+async def get_chapter_leadership(chapter_id: str, user=Depends(get_current_user)):
+    """Get current leadership for a chapter."""
+    if user["role"] not in ("superadmin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    leaders = await db.members.find(
+        {"chapter_id": chapter_id, "chapter_role": {"$ne": "member"}, "membership_status": "active"},
+        {"_id": 0, "member_id": 1, "full_name": 1, "primary_mobile": 1, "chapter_role": 1}
+    ).to_list(20)
+
+    all_members = await db.members.find(
+        {"chapter_id": chapter_id, "membership_status": "active"},
+        {"_id": 0, "member_id": 1, "full_name": 1, "primary_mobile": 1, "chapter_role": 1}
+    ).sort("full_name", 1).to_list(2000)
+
+    return {"leaders": leaders, "members": all_members}

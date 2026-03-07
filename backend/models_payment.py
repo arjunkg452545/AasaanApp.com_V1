@@ -18,10 +18,12 @@ class MemberLoginRequest(BaseModel):
 class MemberLoginResponse(BaseModel):
     token: str
     role: str = "member"
+    redirect: str = "/member/dashboard"
     member_id: str
     chapter_id: str
     member_name: str
     chapter_name: str = ""
+    chapter_role: Optional[str] = None
 
 
 class MemberSetPasswordRequest(BaseModel):

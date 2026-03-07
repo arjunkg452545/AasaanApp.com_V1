@@ -1,5 +1,7 @@
 # MAX 400 LINES - Chapter Admin core endpoints
-"""Chapter Admin endpoints: login, profile, member CRUD, bulk upload, template, excel upload."""
+"""Chapter Admin endpoints: profile, member CRUD, bulk upload, template, excel upload.
+Login is now handled via member_auth (President/VP get admin role automatically).
+"""
 from fastapi import APIRouter, HTTPException, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone, timedelta
@@ -12,14 +14,8 @@ import io
 router = APIRouter(prefix="/api", tags=["chapter-admin"])
 
 
-@router.post("/admin/login", response_model=LoginResponse)
-async def admin_login(data: LoginRequest):
-    chapter = await db.chapters.find_one({"admin_mobile": data.mobile}, {"_id": 0})
-    if not chapter or not verify_password(data.password, chapter["admin_password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    token = create_access_token({"mobile": data.mobile, "role": "admin", "chapter_id": chapter["chapter_id"], "chapter_name": chapter.get("name", "")})
-    return LoginResponse(token=token, role="admin", mobile=data.mobile, chapter_id=chapter["chapter_id"], chapter_name=chapter.get("name", ""))
+# NOTE: POST /admin/login has been removed.
+# Chapter admins now login through member login — Presidents/VPs get admin role.
 
 
 @router.get("/admin/profile")

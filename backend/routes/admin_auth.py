@@ -1,7 +1,7 @@
-"""Unified admin login endpoint.
+"""Unified admin/staff login endpoint.
 
-Checks superadmins → chapters (admin) → accountant_credentials in sequence,
-returning the first match with its role-specific JWT and redirect URL.
+Checks superadmins → accountant_credentials in sequence.
+Chapter Admin login is handled via member login (President/VP get admin role).
 """
 
 from fastapi import APIRouter, HTTPException, Response
@@ -34,7 +34,7 @@ class AdminLoginResponse(BaseModel):
 
 @router.post("/auth/admin-login", response_model=AdminLoginResponse)
 async def unified_admin_login(data: AdminLoginRequest, response: Response):
-    """Unified admin login: tries superadmin → chapter admin → accountant."""
+    """Staff login: tries superadmin → accountant. Chapter admins login via member login."""
 
     def _set_cookie(resp: Response, token: str):
         resp.set_cookie(
@@ -56,26 +56,7 @@ async def unified_admin_login(data: AdminLoginRequest, response: Response):
             mobile=data.login_id,
         )
 
-    # 2. Try chapters collection (chapter admin)
-    chapter = await db.chapters.find_one({"admin_mobile": data.login_id}, {"_id": 0})
-    if chapter and verify_password(data.password, chapter.get("admin_password_hash", "")):
-        token = create_access_token({
-            "mobile": data.login_id,
-            "role": "admin",
-            "chapter_id": chapter["chapter_id"],
-            "chapter_name": chapter.get("name", ""),
-        })
-        _set_cookie(response, token)
-        return AdminLoginResponse(
-            token=token,
-            role="admin",
-            redirect="/admin/dashboard",
-            mobile=data.login_id,
-            chapter_id=chapter["chapter_id"],
-            chapter_name=chapter.get("name", ""),
-        )
-
-    # 3. Try accountant_credentials collection
+    # 2. Try accountant_credentials collection
     acc = await db.accountant_credentials.find_one({"mobile": data.login_id}, {"_id": 0})
     if acc and verify_password(data.password, acc.get("password_hash", "")):
         if not acc.get("is_active", True):
@@ -97,7 +78,7 @@ async def unified_admin_login(data: AdminLoginRequest, response: Response):
             superadmin_id=acc["superadmin_id"],
         )
 
-    # 4. None matched
+    # 3. None matched
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 

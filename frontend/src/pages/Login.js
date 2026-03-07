@@ -28,6 +28,7 @@ export default function Login() {
   const [devLoading, setDevLoading] = useState(false);
 
   // ===== MEMBER LOGIN (front) =====
+  // President/VP → admin dashboard, Secretary/Treasurer/LVH → admin (limited), Member → member portal
   const handleMemberLogin = async (e) => {
     e.preventDefault();
     setMemberLoading(true);
@@ -36,15 +37,22 @@ export default function Login() {
         mobile: memberMobile,
         password: memberPassword,
       });
+      const { token, role, redirect, member_id, member_name, chapter_id, chapter_name, chapter_role } = response.data;
       localStorage.clear();
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('role', 'member');
-      localStorage.setItem('member_id', response.data.member_id);
-      localStorage.setItem('member_name', response.data.member_name);
-      localStorage.setItem('chapter_id', response.data.chapter_id);
-      localStorage.setItem('chapter_name', response.data.chapter_name);
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', role);
+      localStorage.setItem('member_id', member_id);
+      localStorage.setItem('member_name', member_name);
+      localStorage.setItem('chapter_id', chapter_id);
+      localStorage.setItem('chapter_name', chapter_name || '');
+      if (chapter_role) localStorage.setItem('chapter_role', chapter_role);
+      // ChapterAdminLayout reads 'user_name' — set it for admin role
+      if (role === 'admin') {
+        localStorage.setItem('user_name', member_name);
+        localStorage.setItem('mobile', memberMobile);
+      }
       toast.success('Welcome back!');
-      navigate('/member/dashboard');
+      navigate(redirect || (role === 'admin' ? '/admin/dashboard' : '/member/dashboard'));
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Invalid credentials');
     } finally {
@@ -162,7 +170,7 @@ export default function Login() {
                 style={{ opacity: 0.4 }}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.4'; }}
-                title="Admin Login"
+                title="Staff Login"
                 type="button"
               >
                 <User style={{ width: 18, height: 18, color: 'var(--nm-text-secondary)' }} />
@@ -234,7 +242,7 @@ export default function Login() {
                   disabled={memberLoading}
                   className="nm-btn-login w-full"
                 >
-                  {memberLoading ? 'Signing in...' : 'Sign In as Member'}
+                  {memberLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
             </div>
@@ -270,10 +278,10 @@ export default function Login() {
                 className="text-3xl font-bold mb-1"
                 style={{ color: 'var(--nm-text-primary)', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
               >
-                Admin Login
+                Staff Login
               </h2>
               <p className="mb-6" style={{ color: 'var(--nm-text-secondary)' }}>
-                SuperAdmin, Chapter Admin, or Accountant
+                Executive Director or Accountant
               </p>
 
               <form onSubmit={handleAdminLogin} className="space-y-5">
@@ -332,7 +340,7 @@ export default function Login() {
                   disabled={adminLoading}
                   className="nm-btn-login w-full"
                 >
-                  {adminLoading ? 'Signing in...' : 'Admin Sign In'}
+                  {adminLoading ? 'Signing in...' : 'Staff Sign In'}
                 </button>
               </form>
             </div>
