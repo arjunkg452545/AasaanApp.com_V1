@@ -311,7 +311,7 @@ export default function MembersManagement() {
     <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
       <div className="nm-header px-4 md:px-8 py-3 md:py-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')} className="mb-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/home')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
           <span className="text-sm">Back to Dashboard</span>
         </Button>
@@ -436,7 +436,7 @@ export default function MembersManagement() {
               <Card
                 key={member.member_id}
                 className="p-3 md:p-4 hover:shadow-md transition-shadow border-l-4 border-l-[#CF2030] rounded-xl shadow-sm cursor-pointer"
-                onClick={() => navigate(`/admin/members/${member.member_id}`)}
+                onClick={() => navigate(`/app/members/${member.member_id}`)}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-3 flex-1 min-w-0">

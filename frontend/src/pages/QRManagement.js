@@ -33,7 +33,7 @@ export default function QRManagement() {
           data-testid="back-btn"
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/meeting-hub')}
+          onClick={() => navigate('/app/meetings')}
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
@@ -74,7 +74,7 @@ export default function QRManagement() {
                   </div>
                   <Button
                     data-testid={`show-qr-btn-${meeting.meeting_id}`}
-                    onClick={() => navigate(`/admin/qr/${meeting.meeting_id}`)}
+                    onClick={() => navigate(`/app/meetings/qr/${meeting.meeting_id}`)}
                     className="bg-[#10B981] hover:bg-[#059669] w-full"
                   >
                     <QrCode className="h-4 w-4 mr-2" />
@@ -101,7 +101,7 @@ export default function QRManagement() {
                   <div>
                     <Button
                       data-testid={`show-qr-btn-${meeting.meeting_id}`}
-                      onClick={() => navigate(`/admin/qr/${meeting.meeting_id}`)}
+                      onClick={() => navigate(`/app/meetings/qr/${meeting.meeting_id}`)}
                       className="bg-[#10B981] hover:bg-[#059669]"
                     >
                       <QrCode className="h-4 w-4 mr-2" />

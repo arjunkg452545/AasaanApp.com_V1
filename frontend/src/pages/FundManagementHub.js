@@ -172,7 +172,7 @@ export default function FundManagementHub() {
       {/* Header */}
       <div className="nm-header px-4 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/dashboard')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/home')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -238,7 +238,7 @@ export default function FundManagementHub() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
           {/* Kitty Payment Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all border-l-4 border-l-amber-500">
-            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/admin/fund/kitty')}>
+            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/app/fund/kitty')}>
               <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                 <Wallet className="h-6 w-6 text-amber-600" />
               </div>
@@ -251,7 +251,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('kitty')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/kitty')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/kitty')}>
                 Manage →
               </Button>
             </div>
@@ -259,7 +259,7 @@ export default function FundManagementHub() {
 
           {/* Meeting Fees Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all border-l-4 border-l-blue-500">
-            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/admin/fund/meetingfee')}>
+            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/app/fund/meetingfee')}>
               <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
                 <Calendar className="h-6 w-6 text-blue-600" />
               </div>
@@ -272,7 +272,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('meetingfee')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/meetingfee')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/meetingfee')}>
                 Manage →
               </Button>
             </div>
@@ -280,7 +280,7 @@ export default function FundManagementHub() {
 
           {/* Events Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all border-l-4 border-l-purple-500">
-            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/admin/fund/events')}>
+            <div className="flex items-center gap-3 mb-4 cursor-pointer" onClick={() => navigate('/app/fund/events')}>
               <div className="h-12 w-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
                 <PartyPopper className="h-6 w-6 text-purple-600" />
               </div>
@@ -293,7 +293,7 @@ export default function FundManagementHub() {
               <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => loadSummaryData('events')}>
                 <Users className="h-3 w-3 mr-1" />Summary
               </Button>
-              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/admin/fund/events')}>
+              <Button size="sm" className="flex-1 bg-[#CF2030] hover:bg-[#A61926] text-xs" onClick={() => navigate('/app/fund/events')}>
                 Manage →
               </Button>
             </div>
@@ -304,7 +304,7 @@ export default function FundManagementHub() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mt-4 md:mt-6">
           {/* Verify Payments Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-indigo-500"
-                onClick={() => navigate('/admin/verify-payments')}>
+                onClick={() => navigate('/app/verify-payments')}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
                 <ShieldCheck className="h-6 w-6 text-indigo-600" />
@@ -319,7 +319,7 @@ export default function FundManagementHub() {
 
           {/* Manual Entry Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-teal-500"
-                onClick={() => navigate('/admin/manual-entry')}>
+                onClick={() => navigate('/app/manual-entry')}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
                 <Banknote className="h-6 w-6 text-teal-600" />
@@ -335,7 +335,7 @@ export default function FundManagementHub() {
 
         {/* Fee Config Card */}
         <Card className="mt-4 md:mt-6 p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-orange-500"
-              onClick={() => navigate('/admin/fee-config')}>
+              onClick={() => navigate('/app/settings')}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -354,7 +354,7 @@ export default function FundManagementHub() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mt-4 md:mt-6">
           {/* Reports Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-green-500"
-                onClick={() => navigate('/admin/fund/reports')}>
+                onClick={() => navigate('/app/fund/reports')}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
                 <FileText className="h-6 w-6 text-green-600" />
@@ -369,7 +369,7 @@ export default function FundManagementHub() {
 
           {/* Reminders Card */}
           <Card className="p-4 md:p-6 hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-emerald-500"
-                onClick={() => navigate('/admin/reminders')}>
+                onClick={() => navigate('/app/reminders')}>
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
                 <MessageCircle className="h-6 w-6 text-emerald-600" />

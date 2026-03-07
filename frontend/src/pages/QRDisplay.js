@@ -129,7 +129,7 @@ export default function QRDisplay() {
           data-testid="back-btn"
           variant="outline"
           size="sm"
-          onClick={() => navigate('/admin/meeting-hub')}
+          onClick={() => navigate('/app/meetings')}
           className="text-xs px-2 py-1 h-auto"
         >
           <ArrowLeft className="h-3 w-3 mr-1" />

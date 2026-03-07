@@ -91,7 +91,7 @@ export default function MemberDashboard() {
         {/* Pending */}
         <Card
           className="p-4 border-l-4 border-l-red-500 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate('/member/payments')}
+          onClick={() => navigate('/app/my-payments')}
         >
           <div className="flex items-center gap-2 mb-2">
             <AlertCircle className="h-4 w-4 text-red-500" />
@@ -126,7 +126,7 @@ export default function MemberDashboard() {
       {data.next_due && (
         <Card
           className="p-4 mb-6 border-l-4 border-l-amber-500 cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => navigate(`/member/payments/${data.next_due.ledger_id}`)}
+          onClick={() => navigate(`/app/my-payments/${data.next_due.ledger_id}`)}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -147,7 +147,7 @@ export default function MemberDashboard() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/member/payments')}
+            onClick={() => navigate('/app/my-payments')}
             className="text-[#CF2030]"
           >
             View All <ChevronRight className="h-4 w-4" />
@@ -165,7 +165,7 @@ export default function MemberDashboard() {
               <Card
                 key={fee.ledger_id}
                 className="p-3 cursor-pointer hover:shadow-sm transition-shadow"
-                onClick={() => navigate(`/member/payments/${fee.ledger_id}`)}
+                onClick={() => navigate(`/app/my-payments/${fee.ledger_id}`)}
               >
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">

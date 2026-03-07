@@ -83,7 +83,7 @@ export default function MemberPaymentHistory() {
                     <Card
                       key={p.ledger_id}
                       className="p-3 cursor-pointer hover:shadow-sm transition-shadow"
-                      onClick={() => navigate(`/member/payments/${p.ledger_id}`)}
+                      onClick={() => navigate(`/app/my-payments/${p.ledger_id}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3 min-w-0">

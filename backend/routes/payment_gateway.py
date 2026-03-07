@@ -49,7 +49,7 @@ async def list_supported_gateways():
 @router.post("/member/gateway/create-order")
 async def create_gateway_order(
     data: GatewayOrderCreate,
-    user=Depends(require_role("member")),
+    user=Depends(require_role("member", "admin")),
 ):
     """Create a payment order through a gateway. (Coming Soon)"""
     return {
@@ -61,7 +61,7 @@ async def create_gateway_order(
 @router.post("/member/gateway/verify")
 async def verify_gateway_payment(
     data: GatewayVerify,
-    user=Depends(require_role("member")),
+    user=Depends(require_role("member", "admin")),
 ):
     """Verify a gateway payment. (Coming Soon)"""
     return {

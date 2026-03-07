@@ -97,7 +97,7 @@ export default function MemberPayments() {
             <Card
               key={fee.ledger_id}
               className="p-3 md:p-4 cursor-pointer hover:shadow-sm transition-shadow"
-              onClick={() => navigate(`/member/payments/${fee.ledger_id}`)}
+              onClick={() => navigate(`/app/my-payments/${fee.ledger_id}`)}
             >
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">

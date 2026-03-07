@@ -36,7 +36,7 @@ export default function MeetingManagementHub() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/admin/dashboard')}
+            onClick={() => navigate('/app/home')}
             className="min-w-[48px] min-h-[48px]"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -79,7 +79,7 @@ export default function MeetingManagementHub() {
           {/* Create Meetings Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/meetings')}
+            onClick={() => navigate('/app/meetings/list')}
             data-testid="nav-meetings"
           >
             <div className="flex flex-col items-start gap-2">
@@ -96,7 +96,7 @@ export default function MeetingManagementHub() {
           {/* QR Display Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#CF2030] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/qr-management')}
+            onClick={() => navigate('/app/meetings/qr')}
             data-testid="nav-qr"
           >
             <div className="flex flex-col items-start gap-2">
@@ -113,7 +113,7 @@ export default function MeetingManagementHub() {
           {/* Reports Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-lg transition-all cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/reports')}
+            onClick={() => navigate('/app/reports')}
             data-testid="nav-reports"
           >
             <div className="flex flex-col items-start gap-2">

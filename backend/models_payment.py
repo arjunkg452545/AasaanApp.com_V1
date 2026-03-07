@@ -18,7 +18,7 @@ class MemberLoginRequest(BaseModel):
 class MemberLoginResponse(BaseModel):
     token: str
     role: str = "member"
-    redirect: str = "/member/dashboard"
+    redirect: str = "/app/home"
     member_id: str
     chapter_id: str
     member_name: str

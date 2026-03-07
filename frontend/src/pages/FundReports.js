@@ -102,7 +102,7 @@ export default function FundReports() {
       <header className="nm-header">
         <div className="max-w-4xl mx-auto px-4 md:px-6 py-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')} data-testid="back-btn">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} data-testid="back-btn">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>

@@ -154,7 +154,7 @@ export default function MemberPaymentDetail() {
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto" style={{ background: 'var(--nm-bg)' }}>
       {/* Back */}
-      <Button variant="ghost" size="sm" onClick={() => navigate('/member/payments')} className="mb-4">
+      <Button variant="ghost" size="sm" onClick={() => navigate('/app/my-payments')} className="mb-4">
         <ArrowLeft className="h-4 w-4 mr-2" /> Back to Payments
       </Button>
 

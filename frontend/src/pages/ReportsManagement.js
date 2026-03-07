@@ -70,7 +70,7 @@ export default function ReportsManagement() {
           data-testid="back-btn"
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/meeting-hub')}
+          onClick={() => navigate('/app/meetings')}
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
@@ -116,7 +116,7 @@ export default function ReportsManagement() {
                       variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
-                      onClick={() => navigate(`/admin/attendance/${meeting.meeting_id}`)}
+                      onClick={() => navigate(`/app/meetings/attendance/${meeting.meeting_id}`)}
                     >
                       <Users className="h-3 w-3 mr-1" />
                       View
@@ -164,7 +164,7 @@ export default function ReportsManagement() {
                     <Button
                       data-testid={`view-attendance-btn-${meeting.meeting_id}`}
                       variant="outline"
-                      onClick={() => navigate(`/admin/attendance/${meeting.meeting_id}`)}
+                      onClick={() => navigate(`/app/meetings/attendance/${meeting.meeting_id}`)}
                     >
                       <Users className="h-4 w-4 mr-2" />
                       View Attendance

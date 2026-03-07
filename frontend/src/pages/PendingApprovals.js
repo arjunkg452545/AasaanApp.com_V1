@@ -59,7 +59,7 @@ export default function PendingApprovals() {
         <Button
           data-testid="back-btn"
           variant="ghost"
-          onClick={() => navigate('/admin/dashboard')}
+          onClick={() => navigate('/app/home')}
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

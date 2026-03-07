@@ -126,7 +126,7 @@ export default function AdminVerifyPayments() {
     <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
       <div className="nm-header px-4 md:px-8 py-3 md:py-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')} className="mb-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
         <div className="flex items-center justify-between">

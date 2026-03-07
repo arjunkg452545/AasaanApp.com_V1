@@ -391,15 +391,15 @@ async def seed_test_data(user=Depends(require_role("developer"))):
                 for idx, spec in enumerate(member_specs)
             ],
             "accountant": {"endpoint": "/api/auth/admin-login", "mobile": "9999900008", "password": "Test@1234", "role": "accountant", "name": "Vikram Accountant"},
-            "note": "President (9999900003) and VP (9999900004) login via member login and get admin dashboard. Secretary (9999900005) gets limited admin.",
+            "note": "ALL members login via member login → /app/home. Role holders see admin section. President/VP=full, Secretary=limited.",
         },
         "chapter_id": chapter_id,
         "test_data_summary": {
             "ed": "9999900001 / Test@1234 (staff login)",
-            "president": "9999900003 / Test@1234 (member login → admin)",
-            "vice_president": "9999900004 / Test@1234 (member login → admin)",
-            "secretary": "9999900005 / Test@1234 (member login → limited admin)",
-            "members": "9999900006-07 / Test@1234 (member login → member)",
+            "president": "9999900003 / Test@1234 (member login → /app/home, full admin)",
+            "vice_president": "9999900004 / Test@1234 (member login → /app/home, full admin)",
+            "secretary": "9999900005 / Test@1234 (member login → /app/home, limited admin)",
+            "members": "9999900006-07 / Test@1234 (member login → /app/home, member only)",
             "accountant": "9999900008 / Test@1234 (staff login)",
             "chapter": "BNI Sunrise Test Chapter",
         }

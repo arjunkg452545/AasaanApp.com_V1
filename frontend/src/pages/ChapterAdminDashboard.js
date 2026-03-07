@@ -57,7 +57,7 @@ export default function ChapterAdminDashboard() {
         {stats.pendingVerifications > 0 && (
           <Card
             className="mb-4 md:mb-5 p-3 md:p-4 bg-indigo-50 border-indigo-200 cursor-pointer hover:shadow-md transition-all"
-            onClick={() => navigate('/admin/verify-payments')}
+            onClick={() => navigate('/app/verify-payments')}
           >
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
@@ -78,7 +78,7 @@ export default function ChapterAdminDashboard() {
           {/* Members Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-[#CF2030] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/members')}
+            onClick={() => navigate('/app/members')}
             data-testid="nav-members"
           >
             <div className="flex items-center md:flex-col md:text-center gap-3 md:gap-4">
@@ -99,7 +99,7 @@ export default function ChapterAdminDashboard() {
           {/* Meeting Management Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-[#005596] group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/meeting-hub')}
+            onClick={() => navigate('/app/meetings')}
             data-testid="nav-meeting-management"
           >
             <div className="flex items-center md:flex-col md:text-center gap-3 md:gap-4">
@@ -120,7 +120,7 @@ export default function ChapterAdminDashboard() {
           {/* Fund Management Card */}
           <Card 
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-green-500 group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/fund-hub')}
+            onClick={() => navigate('/app/fund-hub')}
             data-testid="nav-fund-management"
           >
             <div className="flex items-center md:flex-col md:text-center gap-3 md:gap-4">
@@ -140,7 +140,7 @@ export default function ChapterAdminDashboard() {
           {/* Expiring Soon Card */}
           <Card
             className="min-h-[90px] md:min-h-[100px] lg:min-h-[110px] p-[14px] md:p-4 lg:p-[18px] hover:shadow-xl transition-all cursor-pointer border-l-4 border-l-amber-500 group active:scale-[0.98] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-            onClick={() => navigate('/admin/members')}
+            onClick={() => navigate('/app/members')}
             data-testid="nav-expiring"
           >
             <div className="flex items-center md:flex-col md:text-center gap-3 md:gap-4">

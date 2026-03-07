@@ -107,7 +107,7 @@ export default function MemberProfile() {
     return (
       <div className="p-8 text-center">
         <p style={{ color: 'var(--nm-text-secondary)' }}>Member not found.</p>
-        <Button variant="ghost" onClick={() => navigate('/admin/members')} className="mt-4">
+        <Button variant="ghost" onClick={() => navigate('/app/members')} className="mt-4">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Members
         </Button>
       </div>
@@ -123,7 +123,7 @@ export default function MemberProfile() {
     <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
       <div className="nm-header px-4 md:px-8 py-3 md:py-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/members')} className="mb-2">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/members')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back to Members
         </Button>
         <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h1>

@@ -45,14 +45,11 @@ export default function Login() {
       localStorage.setItem('member_name', member_name);
       localStorage.setItem('chapter_id', chapter_id);
       localStorage.setItem('chapter_name', chapter_name || '');
-      if (chapter_role) localStorage.setItem('chapter_role', chapter_role);
-      // ChapterAdminLayout reads 'user_name' — set it for admin role
-      if (role === 'admin') {
-        localStorage.setItem('user_name', member_name);
-        localStorage.setItem('mobile', memberMobile);
-      }
+      localStorage.setItem('chapter_role', chapter_role || 'member');
+      localStorage.setItem('user_name', member_name);
+      localStorage.setItem('mobile', memberMobile);
       toast.success('Welcome back!');
-      navigate(redirect || (role === 'admin' ? '/admin/dashboard' : '/member/dashboard'));
+      navigate(redirect || '/app/home');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Invalid credentials');
     } finally {

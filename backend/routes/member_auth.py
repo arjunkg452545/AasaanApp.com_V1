@@ -63,13 +63,11 @@ async def member_login(data: MemberLoginRequest, response: Response):
     chapter_role = member.get("chapter_role", "member")
     if chapter_role in ("president", "vice_president"):
         jwt_role = "admin"
-        redirect_url = "/admin/dashboard"
     elif chapter_role in ("secretary", "treasurer", "secretary_treasurer", "lvh"):
         jwt_role = "admin"
-        redirect_url = "/admin/dashboard"
     else:
         jwt_role = "member"
-        redirect_url = "/member/dashboard"
+    redirect_url = "/app/home"  # Unified layout for all members
 
     # Create JWT with role-based payload
     jwt_payload = {
@@ -145,7 +143,7 @@ async def set_member_password(
 @router.post("/member/change-password")
 async def change_member_password(
     data: MemberChangePasswordRequest,
-    user=Depends(require_role("member")),
+    user=Depends(require_role("member", "admin")),
 ):
     """Member changes their own password."""
     member_id = user.get("member_id")

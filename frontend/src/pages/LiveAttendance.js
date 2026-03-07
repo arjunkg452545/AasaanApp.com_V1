@@ -68,7 +68,7 @@ export default function LiveAttendance() {
         <Button
           data-testid="back-btn"
           variant="ghost"
-          onClick={() => navigate('/admin/reports')}
+          onClick={() => navigate('/app/reports')}
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />

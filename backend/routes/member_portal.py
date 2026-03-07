@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api")
 # ===== MEMBER DASHBOARD =====
 
 @router.get("/member/dashboard")
-async def member_dashboard(user=Depends(require_role("member"))):
+async def member_dashboard(user=Depends(require_role("member", "admin"))):
     """Member home: profile snippet, pending count, total due, recent payments."""
     member_id = user.get("member_id")
     chapter_id = user.get("chapter_id")
@@ -95,7 +95,7 @@ async def member_dashboard(user=Depends(require_role("member"))):
 @router.get("/member/fees")
 async def member_list_fees(
     status: Optional[str] = Query(None),
-    user=Depends(require_role("member")),
+    user=Depends(require_role("member", "admin")),
 ):
     """List all fees for the logged-in member."""
     member_id = user.get("member_id")
@@ -116,7 +116,7 @@ async def member_list_fees(
 
 
 @router.get("/member/fees/{ledger_id}")
-async def member_fee_detail(ledger_id: str, user=Depends(require_role("member"))):
+async def member_fee_detail(ledger_id: str, user=Depends(require_role("member", "admin"))):
     """Get single fee detail for the member."""
     member_id = user.get("member_id")
     fee = await db.fee_ledger.find_one(
@@ -138,7 +138,7 @@ async def submit_payment_proof(
     payment_date: str = Form(None),
     note: str = Form(None),
     screenshot: UploadFile = File(None),
-    user=Depends(require_role("member")),
+    user=Depends(require_role("member", "admin")),
 ):
     """
     Member submits payment proof.
@@ -201,7 +201,7 @@ async def submit_payment_proof(
 # ===== PAYMENT INFO (UPI/Bank details) =====
 
 @router.get("/member/payment-info")
-async def member_payment_info(user=Depends(require_role("member"))):
+async def member_payment_info(user=Depends(require_role("member", "admin"))):
     """Get chapter's UPI/bank payment details for the member."""
     chapter_id = user.get("chapter_id")
 
@@ -250,7 +250,7 @@ async def member_payment_info(user=Depends(require_role("member"))):
 # ===== UPI DEEP LINK =====
 
 @router.get("/member/upi-link/{ledger_id}")
-async def generate_upi_link(ledger_id: str, user=Depends(require_role("member"))):
+async def generate_upi_link(ledger_id: str, user=Depends(require_role("member", "admin"))):
     """Generate UPI deep link for a fee."""
     member_id = user.get("member_id")
     chapter_id = user.get("chapter_id")
@@ -300,7 +300,7 @@ async def generate_upi_link(ledger_id: str, user=Depends(require_role("member"))
 # ===== MEMBER PROFILE =====
 
 @router.get("/member/profile")
-async def member_profile(user=Depends(require_role("member"))):
+async def member_profile(user=Depends(require_role("member", "admin"))):
     """Get member's own profile."""
     member_id = user.get("member_id")
     member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
@@ -333,7 +333,7 @@ async def member_profile(user=Depends(require_role("member"))):
 # ===== PAYMENT HISTORY =====
 
 @router.get("/member/history")
-async def member_history(user=Depends(require_role("member"))):
+async def member_history(user=Depends(require_role("member", "admin"))):
     """Get member's verified (completed) payment history."""
     member_id = user.get("member_id")
     payments = await db.fee_ledger.find(

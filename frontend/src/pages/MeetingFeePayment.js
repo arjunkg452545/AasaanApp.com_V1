@@ -163,7 +163,7 @@ export default function MeetingFeePayment() {
       {/* Header */}
       <div className="nm-header px-3 md:px-8 py-3 md:py-4 flex justify-between items-center">
         <div className="flex items-center gap-2 md:gap-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/fund-hub')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>

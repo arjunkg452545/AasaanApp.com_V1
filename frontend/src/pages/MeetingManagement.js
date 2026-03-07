@@ -177,7 +177,7 @@ export default function MeetingManagement() {
           data-testid="back-btn"
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/meeting-hub')}
+          onClick={() => navigate('/app/meetings')}
           className="mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-1 md:mr-2" />
@@ -294,7 +294,7 @@ export default function MeetingManagement() {
                     <div className="flex items-center gap-1">
                       {meeting.status !== 'archived' && (
                         <Button variant="ghost" size="sm" className="text-[#CF2030] h-9 px-2"
-                          onClick={() => navigate(`/admin/qr-display/${meeting.meeting_id}`)}>
+                          onClick={() => navigate(`/app/meetings/qr/${meeting.meeting_id}`)}>
                           <QrCode className="h-4 w-4" />
                         </Button>
                       )}
@@ -340,7 +340,7 @@ export default function MeetingManagement() {
                     {meeting.status !== 'archived' && (
                       <Button
                         variant="outline"
-                        onClick={() => navigate(`/admin/qr-display/${meeting.meeting_id}`)}
+                        onClick={() => navigate(`/app/meetings/qr/${meeting.meeting_id}`)}
                         className="text-[#CF2030] hover:text-[#A61926] hover:bg-red-50"
                       >
                         <QrCode className="h-4 w-4 mr-2" /> Show QR
