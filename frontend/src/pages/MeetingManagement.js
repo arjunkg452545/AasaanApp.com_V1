@@ -8,7 +8,7 @@ import { Card } from '../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Checkbox } from '../components/ui/checkbox';
 import { toast } from 'sonner';
-import { Plus, ArrowLeft, Archive, ArchiveRestore, Loader2 } from 'lucide-react';
+import { Plus, ArrowLeft, Archive, ArchiveRestore, Loader2, QrCode, FileDown, FileText } from 'lucide-react';
 
 export default function MeetingManagement() {
   const [meetings, setMeetings] = useState([]);
@@ -291,14 +291,22 @@ export default function MeetingManagement() {
                     <h3 className="font-bold text-base" style={{ color: 'var(--nm-text-primary)' }}>
                       {new Date(meeting.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setArchiveConfirm(meeting)}
-                      className={meeting.status === 'archived' ? 'text-emerald-600 hover:text-emerald-700 h-9 px-2' : 'text-amber-600 hover:text-amber-700 h-9 px-2'}
-                    >
-                      {meeting.status === 'archived' ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      {meeting.status !== 'archived' && (
+                        <Button variant="ghost" size="sm" className="text-[#CF2030] h-9 px-2"
+                          onClick={() => navigate(`/admin/qr-display/${meeting.meeting_id}`)}>
+                          <QrCode className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setArchiveConfirm(meeting)}
+                        className={meeting.status === 'archived' ? 'text-emerald-600 hover:text-emerald-700 h-9 px-2' : 'text-amber-600 hover:text-amber-700 h-9 px-2'}
+                      >
+                        {meeting.status === 'archived' ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                      </Button>
+                    </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
                     <p><strong>Start:</strong> {new Date(meeting.start_time).toLocaleTimeString()}</p>
@@ -329,6 +337,23 @@ export default function MeetingManagement() {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
+                    {meeting.status !== 'archived' && (
+                      <Button
+                        variant="outline"
+                        onClick={() => navigate(`/admin/qr-display/${meeting.meeting_id}`)}
+                        className="text-[#CF2030] hover:text-[#A61926] hover:bg-red-50"
+                      >
+                        <QrCode className="h-4 w-4 mr-2" /> Show QR
+                      </Button>
+                    )}
+                    <div className="flex gap-1">
+                      <Button variant="outline" size="sm" onClick={() => downloadExcel(meeting.meeting_id)} title="Excel">
+                        <FileDown className="h-4 w-4" />
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => downloadPDF(meeting.meeting_id)} title="PDF">
+                        <FileText className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <Button
                       variant="outline"
                       onClick={() => setArchiveConfirm(meeting)}
@@ -366,7 +391,7 @@ export default function MeetingManagement() {
               <Button variant="outline" onClick={() => setArchiveConfirm(null)}>Cancel</Button>
               <Button
                 onClick={() => archiveMeeting(archiveConfirm.meeting_id, archiveConfirm.status === 'archived')}
-                className={archiveConfirm?.status === 'archived' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-amber-600 hover:bg-amber-700'}
+                className={archiveConfirm?.status === 'archived' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-[#CF2030] hover:bg-[#A61926]'}
               >
                 {archiveConfirm?.status === 'archived' ? 'Restore' : 'Archive'}
               </Button>

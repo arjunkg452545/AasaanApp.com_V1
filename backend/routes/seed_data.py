@@ -287,6 +287,77 @@ async def _seed_meetings_and_attendance(chapter_id, member_records, now, now_iso
             created["attendance"] += 1
 
 
+async def _seed_roles_visitors_audit(chapter_id, member_records, password_hash, now_iso, created):
+    """Seed chapter roles, visitors, audit log entries, and a pending member."""
+    # Assign chapter roles
+    role_map = {0: "president", 1: "vice_president", 2: "secretary"}
+    for idx, role in role_map.items():
+        if idx < len(member_records):
+            await db.members.update_one(
+                {"member_id": member_records[idx]["member_id"]},
+                {"$set": {"chapter_role": role}}
+            )
+    created["chapter_roles"] = "assigned (president, VP, secretary)"
+
+    # Add a pending member
+    pending_mobile = "9999900009"
+    existing_pending = await db.members.find_one({"primary_mobile": pending_mobile})
+    if not existing_pending:
+        await db.members.insert_one({
+            "member_id": str(uuid4()), "chapter_id": chapter_id,
+            "unique_member_id": "TEST006", "full_name": "Pending Kumar",
+            "primary_mobile": pending_mobile, "secondary_mobile": None,
+            "email": None, "business_name": "Pending Enterprises",
+            "business_category": "Retail", "membership_status": "pending",
+            "status": "Inactive", "created_at": now_iso,
+            "bni_member_id": "TEST006", "organization_id": chapter_id,
+            "status_history": [{"action": "created", "from_status": None,
+                "to_status": "pending", "reason": "Seeded pending member",
+                "changed_by": "9999900002", "timestamp": now_iso}],
+            "archived": False,
+        })
+        created["pending_member"] = "created"
+    else:
+        created["pending_member"] = "skipped"
+
+    # Add sample visitors
+    visitor_names = [
+        ("Visitor Sharma", "9888800001", "Sharma Trading"),
+        ("Visitor Gupta", "9888800002", "Gupta Textiles"),
+        ("Visitor Jain", "9888800003", "Jain Pharma"),
+    ]
+    created["visitors"] = 0
+    for vname, vmob, vbiz in visitor_names:
+        existing_v = await db.visitors.find_one({"visitor_mobile": vmob, "chapter_id": chapter_id})
+        if not existing_v:
+            await db.visitors.insert_one({
+                "visitor_id": str(uuid4()), "chapter_id": chapter_id,
+                "visitor_name": vname, "visitor_mobile": vmob,
+                "visitor_business": vbiz, "status": "attended",
+                "invited_by_member_id": member_records[0]["member_id"] if member_records else None,
+                "date": now_iso[:10], "notes": "Test visitor", "created_at": now_iso,
+            })
+            created["visitors"] += 1
+
+    # Add audit log entries
+    created["audit_logs"] = 0
+    audit_entries = [
+        {"action": "member_created", "role": "admin", "user": "9999900002", "detail": "Created member TEST001"},
+        {"action": "payment_verified", "role": "superadmin", "user": "9999900001", "detail": "Verified kitty payment"},
+        {"action": "chapter_created", "role": "developer", "user": "admin@aasaanapp.com", "detail": "Created BNI Sunrise"},
+    ]
+    existing_logs = await db.audit_logs.count_documents({"chapter_id": chapter_id})
+    if existing_logs == 0:
+        for entry in audit_entries:
+            await db.audit_logs.insert_one({
+                "log_id": str(uuid4()), "chapter_id": chapter_id,
+                "action": entry["action"], "role": entry["role"],
+                "user": entry["user"], "detail": entry["detail"],
+                "timestamp": now_iso,
+            })
+            created["audit_logs"] += 1
+
+
 @router.post("/developer/seed-test-data")
 async def seed_test_data(user=Depends(require_role("developer"))):
     """Seed complete test data for all roles. Idempotent."""
@@ -307,6 +378,7 @@ async def seed_test_data(user=Depends(require_role("developer"))):
     await _seed_accountant_and_config(superadmin_id, password_hash, now_iso, created)
     await _seed_fees(chapter_id, member_records, now, now_iso, created)
     await _seed_meetings_and_attendance(chapter_id, member_records, now, now_iso, created)
+    await _seed_roles_visitors_audit(chapter_id, member_records, password_hash, now_iso, created)
 
     return {
         "message": "Test data seeding complete",

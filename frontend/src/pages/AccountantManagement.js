@@ -9,7 +9,7 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import {
-  Loader2, Plus, UserPlus, Phone, Mail, Trash2, Calculator,
+  Loader2, Plus, UserPlus, Phone, Mail, Power, Calculator,
 } from 'lucide-react';
 
 export default function AccountantManagement() {
@@ -17,6 +17,7 @@ export default function AccountantManagement() {
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deactivateConfirm, setDeactivateConfirm] = useState(null);
 
   // Form
   const [name, setName] = useState('');
@@ -59,11 +60,12 @@ export default function AccountantManagement() {
     }
   };
 
-  const handleDeactivate = async (accountantId) => {
-    if (!window.confirm('Deactivate this accountant?')) return;
+  const confirmDeactivate = async () => {
+    if (!deactivateConfirm) return;
     try {
-      await api.delete(`/superadmin/accountants/${accountantId}`);
+      await api.delete(`/superadmin/accountants/${deactivateConfirm}`);
       toast.success('Accountant deactivated');
+      setDeactivateConfirm(null);
       loadAccountants();
     } catch {
       toast.error('Failed to deactivate');
@@ -128,10 +130,11 @@ export default function AccountantManagement() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeactivate(acc.accountant_id)}
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => setDeactivateConfirm(acc.accountant_id)}
+                      className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                      title="Deactivate"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Power className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
@@ -140,6 +143,22 @@ export default function AccountantManagement() {
           ))}
         </div>
       )}
+
+      {/* Deactivate Confirmation Dialog */}
+      <Dialog open={!!deactivateConfirm} onOpenChange={() => setDeactivateConfirm(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Deactivate Accountant</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+              Are you sure you want to deactivate this accountant? They will no longer be able to log in.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={() => setDeactivateConfirm(null)}>Cancel</Button>
+              <Button onClick={confirmDeactivate} className="bg-[#CF2030] hover:bg-[#A61926]">Deactivate</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>

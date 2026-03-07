@@ -26,27 +26,30 @@ const STATUS_COLORS = {
 export default function VisitorManagement() {
   const [visitors, setVisitors] = useState([]);
   const [members, setMembers] = useState([]);
+  const [meetings, setMeetings] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [formData, setFormData] = useState({
     visitor_name: '', visitor_mobile: '', visitor_business: '',
-    invited_by_member_id: '', status: 'attended', notes: '',
+    invited_by_member_id: '', meeting_id: '', status: 'attended', notes: '',
   });
 
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
-      const [vRes, mRes, sRes] = await Promise.all([
+      const [vRes, mRes, sRes, mtRes] = await Promise.all([
         api.get('/admin/visitors'),
         api.get('/admin/members'),
         api.get('/admin/visitors/stats'),
+        api.get('/admin/meetings').catch(() => ({ data: [] })),
       ]);
       setVisitors(vRes.data);
       setMembers(Array.isArray(mRes.data) ? mRes.data.filter(m => m.membership_status === 'active') : []);
       setStats(sRes.data);
+      setMeetings(Array.isArray(mtRes.data) ? mtRes.data.filter(m => m.status !== 'archived') : []);
     } catch { toast.error('Failed to load visitors'); }
     finally { setLoading(false); }
   };
@@ -70,7 +73,7 @@ export default function VisitorManagement() {
       await api.post('/admin/visitors', formData);
       toast.success('Visitor registered');
       setCreateOpen(false);
-      setFormData({ visitor_name: '', visitor_mobile: '', visitor_business: '', invited_by_member_id: '', status: 'attended', notes: '' });
+      setFormData({ visitor_name: '', visitor_mobile: '', visitor_business: '', invited_by_member_id: '', meeting_id: '', status: 'attended', notes: '' });
       loadData();
     } catch (e) { toast.error(e.response?.data?.detail || 'Failed to add visitor'); }
   };
@@ -199,6 +202,19 @@ export default function VisitorManagement() {
             <div><Label>Name *</Label><Input value={formData.visitor_name} onChange={e => setFormData({...formData, visitor_name: e.target.value})} placeholder="Visitor name" className="mt-1" /></div>
             <div><Label>Mobile *</Label><Input value={formData.visitor_mobile} onChange={e => setFormData({...formData, visitor_mobile: e.target.value})} placeholder="Mobile number" className="mt-1" /></div>
             <div><Label>Business</Label><Input value={formData.visitor_business} onChange={e => setFormData({...formData, visitor_business: e.target.value})} placeholder="Business name" className="mt-1" /></div>
+            <div>
+              <Label>Meeting</Label>
+              <Select value={formData.meeting_id} onValueChange={val => setFormData({...formData, meeting_id: val})}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Select meeting" /></SelectTrigger>
+                <SelectContent>
+                  {meetings.map(m => (
+                    <SelectItem key={m.meeting_id} value={m.meeting_id}>
+                      {new Date(m.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label>Invited By</Label>
               <Select value={formData.invited_by_member_id} onValueChange={val => setFormData({...formData, invited_by_member_id: val})}>

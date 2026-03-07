@@ -9,11 +9,11 @@ import ThemeToggle from '../components/ThemeToggle';
 import { toTitleCase } from '../utils/formatDate';
 
 const navItems = [
-  { label: 'Home', path: '/member/dashboard', icon: LayoutDashboard },
-  { label: 'Payments', path: '/member/payments', icon: Wallet },
-  { label: 'Completed', path: '/member/history', icon: CheckCircle },
-  { label: 'Attendance', path: '/member/attendance', icon: ClipboardList },
-  { label: 'Profile', path: '/member/profile', icon: User },
+  { label: 'Home', mobileLabel: 'Home', path: '/member/dashboard', icon: LayoutDashboard },
+  { label: 'Payments', mobileLabel: 'Pay', path: '/member/payments', icon: Wallet },
+  { label: 'Completed', mobileLabel: 'Done', path: '/member/history', icon: CheckCircle },
+  { label: 'Attendance', mobileLabel: 'Attend', path: '/member/attendance', icon: ClipboardList },
+  { label: 'Profile', mobileLabel: 'Me', path: '/member/profile', icon: User },
 ];
 
 export default function MemberLayout() {
@@ -178,7 +178,7 @@ export default function MemberLayout() {
               >
                 <Icon className={`h-5 w-5 ${active ? 'stroke-[2.5]' : ''}`} />
                 <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>
-                  {item.label}
+                  {item.mobileLabel || item.label}
                 </span>
               </button>
             );

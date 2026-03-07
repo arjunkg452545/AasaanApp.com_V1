@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import {
   Plus, ArrowLeft, Edit, Upload, Download,
   Search, Users, UserCheck, UserX, Clock, AlertTriangle,
-  FileDown, Loader2, Shield, ChevronRight, MessageCircle,
+  FileDown, Loader2, Shield, ChevronRight, MessageCircle, Crown,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
@@ -71,6 +71,9 @@ export default function MembersManagement() {
   const [formData, setFormData] = useState(emptyForm);
   const [statusAction, setStatusAction] = useState('deactivate');
   const [statusReason, setStatusReason] = useState('');
+  const [roleOpen, setRoleOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('member');
+  const [roleWarning, setRoleWarning] = useState('');
 
   // ---- Data Loading ----
   useEffect(() => { loadData(); }, []); // eslint-disable-line
@@ -159,6 +162,20 @@ export default function MembersManagement() {
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to change status');
+    }
+  };
+
+  const handleRoleChange = async () => {
+    try {
+      const res = await api.put(`/admin/members/${selectedMember.member_id}/role`, {
+        chapter_role: selectedRole,
+      });
+      toast.success(res.data.message || 'Role updated');
+      setRoleOpen(false);
+      setRoleWarning('');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update role');
     }
   };
 
@@ -430,7 +447,7 @@ export default function MembersManagement() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-0.5">
                         <h3 className="font-medium text-sm md:text-base truncate" style={{ color: 'var(--nm-text-primary)' }}>{toTitleCase(member.full_name)}</h3>
-                        <Badge className={`text-[10px] px-1.5 py-0 ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
+                        <Badge className={`text-[10px] px-1.5 py-0 capitalize ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                           {member.membership_status || 'active'}
                         </Badge>
                         {member.chapter_role && member.chapter_role !== 'member' && (
@@ -476,6 +493,16 @@ export default function MembersManagement() {
                         setEditOpen(true);
                       }}>
                       <Edit className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
+                      title="Assign Role"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setSelectedRole(member.chapter_role || 'member');
+                        setRoleWarning('');
+                        setRoleOpen(true);
+                      }}>
+                      <Crown className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-secondary)' }} />
                     </Button>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"
                       onClick={() => {
@@ -539,6 +566,50 @@ export default function MembersManagement() {
             </div>
             <Button onClick={handleStatusChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
               Confirm
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Assignment Dialog */}
+      <Dialog open={roleOpen} onOpenChange={setRoleOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Chapter Role</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+              Member: <strong>{toTitleCase(selectedMember?.full_name)}</strong>
+            </p>
+            <div>
+              <Label>Chapter Role</Label>
+              <Select value={selectedRole} onValueChange={(val) => {
+                setSelectedRole(val);
+                if (val !== 'member') {
+                  const holder = members.find(m => m.chapter_role === val && m.member_id !== selectedMember?.member_id);
+                  setRoleWarning(holder ? `${toTitleCase(holder.full_name)} is currently ${val.replace('_', ' ')}. They will be reassigned to Member.` : '');
+                } else { setRoleWarning(''); }
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="member">Member (default)</SelectItem>
+                  <SelectItem value="president">President</SelectItem>
+                  <SelectItem value="vice_president">Vice President</SelectItem>
+                  <SelectItem value="secretary">Secretary</SelectItem>
+                  <SelectItem value="treasurer">Treasurer</SelectItem>
+                  <SelectItem value="lvh">LVH</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {roleWarning && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-xs text-amber-700 flex items-center gap-1">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" /> {roleWarning}
+                </p>
+              </div>
+            )}
+            <Button onClick={handleRoleChange} className="w-full bg-[#CF2030] hover:bg-[#A61926]">
+              Assign Role
             </Button>
           </div>
         </DialogContent>

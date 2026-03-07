@@ -139,7 +139,7 @@ export default function MemberProfile() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</h2>
-                <Badge className={`text-xs ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
+                <Badge className={`text-xs capitalize ${STATUS_COLORS[member.membership_status] || STATUS_COLORS.active}`}>
                   {member.membership_status || 'active'}
                 </Badge>
               </div>

@@ -85,6 +85,9 @@ export default function AccountantReports() {
           <Button variant="outline" size="sm" disabled={exporting} onClick={() => handleExport('excel')}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
           </Button>
+          <Button variant="outline" size="sm" onClick={() => window.print()}>
+            <FileText className="h-4 w-4 mr-1" /> PDF
+          </Button>
         </div>
       </div>
 

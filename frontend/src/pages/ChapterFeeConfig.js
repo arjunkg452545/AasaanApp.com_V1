@@ -176,7 +176,7 @@ export default function ChapterFeeConfig() {
         {isAdmin && (
           <Card className="p-6 space-y-4">
             <h2 className="text-lg font-semibold flex items-center gap-2" style={{ color: 'var(--nm-text-primary)' }}>
-              <Calendar className="h-5 w-5 text-[#005596]" /> Generate Monthly Fees
+              <Calendar className="h-5 w-5 text-[#CF2030]" /> Generate Monthly Fees
             </h2>
             <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
               Generate kitty and meeting fee entries for all active members.
@@ -208,7 +208,7 @@ export default function ChapterFeeConfig() {
               <Button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="bg-[#005596] hover:bg-[#003d6b]"
+                className="bg-[#CF2030] hover:bg-[#A61926]"
               >
                 <PlayCircle className="h-4 w-4 mr-2" />
                 {generating ? 'Generating...' : 'Generate'}

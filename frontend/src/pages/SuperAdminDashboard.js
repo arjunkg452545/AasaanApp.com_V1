@@ -29,7 +29,7 @@ function StatCard({ icon: Icon, iconBg, iconColor, label, value }) {
           <Icon className={`h-5 w-5 ${iconColor}`} />
         </div>
         <div>
-          <p className="text-xs uppercase tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>{label}</p>
+          <p className="text-xs tracking-wide font-medium" style={{ color: 'var(--nm-text-secondary)' }}>{label}</p>
           <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{value}</p>
         </div>
       </div>
