@@ -8,7 +8,7 @@ import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import {
   Loader2, AlertCircle, Clock, CheckCircle2, ChevronRight,
-  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee,
+  Wallet, Users, ClipboardList, ShieldCheck, IndianRupee, RefreshCw,
 } from 'lucide-react';
 import { toTitleCase } from '../utils/formatDate';
 
@@ -44,6 +44,7 @@ function formatRole(role) {
 export default function UnifiedHome() {
   const [memberData, setMemberData] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -55,27 +56,32 @@ export default function UnifiedHome() {
   useEffect(() => { loadData(); }, []); // eslint-disable-line
 
   const loadData = async () => {
+    setError(null);
+    const errors = [];
     try {
       // Always load member dashboard
-      const memberRes = await api.get('/member/dashboard').catch(() => null);
+      const memberRes = await api.get('/member/dashboard').catch(() => { errors.push('member'); return null; });
       if (memberRes) setMemberData(memberRes.data);
+      else if (!memberData) setError('Could not load your payment data.');
 
       // Load admin stats if role holder
       if (isRoleHolder) {
         const [membersRes, meetingsRes, fundRes, verifyRes] = await Promise.all([
-          api.get('/admin/members').catch(() => ({ data: [] })),
-          api.get('/admin/meetings').catch(() => ({ data: [] })),
-          api.get('/admin/fund/reports/summary').catch(() => ({ data: { grand_total: 0 } })),
-          api.get('/admin/payments/summary').catch(() => ({ data: { submitted_count: 0 } })),
+          api.get('/admin/members').catch(() => { errors.push('members'); return null; }),
+          api.get('/admin/meetings').catch(() => { errors.push('meetings'); return null; }),
+          api.get('/admin/fund/reports/summary').catch(() => { errors.push('fund'); return null; }),
+          api.get('/admin/payments/summary').catch(() => { errors.push('payments'); return null; }),
         ]);
         setAdminStats({
-          members: Array.isArray(membersRes.data) ? membersRes.data.length : 0,
-          meetings: Array.isArray(meetingsRes.data) ? meetingsRes.data.length : 0,
-          fundTotal: fundRes.data.grand_total || 0,
-          pendingVerifications: verifyRes.data.submitted_count || 0,
+          members: membersRes && Array.isArray(membersRes.data) ? membersRes.data.length : 0,
+          meetings: meetingsRes && Array.isArray(meetingsRes.data) ? meetingsRes.data.length : 0,
+          fundTotal: fundRes?.data?.grand_total || 0,
+          pendingVerifications: verifyRes?.data?.submitted_count || 0,
         });
+        if (errors.length > 0 && !error) setError('Could not load some admin stats. Partial data shown.');
       }
-    } catch { toast.error('Failed to load dashboard'); }
+      if (errors.length > 0) toast.error('Some dashboard data failed to load');
+    } catch { toast.error('Failed to load dashboard'); setError('Failed to load dashboard data.'); }
     finally { setLoading(false); }
   };
 
@@ -85,6 +91,21 @@ export default function UnifiedHome() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
+      {/* Error Banner */}
+      {error && (
+        <Card className="p-3" style={{ background: 'var(--nm-surface-raised)', border: '1px solid var(--nm-border)' }}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-amber-500 shrink-0" />
+              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>{error}</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={loadData}>
+              <RefreshCw className="h-3.5 w-3.5 mr-1" /> Retry
+            </Button>
+          </div>
+        </Card>
+      )}
+
       {/* Welcome */}
       <div>
         <h1 className="text-xl md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
@@ -184,14 +205,14 @@ export default function UnifiedHome() {
 
           {/* Verification Banner */}
           {adminStats.pendingVerifications > 0 && (
-            <Card className="p-3 bg-indigo-50 border-indigo-200 cursor-pointer hover:shadow-md transition-all" onClick={() => navigate('/app/fund-hub')}>
+            <Card className="p-3 cursor-pointer hover:shadow-md transition-all" style={{ background: 'var(--nm-surface-raised)', borderColor: 'var(--nm-border)' }} onClick={() => navigate('/app/fund-hub')}>
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5 text-indigo-600" /></div>
+                <div className="h-10 w-10 rounded-full bg-[#CF2030]/10 flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5 text-[#CF2030]" /></div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-indigo-900">{adminStats.pendingVerifications} payment{adminStats.pendingVerifications > 1 ? 's' : ''} awaiting verification</p>
-                  <p className="text-xs text-indigo-600">Tap to review</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{adminStats.pendingVerifications} payment{adminStats.pendingVerifications > 1 ? 's' : ''} awaiting verification</p>
+                  <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Tap to review</p>
                 </div>
-                <span className="text-indigo-600 text-sm font-medium">Review &rarr;</span>
+                <span className="text-sm font-medium" style={{ color: 'var(--nm-accent)' }}>Review &rarr;</span>
               </div>
             </Card>
           )}

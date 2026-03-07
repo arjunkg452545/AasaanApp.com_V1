@@ -64,14 +64,14 @@ export default function AccountantDashboard() {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           <Card
-            className="p-4 border-l-4 border-l-indigo-500 cursor-pointer hover:shadow-md transition-shadow"
+            className="p-4 border-l-4 border-l-[#CF2030] cursor-pointer hover:shadow-md transition-shadow"
             onClick={() => navigate('/accountant/approvals')}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Clock className="h-4 w-4 text-indigo-500" />
+              <Clock className="h-4 w-4 text-[#CF2030]" />
               <span className="text-xs font-medium" style={{ color: 'var(--nm-text-secondary)' }}>Awaiting</span>
             </div>
-            <p className="text-lg md:text-xl font-bold text-indigo-600">{summary.admin_confirmed_count}</p>
+            <p className="text-lg md:text-xl font-bold text-[#CF2030]">{summary.admin_confirmed_count}</p>
             <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{formatCurrency(summary.admin_confirmed_total)}</p>
           </Card>
 
@@ -107,17 +107,18 @@ export default function AccountantDashboard() {
       {/* Quick action */}
       {summary && summary.admin_confirmed_count > 0 && (
         <Card
-          className="p-4 mb-6 bg-indigo-50 border-indigo-200 cursor-pointer hover:shadow-md transition-shadow"
+          className="p-4 mb-6 cursor-pointer hover:shadow-md transition-shadow"
+          style={{ background: 'var(--nm-surface-raised)', borderColor: 'var(--nm-border)' }}
           onClick={() => navigate('/accountant/approvals')}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-6 w-6 text-indigo-600" />
+              <ShieldCheck className="h-6 w-6 text-[#CF2030]" />
               <div>
-                <p className="text-sm font-semibold text-indigo-900">
+                <p className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>
                   {summary.admin_confirmed_count} payment{summary.admin_confirmed_count > 1 ? 's' : ''} ready for approval
                 </p>
-                <p className="text-xs text-indigo-600">Total: {formatCurrency(summary.admin_confirmed_total)}</p>
+                <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Total: {formatCurrency(summary.admin_confirmed_total)}</p>
               </div>
             </div>
             <Button size="sm" className="bg-[#CF2030] hover:bg-[#A61926]">
