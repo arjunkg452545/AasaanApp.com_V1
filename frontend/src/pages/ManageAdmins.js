@@ -14,6 +14,7 @@ import {
 
 function formatRole(role) {
   if (!role) return 'Member';
+  if (role === 'secretary_treasurer') return 'Secretary/Treasurer';
   return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 

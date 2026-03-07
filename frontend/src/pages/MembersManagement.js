@@ -597,6 +597,7 @@ export default function MembersManagement() {
                   <SelectItem value="vice_president">Vice President</SelectItem>
                   <SelectItem value="secretary">Secretary</SelectItem>
                   <SelectItem value="treasurer">Treasurer</SelectItem>
+                  <SelectItem value="secretary_treasurer">Secretary/Treasurer</SelectItem>
                   <SelectItem value="lvh">LVH</SelectItem>
                 </SelectContent>
               </Select>

@@ -64,7 +64,7 @@ async def member_login(data: MemberLoginRequest, response: Response):
     if chapter_role in ("president", "vice_president"):
         jwt_role = "admin"
         redirect_url = "/admin/dashboard"
-    elif chapter_role in ("secretary", "treasurer", "lvh"):
+    elif chapter_role in ("secretary", "treasurer", "secretary_treasurer", "lvh"):
         jwt_role = "admin"
         redirect_url = "/admin/dashboard"
     else:

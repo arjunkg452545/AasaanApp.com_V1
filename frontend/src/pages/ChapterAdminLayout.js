@@ -24,6 +24,7 @@ const FULL_ADMIN_ROLES = ['president', 'vice_president'];
 
 function formatRole(role) {
   if (!role) return 'Admin';
+  if (role === 'secretary_treasurer') return 'Secretary/Treasurer';
   return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 

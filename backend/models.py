@@ -61,7 +61,7 @@ class MemberUpdate(BaseModel):
     status: Optional[str] = None
 
 class MemberRoleUpdate(BaseModel):
-    chapter_role: str  # president, vice_president, secretary, treasurer, lvh, member
+    chapter_role: str  # president, vice_president, secretary, treasurer, secretary_treasurer, lvh, member
 
 class MemberResponse(BaseModel):
     member_id: str
