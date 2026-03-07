@@ -6,7 +6,7 @@ import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   Home, Wallet, ClipboardList, User, LogOut, Menu, X, Shield,
-  Users, FileText, Settings, MessageCircle, UserPlus, LayoutGrid, Bell,
+  Users, FileText, Settings, MessageCircle, UserPlus, LayoutGrid, Bell, ScanLine,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { toTitleCase } from '../utils/formatDate';
@@ -24,6 +24,7 @@ const ROLE_PERMISSIONS = {
 
 const personalNav = [
   { label: 'Home', mobileLabel: 'Home', path: '/app/home', icon: Home },
+  { label: 'Scan QR', mobileLabel: 'Scan', path: '/app/scan-attendance', icon: ScanLine },
   { label: 'My Payments', mobileLabel: 'Pay', path: '/app/my-payments', icon: Wallet },
   { label: 'My Attendance', mobileLabel: 'Attend', path: '/app/my-attendance', icon: ClipboardList },
   { label: 'My Profile', mobileLabel: 'Profile', path: '/app/my-profile', icon: User },
@@ -200,9 +201,11 @@ export default function UnifiedMemberLayout() {
         <nav className="lg:hidden fixed bottom-0 left-0 right-0 nm-header z-30 safe-area-bottom" style={{ borderTop: '1px solid var(--nm-border)' }}>
           <div className="flex items-center justify-around h-16">
             <BottomTab icon={Home} label="Home" active={isActive('/app/home')} onClick={() => handleNav('/app/home')} />
-            <BottomTab icon={Wallet} label="Pay" active={isActive('/app/my-payments')} onClick={() => handleNav('/app/my-payments')} />
-            {isRoleHolder && (
+            <BottomTab icon={ScanLine} label="Scan" active={isActive('/app/scan-attendance')} onClick={() => handleNav('/app/scan-attendance')} />
+            {isRoleHolder ? (
               <BottomTab icon={LayoutGrid} label="Admin" active={adminSheetOpen} onClick={() => setAdminSheetOpen(true)} accent />
+            ) : (
+              <BottomTab icon={Wallet} label="Pay" active={isActive('/app/my-payments')} onClick={() => handleNav('/app/my-payments')} />
             )}
             <BottomTab icon={ClipboardList} label="Attend" active={isActive('/app/my-attendance')} onClick={() => handleNav('/app/my-attendance')} />
             <BottomTab icon={User} label="Profile" active={isActive('/app/my-profile')} onClick={() => handleNav('/app/my-profile')} />

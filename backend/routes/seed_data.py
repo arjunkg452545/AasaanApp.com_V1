@@ -7,8 +7,11 @@ from database import db
 from deps import require_role
 from auth import hash_password
 from qr_generator import generate_qr_token
+from routes.superadmin import _generate_chapter_code
 
 router = APIRouter(prefix="/api", tags=["seed-data"])
+
+CHAPTER_NAME = "BNI Sunrise Test Chapter"
 
 
 async def _seed_superadmin(password_hash, now_iso, created, user):
@@ -50,14 +53,23 @@ async def _seed_subscription(superadmin_id, now, now_iso, created):
 
 async def _seed_chapter(password_hash, now, now_iso, created):
     """Seed test chapter. No separate admin credentials — President member is the admin."""
-    existing_chapter = await db.chapters.find_one({"name": "BNI Sunrise Test Chapter", "created_by": "9999900001"})
+    existing_chapter = await db.chapters.find_one({"name": CHAPTER_NAME, "created_by": "9999900001"})
     if existing_chapter:
         created["chapter"] = "skipped"
+        # Ensure chapter_code exists on existing chapter
+        if not existing_chapter.get("chapter_code"):
+            chapter_code = _generate_chapter_code(CHAPTER_NAME)
+            await db.chapters.update_one(
+                {"chapter_id": existing_chapter["chapter_id"]},
+                {"$set": {"chapter_code": chapter_code}}
+            )
         return existing_chapter["chapter_id"]
 
     chapter_id = f"CH{now.strftime('%Y%m%d%H%M%S')}"
+    chapter_code = _generate_chapter_code(CHAPTER_NAME)
     await db.chapters.insert_one({
-        "chapter_id": chapter_id, "name": "BNI Sunrise Test Chapter",
+        "chapter_id": chapter_id, "name": CHAPTER_NAME,
+        "chapter_code": chapter_code,
         "created_by": "9999900001",
         "region": "Raipur", "state": "CG", "city": "Raipur",
         "status": "active", "audit_logs": [], "created_at": now_iso
@@ -67,32 +79,51 @@ async def _seed_chapter(password_hash, now, now_iso, created):
 
 
 async def _seed_members(chapter_id, password_hash, now_iso, created):
-    """Seed 5 test members and their credentials."""
+    """Seed 5 test members and their credentials with BNI-format IDs and chapter_role."""
+    # Get chapter_code for BNI-format IDs
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0, "chapter_code": 1})
+    chapter_code = chapter.get("chapter_code", "SNR") if chapter else "SNR"
+
+    # role: president, vice_president, secretary for first 3; member for rest
     member_specs = [
-        {"mobile": "9999900003", "name": "Rajesh Kumar", "biz": "Kumar Construction", "cat": "Construction", "uid": "TEST001"},
-        {"mobile": "9999900004", "name": "Priya Patel", "biz": "Patel IT Solutions", "cat": "IT Services", "uid": "TEST002"},
-        {"mobile": "9999900005", "name": "Suresh Agarwal", "biz": "Agarwal Finance", "cat": "Finance", "uid": "TEST003"},
-        {"mobile": "9999900006", "name": "Neha Singh", "biz": "Singh Legal Associates", "cat": "Legal", "uid": "TEST004"},
-        {"mobile": "9999900007", "name": "Amit Verma", "biz": "Verma Healthcare", "cat": "Healthcare", "uid": "TEST005"},
+        {"mobile": "9999900003", "name": "Rajesh Kumar", "biz": "Kumar Construction", "cat": "Construction", "role": "president"},
+        {"mobile": "9999900004", "name": "Priya Patel", "biz": "Patel IT Solutions", "cat": "IT Services", "role": "vice_president"},
+        {"mobile": "9999900005", "name": "Suresh Agarwal", "biz": "Agarwal Finance", "cat": "Finance", "role": "secretary"},
+        {"mobile": "9999900006", "name": "Neha Singh", "biz": "Singh Legal Associates", "cat": "Legal", "role": "member"},
+        {"mobile": "9999900007", "name": "Amit Verma", "biz": "Verma Healthcare", "cat": "Healthcare", "role": "member"},
     ]
 
     member_records = []
-    for spec in member_specs:
+    for idx, spec in enumerate(member_specs):
+        bni_id = f"BNI-{chapter_code}-{idx + 1:03d}"
         existing_member = await db.members.find_one({"primary_mobile": spec["mobile"]})
         if existing_member:
+            # Migrate existing member to BNI-format ID and chapter_role if missing
+            updates = {}
+            if not existing_member.get("unique_member_id", "").startswith("BNI-"):
+                updates["unique_member_id"] = bni_id
+                updates["bni_member_id"] = bni_id
+            if not existing_member.get("chapter_role"):
+                updates["chapter_role"] = spec["role"]
+            if updates:
+                await db.members.update_one(
+                    {"member_id": existing_member["member_id"]}, {"$set": updates}
+                )
+                existing_member.update(updates)
             member_records.append(existing_member)
-            created["members"].append({"mobile": spec["mobile"], "status": "skipped"})
+            created["members"].append({"mobile": spec["mobile"], "status": "skipped (migrated)" if updates else "skipped"})
         else:
             member_id = str(uuid4())
             member_data = {
                 "member_id": member_id, "chapter_id": chapter_id,
-                "unique_member_id": spec["uid"], "full_name": spec["name"],
+                "unique_member_id": bni_id, "full_name": spec["name"],
                 "primary_mobile": spec["mobile"], "secondary_mobile": None,
                 "email": None, "business_name": spec["biz"],
                 "business_category": spec["cat"], "joining_date": None,
                 "renewal_date": None, "induction_fee": None,
                 "membership_status": "active", "status": "Active",
-                "created_at": now_iso, "bni_member_id": spec["uid"],
+                "chapter_role": spec["role"],
+                "created_at": now_iso, "bni_member_id": bni_id,
                 "organization_id": chapter_id,
                 "status_history": [{"action": "created", "from_status": None,
                     "to_status": "active", "reason": "Seeded test member",
@@ -299,16 +330,20 @@ async def _seed_roles_visitors_audit(chapter_id, member_records, password_hash, 
 
     # Add a pending member
     pending_mobile = "9999900009"
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0, "chapter_code": 1})
+    chapter_code = chapter.get("chapter_code", "SNR") if chapter else "SNR"
+    pending_bni_id = f"BNI-{chapter_code}-006"
     existing_pending = await db.members.find_one({"primary_mobile": pending_mobile})
     if not existing_pending:
         await db.members.insert_one({
             "member_id": str(uuid4()), "chapter_id": chapter_id,
-            "unique_member_id": "TEST006", "full_name": "Pending Kumar",
+            "unique_member_id": pending_bni_id, "full_name": "Pending Kumar",
             "primary_mobile": pending_mobile, "secondary_mobile": None,
             "email": None, "business_name": "Pending Enterprises",
             "business_category": "Retail", "membership_status": "pending",
-            "status": "Inactive", "created_at": now_iso,
-            "bni_member_id": "TEST006", "organization_id": chapter_id,
+            "status": "Inactive", "chapter_role": "member",
+            "created_at": now_iso,
+            "bni_member_id": pending_bni_id, "organization_id": chapter_id,
             "status_history": [{"action": "created", "from_status": None,
                 "to_status": "pending", "reason": "Seeded pending member",
                 "changed_by": "9999900002", "timestamp": now_iso}],
@@ -316,6 +351,17 @@ async def _seed_roles_visitors_audit(chapter_id, member_records, password_hash, 
         })
         created["pending_member"] = "created"
     else:
+        # Migrate existing pending member
+        updates = {}
+        if not existing_pending.get("unique_member_id", "").startswith("BNI-"):
+            updates["unique_member_id"] = pending_bni_id
+            updates["bni_member_id"] = pending_bni_id
+        if not existing_pending.get("chapter_role"):
+            updates["chapter_role"] = "member"
+        if updates:
+            await db.members.update_one(
+                {"member_id": existing_pending["member_id"]}, {"$set": updates}
+            )
         created["pending_member"] = "skipped"
 
     # Add sample visitors

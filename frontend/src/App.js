@@ -61,6 +61,9 @@ const MemberPendingApprovals = lazy(() => import("./pages/MemberPendingApprovals
 const Notifications = lazy(() => import("./pages/Notifications"));
 const SendNotification = lazy(() => import("./pages/SendNotification"));
 
+// QR Attendance Scanner
+const QRAttendanceScanner = lazy(() => import("./pages/QRAttendanceScanner"));
+
 // Developer Messaging Config
 const DeveloperMessagingConfig = lazy(() => import("./pages/DeveloperMessagingConfig"));
 
@@ -325,6 +328,7 @@ function App() {
             <Route path="my-payments/:ledgerId" element={<MemberPaymentDetail />} />
             <Route path="my-history" element={<MemberPaymentHistory />} />
             <Route path="my-attendance" element={<MemberAttendance />} />
+            <Route path="scan-attendance" element={<QRAttendanceScanner />} />
             <Route path="my-profile" element={<MemberMyProfile />} />
             {/* Chapter admin (role holders) */}
             <Route path="members" element={<MembersManagement />} />
