@@ -211,3 +211,27 @@ async def developer_dashboard_stats(user=Depends(require_role("developer"))):
         "total_revenue": total_revenue
     }
 
+
+# ===== APP VERSION CONFIG =====
+
+@router.get("/developer/app-config")
+async def get_app_config(user=Depends(require_role("developer"))):
+    """Get app version config for developer management."""
+    config = await db.app_config.find_one({"config_id": "app_version"}, {"_id": 0})
+    return config or {}
+
+
+@router.put("/developer/app-config")
+async def update_app_config(data: dict, user=Depends(require_role("developer"))):
+    """Update app version config."""
+    allowed = {"latest_version", "min_supported_version", "force_update", "update_message", "release_notes"}
+    update_fields = {k: v for k, v in data.items() if k in allowed and v is not None}
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+
+    await db.app_config.update_one(
+        {"config_id": "app_version"},
+        {"$set": update_fields},
+    )
+    return {"message": "App config updated"}
+

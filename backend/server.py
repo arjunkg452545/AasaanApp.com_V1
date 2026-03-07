@@ -52,6 +52,7 @@ from routes.visitors import router as visitors_router
 from routes.accountant_reports import router as accountant_reports_router
 from routes.superadmin_reports import router as superadmin_reports_router
 from routes.audit_log import router as audit_log_router
+from routes.otp import router as otp_router
 
 for r in [
     superadmin_router, superadmin_members_router,
@@ -64,6 +65,7 @@ for r in [
     member_portal_router, admin_verification_router, ed_approval_router,
     payment_reminders_router, payment_gateway_router, admin_auth_router,
     visitors_router, accountant_reports_router, superadmin_reports_router, audit_log_router,
+    otp_router,
 ]:
     app.include_router(r)
 
@@ -213,6 +215,41 @@ async def startup():
     except Exception as e:
         logger.warning(f"Could not create unique primary_mobile index (duplicates may exist): {e}")
     logger.info("Phase C indexes ensured")
+
+    # Seed default OTP config
+    if not await db.otp_config.find_one({"config_id": "default"}):
+        await db.otp_config.insert_one({
+            "config_id": "default",
+            "enabled": False,
+            "provider": "msg91",
+            "api_key": "",
+            "sender_id": "AASAAN",
+            "template_id": "",
+            "otp_length": 6,
+            "expiry_minutes": 5,
+            "daily_limit_per_number": 5,
+            "template_text": "Your AasaanApp OTP is {otp}. Valid for {minutes} minutes.",
+            "updated_at": "",
+            "updated_by": "",
+        })
+        logger.info("Default OTP config seeded")
+
+    # Seed app version config
+    if not await db.app_config.find_one({"config_id": "app_version"}):
+        await db.app_config.insert_one({
+            "config_id": "app_version",
+            "latest_version": "1.3.0",
+            "min_supported_version": "1.0.0",
+            "force_update": False,
+            "update_message": "New features available!",
+            "release_notes": "OTP-Ready Structure, Persistent Login, Auto-generated Member IDs",
+        })
+        logger.info("App version config seeded")
+
+    # OTP indexes
+    await db.otp_logs.create_index([("mobile", 1), ("sent_at", -1)])
+    await db.otp_logs.create_index([("mobile", 1), ("status", 1)])
+    logger.info("Phase D indexes ensured")
 
 
 @app.on_event("shutdown")
