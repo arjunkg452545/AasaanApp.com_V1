@@ -122,11 +122,11 @@ export default function QRAttendanceScanner() {
         {status === 'scanning' && (
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
             <div className="w-[260px] h-[260px] relative">
-              {/* Corner brackets */}
-              <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-xl" style={{ borderColor: '#CF2030' }} />
-              <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-xl" style={{ borderColor: '#CF2030' }} />
-              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-xl" style={{ borderColor: '#CF2030' }} />
-              <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-xl" style={{ borderColor: '#CF2030' }} />
+              {/* White corner brackets */}
+              <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-xl border-white" />
+              <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-xl border-white" />
+              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-xl border-white" />
+              <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-xl border-white" />
               {/* Animated scan line */}
               <div className="absolute left-2 right-2 h-0.5 animate-scan-line" style={{ background: 'linear-gradient(90deg, transparent, #CF2030, transparent)' }} />
             </div>

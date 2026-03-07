@@ -119,19 +119,12 @@ export default function UnifiedHome() {
         )}
       </div>
 
-      {/* Scan for Attendance — one-tap to camera */}
-      <Card className="p-3 cursor-pointer hover:shadow-md transition-shadow active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #CF2030 0%, #A61926 100%)' }} onClick={() => navigate('/app/scan-attendance')}>
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
-            <Camera className="h-5 w-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white">Scan for Attendance</p>
-            <p className="text-[11px] text-white/60">Tap to mark attendance</p>
-          </div>
-          <ChevronRight className="h-4 w-4 text-white/50 shrink-0" />
-        </div>
-      </Card>
+      {/* Scan QR pill button */}
+      <div className="flex justify-center">
+        <button onClick={() => navigate('/app/scan-attendance')} className="inline-flex items-center gap-2 h-[42px] px-5 rounded-full text-sm font-semibold text-white shadow-md active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
+          <Camera className="h-4 w-4" /> Scan QR for Attendance
+        </button>
+      </div>
 
       {/* ===== PERSONAL SECTION ===== */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
