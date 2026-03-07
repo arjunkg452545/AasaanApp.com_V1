@@ -320,7 +320,7 @@ async def update_member_role(member_id: str, data: MemberRoleUpdate, user=Depend
     if not chapter_id:
         raise HTTPException(status_code=400, detail="Chapter ID required")
 
-    valid_roles = ["president", "vice_president", "secretary", "treasurer", "lvh", "member"]
+    valid_roles = ["president", "vice_president", "secretary", "treasurer", "secretary_treasurer", "lvh", "member"]
     if data.chapter_role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
 
