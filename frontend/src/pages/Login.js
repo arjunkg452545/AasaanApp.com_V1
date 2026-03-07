@@ -167,7 +167,7 @@ export default function Login() {
                 style={{ opacity: 0.4 }}
                 onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.4'; }}
-                title="Staff Login"
+                title="Admin Login"
                 type="button"
               >
                 <User style={{ width: 18, height: 18, color: 'var(--nm-text-secondary)' }} />
@@ -275,10 +275,10 @@ export default function Login() {
                 className="text-3xl font-bold mb-1"
                 style={{ color: 'var(--nm-text-primary)', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}
               >
-                Staff Login
+                Admin Login
               </h2>
               <p className="mb-6" style={{ color: 'var(--nm-text-secondary)' }}>
-                Executive Director or Accountant
+                Admin & Admin Team
               </p>
 
               <form onSubmit={handleAdminLogin} className="space-y-5">
@@ -337,7 +337,7 @@ export default function Login() {
                   disabled={adminLoading}
                   className="nm-btn-login w-full"
                 >
-                  {adminLoading ? 'Signing in...' : 'Staff Sign In'}
+                  {adminLoading ? 'Signing in...' : 'Admin Sign In'}
                 </button>
               </form>
             </div>
