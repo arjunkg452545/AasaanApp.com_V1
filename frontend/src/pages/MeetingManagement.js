@@ -413,6 +413,8 @@ function MeetingCard({ meeting, status, onShowQR, onEdit, onDelete, onArchive, o
           <>
             <ActionBtn icon={QrCode} label="Show QR" onClick={onShowQR} color="#CF2030" />
             <ActionBtn icon={Eye} label="Live Attendance" onClick={onViewAttendance} color="#22C55E" />
+            <ActionBtn icon={FileDown} label="Excel" onClick={onDownloadExcel} />
+            <ActionBtn icon={FileText} label="PDF" onClick={onDownloadPDF} />
           </>
         )}
         {status === 'completed' && (

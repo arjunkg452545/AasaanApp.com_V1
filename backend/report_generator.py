@@ -312,16 +312,17 @@ def generate_excel_report(meeting: dict, members: list, attendance: list, chapte
         sr_no += 1
         row_count += 1
     
-    # Then: Add absent members (at the bottom)
+    # Then: Add absent/pending members (at the bottom)
+    absent_label = "Absent" if meeting_ended else "Pending"
     for member in absent_members:
         row_data = [
             sr_no,
             member["unique_member_id"],
             member["full_name"],
-            "Absent",
-            "", "", "Absent", "", ""
+            absent_label,
+            "", "", absent_label, "", ""
         ]
-        
+
         for col_idx, value in enumerate(row_data, 1):
             cell = ws1.cell(row=current_row, column=col_idx)
             cell.value = value
@@ -331,7 +332,7 @@ def generate_excel_report(meeting: dict, members: list, attendance: list, chapte
             # Alternating row colors
             if row_count % 2 == 1:
                 cell.fill = alt_row_fill
-        
+
         current_row += 1
         sr_no += 1
         row_count += 1
@@ -665,14 +666,15 @@ def generate_pdf_report(meeting: dict, members: list, attendance: list, chapter_
         table_data.append(row)
         sr_no += 1
     
-    # Then: Add absent members (at the bottom)
+    # Then: Add absent/pending members (at the bottom)
+    absent_label = "Absent" if meeting_ended else "Pending"
     for member in absent_members:
         row = [
             sr_no,
             member["unique_member_id"],
             member["full_name"][:20],
-            "Absent",
-            "", "", "Absent", "", ""
+            absent_label,
+            "", "", absent_label, "", ""
         ]
         table_data.append(row)
         sr_no += 1

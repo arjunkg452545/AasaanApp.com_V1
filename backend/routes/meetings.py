@@ -280,6 +280,46 @@ async def reject_attendance(attendance_id: str, user=Depends(get_current_user)):
     )
     return {"message": "Attendance rejected successfully"}
 
+@router.post("/admin/meetings/{meeting_id}/mark-manual")
+async def mark_manual_attendance(meeting_id: str, request: Request, user=Depends(get_current_user)):
+    """Mark attendance manually — for role holders when member cannot scan QR."""
+    if user["role"] not in ("admin", "developer"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    meeting = await db.meetings.find_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    body = await request.json()
+    unique_member_id = body.get("unique_member_id")
+    if not unique_member_id:
+        raise HTTPException(status_code=400, detail="unique_member_id is required")
+
+    # Duplicate check
+    existing = await db.attendance.find_one({"meeting_id": meeting_id, "unique_member_id": unique_member_id})
+    if existing:
+        raise HTTPException(status_code=400, detail="Attendance already marked for this member")
+
+    attendance_id = f"ATT{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:20]}"
+    att_data = {
+        "attendance_id": attendance_id,
+        "meeting_id": meeting_id,
+        "chapter_id": user["chapter_id"],
+        "unique_member_id": unique_member_id,
+        "type": body.get("type", "member"),
+        "member_name": body.get("member_name", ""),
+        "primary_mobile": body.get("primary_mobile", ""),
+        "substitute_name": body.get("substitute_name", ""),
+        "substitute_mobile": body.get("substitute_mobile", ""),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "approval_status": "approved",
+        "method": "manual",
+        "marked_by": user.get("member_name", user.get("mobile", "")),
+        "reason": body.get("reason", ""),
+    }
+    await db.attendance.insert_one(att_data)
+    return {"message": "Attendance marked manually", "attendance_id": attendance_id}
+
 @router.get("/admin/meetings/{meeting_id}/report/excel")
 async def download_excel_report(meeting_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):

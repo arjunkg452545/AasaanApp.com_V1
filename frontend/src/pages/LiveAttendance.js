@@ -1,348 +1,353 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
-import { ArrowLeft, RefreshCw, Users, Clock, UserCheck, UserX, UserPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  ArrowLeft, RefreshCw, FileDown, FileText, Clock, Loader2, CheckCircle,
+} from 'lucide-react';
+
+// Format timestamp to "7:05 AM"
+function fmtTime(ts) {
+  if (!ts) return '—';
+  try { return new Date(ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }); }
+  catch { return ts; }
+}
+
+const MANUAL_MARK_ROLES = ['president', 'vice_president', 'secretary', 'lvh'];
 
 export default function LiveAttendance() {
   const { meetingId } = useParams();
-  const [attendance, setAttendance] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showPending, setShowPending] = useState(false);
-  const [showAbsent, setShowAbsent] = useState(false);
+  const [markOpen, setMarkOpen] = useState(false);
+  const [markMember, setMarkMember] = useState('');
+  const [markReason, setMarkReason] = useState('Present in meeting');
+  const [marking, setMarking] = useState(false);
   const navigate = useNavigate();
 
-  const loadAttendance = async () => {
-    try {
-      const response = await api.get(`/admin/meetings/${meetingId}/attendance`);
-      setAttendance(response.data);
-    } catch (error) {
-      toast.error('Failed to load attendance');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const chapterRole = localStorage.getItem('chapter_role') || 'member';
+  const canManualMark = MANUAL_MARK_ROLES.includes(chapterRole) || localStorage.getItem('role') === 'developer';
 
   const loadSummary = async () => {
     try {
-      const response = await api.get(`/admin/meetings/${meetingId}/summary`);
-      setSummary(response.data);
-    } catch (error) {
-      console.error('Failed to load summary');
-    }
+      const r = await api.get(`/admin/meetings/${meetingId}/summary`);
+      setSummary(r.data);
+    } catch { toast.error('Failed to load attendance'); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
-    loadAttendance();
     loadSummary();
-    
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => {
-      loadAttendance();
-      loadSummary();
-    }, 30000);
+    const interval = setInterval(loadSummary, 15000);
     return () => clearInterval(interval);
   }, [meetingId]);
 
-  const getStatusBadge = (status, lateType) => {
-    if (status === 'Present' && lateType === 'On time') {
-      return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">On Time</Badge>;
-    }
-    if (status === 'Present' && lateType === 'Late') {
-      return <Badge className="bg-amber-100 text-amber-700 border-amber-200">Late</Badge>;
-    }
-    return <Badge className="bg-red-100 text-red-700 border-red-200">Absent</Badge>;
+  const handleManualMark = async () => {
+    if (!markMember) return;
+    setMarking(true);
+    try {
+      const member = summary?.pending_members?.find(m => m.unique_member_id === markMember);
+      if (!member) { toast.error('Member not found'); setMarking(false); return; }
+
+      await api.post(`/admin/meetings/${meetingId}/mark-manual`, {
+        unique_member_id: member.unique_member_id,
+        type: 'member',
+        reason: markReason,
+        member_name: member.full_name,
+        primary_mobile: member.primary_mobile || '',
+      });
+      toast.success(`Marked ${member.full_name} as present`);
+      setMarkOpen(false);
+      setMarkMember('');
+      setMarkReason('Present in meeting');
+      loadSummary();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to mark attendance');
+    } finally { setMarking(false); }
   };
 
-  // Separate members/substitutes and visitors
-  const memberAttendance = attendance.filter(att => att.type === 'member' || att.type === 'substitute');
-  const visitorAttendance = attendance.filter(att => att.type === 'visitor');
+  const downloadExcel = async () => {
+    try {
+      const r = await api.get(`/admin/meetings/${meetingId}/report/excel`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement('a'); a.href = url;
+      a.setAttribute('download', `attendance_${meetingId}.xlsx`);
+      document.body.appendChild(a); a.click(); a.remove();
+      toast.success('Excel downloaded');
+    } catch { toast.error('Failed to download Excel'); }
+  };
+
+  const downloadPDF = async () => {
+    try {
+      const r = await api.get(`/admin/meetings/${meetingId}/report/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([r.data]));
+      const a = document.createElement('a'); a.href = url;
+      a.setAttribute('download', `attendance_${meetingId}.pdf`);
+      document.body.appendChild(a); a.click(); a.remove();
+      toast.success('PDF downloaded');
+    } catch { toast.error('Failed to download PDF'); }
+  };
+
+  // Build combined members table rows
+  const membersTable = useMemo(() => {
+    if (!summary) return [];
+    const rows = [];
+    let sr = 1;
+
+    // Present members (sorted by timestamp from backend)
+    for (const m of (summary.present_members || [])) {
+      rows.push({ sr: sr++, id: m.unique_member_id, name: m.full_name, time: fmtTime(m.timestamp), status: 'Present', type: 'Member', color: '#16A34A' });
+    }
+
+    // Substitutes
+    for (const m of (summary.substitute_members || [])) {
+      rows.push({ sr: sr++, id: m.unique_member_id, name: m.full_name, time: fmtTime(m.timestamp), status: 'Substitute', type: `Sub: ${m.substitute_name}`, color: '#D97706' });
+    }
+
+    // Pending / Absent
+    for (const m of (summary.pending_members || [])) {
+      const isAbsent = m.status === 'Absent';
+      rows.push({ sr: sr++, id: m.unique_member_id, name: m.full_name, time: '—', status: m.status, type: '—', color: isAbsent ? '#DC2626' : '#9CA3AF' });
+    }
+
+    return rows;
+  }, [summary]);
+
+  const isLive = summary && !summary.meeting_ended;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--nm-bg)' }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--nm-text-muted)' }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
-      <div className="nm-header px-8 py-4">
-        <Button
-          data-testid="back-btn"
-          variant="ghost"
-          onClick={() => navigate('/app/reports')}
-          className="mb-2"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Reports
+      {/* Header */}
+      <div className="px-4 md:px-6 pt-4 pb-3">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/meetings/list')} className="mb-2 min-h-[44px]">
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>View Attendance</h1>
-          <Button
-            data-testid="refresh-btn"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              loadAttendance();
-              loadSummary();
-            }}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h1 className="text-lg md:text-xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>
+              Attendance Report
+            </h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              {isLive ? (
+                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(34,197,94,0.1)', color: '#22C55E' }}>
+                  🟢 Live — auto-refreshing
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                  style={{ background: 'rgba(107,114,128,0.08)', color: '#6B7280' }}>
+                  ✅ Completed
+                </span>
+              )}
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={loadSummary} className="min-h-[36px]">
+            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
           </Button>
         </div>
       </div>
 
-      <div className="p-4 md:p-8 max-w-7xl mx-auto">
-        {/* Attendance Summary */}
+      <div className="px-4 md:px-6 pb-8 max-w-5xl mx-auto">
+        {/* Summary Bar */}
         {summary && (
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Attendance Summary</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <Card className="p-4 border-l-4 border-l-blue-500">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Total Members</p>
-                    <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.total_members}</p>
-                  </div>
-                </div>
-              </Card>
+          <Card className="p-3 md:p-4 mb-4 rounded-xl">
+            <div className="flex flex-wrap items-center gap-3 md:gap-5">
+              <Stat label="Total" value={summary.total_members} color="#3B82F6" />
+              <Stat label="Present" value={summary.present_count} color="#16A34A" />
+              <Stat label="Subs" value={summary.substitute_count} color="#D97706" />
+              <Stat label={isLive ? 'Pending' : 'Absent'} value={isLive ? summary.pending_count : summary.absent_count} color="#DC2626" />
+              <Stat label="Visitors" value={summary.visitor_count} color="#7C3AED" />
 
-              <Card className="p-4 border-l-4 border-l-green-500">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
-                    <UserCheck className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Present</p>
-                    <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.present_count}</p>
-                  </div>
-                </div>
-              </Card>
+              <div className="flex-1" />
 
-              <Card className="p-4 border-l-4 border-l-amber-500">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <UserPlus className="h-5 w-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Substitutes</p>
-                    <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.substitute_count}</p>
-                  </div>
-                </div>
-              </Card>
-
-              <Card className="p-4 border-l-4 border-l-purple-500">
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Visitors</p>
-                    <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.visitor_count}</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
-
-            {/* Pending/Absent Members */}
-            {!summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-4 border-l-4 border-l-red-500 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
-                      <UserX className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Pending Attendance</p>
-                      <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.pending_count}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowPending(!showPending)}
-                  >
-                    {showPending ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    {showPending ? 'Hide' : 'Show'} List
+              {/* Action buttons */}
+              <div className="flex gap-2 flex-wrap">
+                {canManualMark && isLive && summary.pending_members?.length > 0 && (
+                  <Button size="sm" className="bg-[#005596] hover:bg-[#004478] text-white min-h-[36px] text-xs"
+                    onClick={() => setMarkOpen(true)}>
+                    <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark
                   </Button>
-                </div>
-                {showPending && (
-                  <div className="mt-4 space-y-2">
-                    {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="flex items-center justify-between p-2 rounded" style={{ background: 'var(--nm-surface)' }}>
-                        <div>
-                          <p className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</p>
-                          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>ID: {member.unique_member_id} | {member.primary_mobile}</p>
-                        </div>
-                        <Badge className="bg-red-100 text-red-700 border-red-200">Pending</Badge>
-                      </div>
-                    ))}
-                  </div>
                 )}
-              </Card>
-            )}
-
-            {summary.meeting_ended && summary.pending_members && summary.pending_members.length > 0 && (
-              <Card className="p-4 border-l-4 border-l-red-500 mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-red-100 flex items-center justify-center">
-                      <UserX className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Absent</p>
-                      <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{summary.absent_count}</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowAbsent(!showAbsent)}
-                  >
-                    {showAbsent ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    {showAbsent ? 'Hide' : 'Show'} List
-                  </Button>
-                </div>
-                {showAbsent && (
-                  <div className="mt-4 space-y-2">
-                    {summary.pending_members.map((member) => (
-                      <div key={member.unique_member_id} className="flex items-center justify-between p-2 rounded" style={{ background: 'var(--nm-surface)' }}>
-                        <div>
-                          <p className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>{member.full_name}</p>
-                          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>ID: {member.unique_member_id} | {member.primary_mobile}</p>
-                        </div>
-                        <Badge className="bg-red-100 text-red-700 border-red-200">Absent</Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Card>
-            )}
-
-            <div className="flex items-center gap-2 text-sm mt-4" style={{ color: 'var(--nm-text-secondary)' }}>
-              <Clock className="h-4 w-4" />
-              <span>Auto-refreshing every 30 seconds</span>
+                <Button variant="outline" size="sm" onClick={downloadExcel} className="min-h-[36px] text-xs">
+                  <FileDown className="h-3.5 w-3.5 mr-1" /> Excel
+                </Button>
+                <Button variant="outline" size="sm" onClick={downloadPDF} className="min-h-[36px] text-xs">
+                  <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+                </Button>
+              </div>
             </div>
+          </Card>
+        )}
+
+        {/* Members & Substitutes Table */}
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold mb-2 px-1" style={{ color: 'var(--nm-text-secondary)' }}>
+            MEMBERS & SUBSTITUTES
+          </h2>
+          <Card className="rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ minWidth: 520 }}>
+                <thead>
+                  <tr style={{ background: '#005596' }}>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-10">Sr</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-20">ID</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Name</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-24">Time</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-24">Status</th>
+                    <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {membersTable.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-12 text-center text-sm" style={{ color: 'var(--nm-text-muted)' }}>
+                        No attendance data yet
+                      </td>
+                    </tr>
+                  ) : (
+                    membersTable.map((row, idx) => (
+                      <tr key={row.id + row.status}
+                        style={{ background: idx % 2 === 0 ? 'var(--nm-surface, #fff)' : 'var(--nm-bg, #f9f9f9)' }}>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-muted)' }}>{row.sr}</td>
+                        <td className="px-3 py-2 text-xs font-mono" style={{ color: 'var(--nm-text-primary)' }}>{row.id}</td>
+                        <td className="px-3 py-2 text-xs font-medium" style={{ color: 'var(--nm-text-primary)' }}>{row.name}</td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{row.time}</td>
+                        <td className="px-3 py-2">
+                          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-full"
+                            style={{ color: row.color, background: `${row.color}15` }}>
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{row.type}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+
+        {/* Visitors Table */}
+        {summary?.visitors?.length > 0 && (
+          <div className="mb-6">
+            <h2 className="text-sm font-semibold mb-2 px-1" style={{ color: 'var(--nm-text-secondary)' }}>
+              VISITORS ({summary.visitor_count})
+            </h2>
+            <Card className="rounded-xl overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm" style={{ minWidth: 480 }}>
+                  <thead>
+                    <tr style={{ background: '#7C3AED' }}>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-10">Sr</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Name</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Company</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Mobile</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white">Invited By</th>
+                      <th className="px-3 py-2.5 text-left text-xs font-semibold text-white w-24">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {summary.visitors.map((v, idx) => (
+                      <tr key={idx}
+                        style={{ background: idx % 2 === 0 ? 'var(--nm-surface, #fff)' : 'var(--nm-bg, #f9f9f9)' }}>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-muted)' }}>{idx + 1}</td>
+                        <td className="px-3 py-2 text-xs font-medium" style={{ color: 'var(--nm-text-primary)' }}>{v.visitor_name}</td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{v.company}</td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{v.mobile}</td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{v.invited_by}</td>
+                        <td className="px-3 py-2 text-xs" style={{ color: 'var(--nm-text-secondary)' }}>{fmtTime(v.timestamp)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           </div>
         )}
 
-        {loading ? (
-          <div className="text-center py-12">Loading attendance...</div>
-        ) : (
-          <>
-            {/* Members & Substitutes Section */}
-            <div className="mb-8">
-              <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Members & Substitutes</h2>
-              {memberAttendance.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <Users className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--nm-text-muted)' }} />
-                  <p style={{ color: 'var(--nm-text-secondary)' }}>No member attendance marked yet</p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {memberAttendance.map((att) => (
-                    <Card
-                      key={att.attendance_id}
-                      className="p-6 hover:shadow-md transition-shadow"
-                      data-testid={`attendance-card-${att.attendance_id}`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="h-10 w-10 rounded-full bg-[#CF2030]/10 flex items-center justify-center">
-                              <span className="text-sm font-bold text-[#CF2030]">
-                                {att.unique_member_id || '?'}
-                              </span>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg" style={{ color: 'var(--nm-text-primary)' }}>
-                                {att.type === 'member' && att.member_name}
-                                {att.type === 'substitute' && `${att.substitute_name} (Substitute for ${att.unique_member_id})`}
-                              </h3>
-                              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-                                {att.type === 'member' && att.primary_mobile}
-                                {att.type === 'substitute' && att.substitute_mobile}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-                            <span>
-                              <Clock className="h-4 w-4 inline mr-1" />
-                              {new Date(att.timestamp).toLocaleTimeString()}
-                            </span>
-                            <span className="capitalize px-2 py-1 rounded" style={{ background: 'var(--nm-surface)' }}>
-                              {att.type}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          {getStatusBadge(att.status, att.late_type)}
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Visitors Section */}
-            <div>
-              <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--nm-text-primary)' }}>Visitors</h2>
-              {visitorAttendance.length === 0 ? (
-                <Card className="p-12 text-center">
-                  <Users className="h-16 w-16 mx-auto mb-4" style={{ color: 'var(--nm-text-muted)' }} />
-                  <p style={{ color: 'var(--nm-text-secondary)' }}>No visitor attendance marked yet</p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {visitorAttendance.map((att) => (
-                    <Card
-                      key={att.attendance_id}
-                      className="p-6 hover:shadow-md transition-shadow border-l-4 border-l-purple-500"
-                      data-testid={`visitor-card-${att.attendance_id}`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                              <Users className="h-5 w-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-lg" style={{ color: 'var(--nm-text-primary)' }}>
-                                {att.visitor_name}
-                              </h3>
-                              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-                                {att.visitor_mobile} | {att.visitor_company}
-                              </p>
-                              <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-                                Invited by: {att.invited_by_member_name || att.invited_by_member_id}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
-                            <span>
-                              <Clock className="h-4 w-4 inline mr-1" />
-                              {new Date(att.timestamp).toLocaleTimeString()}
-                            </span>
-                            <span className="capitalize px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                              Visitor
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          {getStatusBadge(att.status, att.late_type)}
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
+        {/* Auto-refresh indicator */}
+        {isLive && (
+          <div className="flex items-center gap-2 text-xs mt-4" style={{ color: 'var(--nm-text-muted)' }}>
+            <Clock className="h-3.5 w-3.5" /> Auto-refreshing every 15 seconds
+          </div>
         )}
       </div>
+
+      {/* Manual Mark Modal */}
+      <Dialog open={markOpen} onOpenChange={setMarkOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Mark Attendance Manually</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block" style={{ color: 'var(--nm-text-primary)' }}>
+                Select Member
+              </label>
+              <select
+                value={markMember}
+                onChange={(e) => setMarkMember(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg text-sm border min-h-[44px]"
+                style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)', borderColor: 'var(--nm-border)' }}>
+                <option value="">Choose a member...</option>
+                {(summary?.pending_members || []).map(m => (
+                  <option key={m.unique_member_id} value={m.unique_member_id}>
+                    {m.full_name} ({m.unique_member_id})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block" style={{ color: 'var(--nm-text-primary)' }}>
+                Reason
+              </label>
+              <select
+                value={markReason}
+                onChange={(e) => setMarkReason(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg text-sm border min-h-[44px]"
+                style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)', borderColor: 'var(--nm-border)' }}>
+                <option>Present in meeting</option>
+                <option>Late arrival — present</option>
+                <option>QR scan issue</option>
+                <option>Phone not available</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1 min-h-[44px]" onClick={() => setMarkOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-[#005596] hover:bg-[#004478] text-white min-h-[44px]"
+                onClick={handleManualMark}
+                disabled={!markMember || marking}>
+                {marking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark Present'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Stat({ label, value, color }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="text-xl md:text-2xl font-bold" style={{ color }}>{value}</span>
+      <span className="text-[10px] md:text-xs" style={{ color: 'var(--nm-text-muted)' }}>{label}</span>
     </div>
   );
 }
