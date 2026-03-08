@@ -246,7 +246,7 @@ export default function MeetingManagement() {
                   onEdit={() => openEdit(m)}
                   onDelete={() => setDeleteConfirm(m)}
                   onArchive={() => setArchiveConfirm(m)}
-                  onViewAttendance={() => navigate(`/app/meetings/${m.meeting_id}/attendance`)}
+                  onViewAttendance={() => navigate(`/app/meetings/attendance/${m.meeting_id}`)}
                   onDownloadExcel={() => downloadExcel(m.meeting_id)}
                   onDownloadPDF={() => downloadPDF(m.meeting_id)}
                 />

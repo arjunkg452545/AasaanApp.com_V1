@@ -22,6 +22,10 @@ export default function QRAttendanceScanner() {
 
   const navigate = useNavigate();
 
+  // Detect iOS for camera permission hint
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
   // ─── Stop camera stream and animation frame ───
   const stopCamera = useCallback(() => {
     // Cancel animation frame
@@ -347,6 +351,11 @@ export default function QRAttendanceScanner() {
             <Camera className="h-8 w-8 text-white animate-pulse" />
           </div>
           <p className="text-sm text-white/60">Starting camera...</p>
+          {isIOS && (
+            <p className="text-xs text-amber-300/70 mt-3 px-8 text-center">
+              On iPhone: Tap "Allow" when prompted for camera access
+            </p>
+          )}
         </div>
       )}
 

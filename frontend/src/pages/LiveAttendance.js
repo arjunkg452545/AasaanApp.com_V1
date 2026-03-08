@@ -162,30 +162,28 @@ export default function LiveAttendance() {
         {/* Summary Bar */}
         {summary && (
           <Card className="p-3 md:p-4 mb-4 rounded-xl">
-            <div className="flex flex-wrap items-center gap-3 md:gap-5">
+            {/* Stats row */}
+            <div className="flex flex-wrap items-center gap-3 md:gap-5 mb-3">
               <Stat label="Total" value={summary.total_members} color="#3B82F6" />
               <Stat label="Present" value={summary.present_count} color="#16A34A" />
               <Stat label="Subs" value={summary.substitute_count} color="#D97706" />
               <Stat label={isLive ? 'Pending' : 'Absent'} value={isLive ? summary.pending_count : summary.absent_count} color="#DC2626" />
               <Stat label="Visitors" value={summary.visitor_count} color="#7C3AED" />
-
-              <div className="flex-1" />
-
-              {/* Action buttons */}
-              <div className="flex gap-2 flex-wrap">
-                {canManualMark && isLive && summary.pending_members?.length > 0 && (
-                  <Button size="sm" className="bg-[#005596] hover:bg-[#004478] text-white min-h-[36px] text-xs"
-                    onClick={() => setMarkOpen(true)}>
-                    <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={downloadExcel} className="min-h-[36px] text-xs">
-                  <FileDown className="h-3.5 w-3.5 mr-1" /> Excel
+            </div>
+            {/* Action buttons — always visible, separate row */}
+            <div className="flex gap-2 flex-wrap">
+              {canManualMark && isLive && summary.pending_members?.length > 0 && (
+                <Button size="sm" className="bg-[#005596] hover:bg-[#004478] text-white min-h-[36px] text-xs"
+                  onClick={() => setMarkOpen(true)}>
+                  <CheckCircle className="h-3.5 w-3.5 mr-1" /> Mark Attendance
                 </Button>
-                <Button variant="outline" size="sm" onClick={downloadPDF} className="min-h-[36px] text-xs">
-                  <FileText className="h-3.5 w-3.5 mr-1" /> PDF
-                </Button>
-              </div>
+              )}
+              <Button variant="outline" size="sm" onClick={downloadExcel} className="min-h-[36px] text-xs">
+                <FileDown className="h-3.5 w-3.5 mr-1" /> Excel
+              </Button>
+              <Button variant="outline" size="sm" onClick={downloadPDF} className="min-h-[36px] text-xs">
+                <FileText className="h-3.5 w-3.5 mr-1" /> PDF
+              </Button>
             </div>
           </Card>
         )}
