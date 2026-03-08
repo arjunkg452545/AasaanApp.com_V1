@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function QRAttendanceScanner() {
-  const [status, setStatus] = useState('loading'); // loading | scanning | success | error | already | denied
+  const [status, setStatus] = useState('loading'); // loading | scanning | success | error | denied
   const [errorMsg, setErrorMsg] = useState('');
   const scannerInstanceRef = useRef(null);
   const mountedRef = useRef(true);
@@ -16,7 +16,7 @@ export default function QRAttendanceScanner() {
       const state = instance.getState();
       if (state === 2 || state === 3) await instance.stop();
     } catch { /* ignore */ }
-    try { instance.clear(); } catch { /* ignore */ }
+    // Don't call clear() — it removes the DOM element and can cause camera to re-prompt
     scannerInstanceRef.current = null;
   }, []);
 
@@ -24,7 +24,7 @@ export default function QRAttendanceScanner() {
     safeStop();
     if (!mountedRef.current) return;
 
-    // Extract token from QR
+    // Extract token from QR URL — do NOT open the URL
     let token = null;
     try {
       const url = new URL(decodedText);
@@ -66,17 +66,33 @@ export default function QRAttendanceScanner() {
       const el = document.getElementById('qr-reader');
       if (!el) { setStatus('error'); setErrorMsg('Scanner element not found.'); return; }
 
-      const html5QrCode = new Html5Qrcode('qr-reader');
+      const html5QrCode = new Html5Qrcode('qr-reader', { verbose: false });
       scannerInstanceRef.current = html5QrCode;
 
       await html5QrCode.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0,
+          disableFlip: false, videoConstraints: { facingMode: 'environment' } },
         (decodedText) => handleScanResult(decodedText),
         () => {}
       );
 
       if (!mountedRef.current) { safeStop(); return; }
+
+      // Make the video fill the entire screen
+      const video = el.querySelector('video');
+      if (video) {
+        video.style.width = '100vw';
+        video.style.height = '100vh';
+        video.style.objectFit = 'cover';
+        video.style.position = 'absolute';
+        video.style.top = '0';
+        video.style.left = '0';
+      }
+      // Hide the default html5-qrcode UI elements
+      const scanRegion = el.querySelector('#qr-shaded-region');
+      if (scanRegion) scanRegion.style.display = 'none';
+
       setStatus('scanning');
     } catch (err) {
       if (!mountedRef.current) return;
@@ -106,37 +122,45 @@ export default function QRAttendanceScanner() {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#000' }}>
-      {/* Back button — always visible */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center px-4 pt-4 pb-2" style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%)' }}>
+      {/* Back button — top overlay */}
+      <div className="absolute top-0 left-0 right-0 z-20 flex items-center px-4 pt-4 pb-8"
+           style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 100%)' }}>
         <button onClick={goBack} className="flex items-center gap-2 text-white/90 active:text-white">
           <ArrowLeft className="h-5 w-5" />
           <span className="text-sm font-medium">Back</span>
         </button>
       </div>
 
-      {/* Camera viewfinder */}
+      {/* Full-screen camera */}
       <div className="flex-1 relative overflow-hidden">
-        <div id="qr-reader" style={{ width: '100%', height: '100%' }} />
+        <div id="qr-reader" style={{ width: '100%', height: '100%', position: 'relative' }} />
 
-        {/* Scanning overlay — corner brackets + scan line animation */}
+        {/* Paytm-style overlay: dark edges + clear center rectangle */}
         {status === 'scanning' && (
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="w-[260px] h-[260px] relative">
-              {/* White corner brackets */}
-              <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] rounded-tl-xl border-white" />
-              <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] rounded-tr-xl border-white" />
-              <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] rounded-bl-xl border-white" />
-              <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] rounded-br-xl border-white" />
-              {/* Animated scan line */}
-              <div className="absolute left-2 right-2 h-0.5 animate-scan-line" style={{ background: 'linear-gradient(90deg, transparent, #CF2030, transparent)' }} />
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Semi-transparent dark overlay with transparent center cutout */}
+            <svg className="absolute inset-0 w-full h-full">
+              <defs>
+                <mask id="scanMask">
+                  <rect width="100%" height="100%" fill="white" />
+                  <rect x="50%" y="50%" width="260" height="260" rx="16"
+                        transform="translate(-130, -130)" fill="black" />
+                </mask>
+              </defs>
+              <rect width="100%" height="100%" fill="rgba(0,0,0,0.55)" mask="url(#scanMask)" />
+            </svg>
+            {/* Animated scan line inside the cutout */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[260px] h-[260px]">
+              <div className="absolute left-3 right-3 h-[2px] rounded-full animate-scan-line"
+                   style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.9), transparent)' }} />
             </div>
           </div>
         )}
 
         {/* Loading overlay */}
         {status === 'loading' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
-            <div className="nm-raised rounded-2xl p-5 mb-4" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.9)' }}>
+            <div className="rounded-2xl p-5 mb-4" style={{ background: 'rgba(255,255,255,0.1)' }}>
               <Camera className="h-8 w-8 text-white animate-pulse" />
             </div>
             <p className="text-sm text-white/70">Starting camera...</p>
@@ -195,21 +219,27 @@ export default function QRAttendanceScanner() {
 
       {/* Bottom hint bar */}
       {status === 'scanning' && (
-        <div className="px-6 py-4 text-center" style={{ background: 'rgba(0,0,0,0.9)' }}>
-          <p className="text-sm text-white/70">Point camera at the meeting QR code</p>
+        <div className="px-6 py-4 text-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <p className="text-sm text-white/70">Point camera at QR code</p>
         </div>
       )}
 
-      {/* Scan line animation CSS */}
+      {/* Scan line animation */}
       <style>{`
         @keyframes scanLine {
           0% { top: 8px; }
-          50% { top: calc(100% - 8px); }
+          50% { top: calc(100% - 10px); }
           100% { top: 8px; }
         }
         .animate-scan-line {
           animation: scanLine 2.5s ease-in-out infinite;
         }
+        /* Hide html5-qrcode default UI */
+        #qr-reader > div:not(:first-child) { display: none !important; }
+        #qr-reader img { display: none !important; }
+        #qr-reader__dashboard_section { display: none !important; }
+        #qr-reader__status_span { display: none !important; }
+        #qr-reader__header_message { display: none !important; }
       `}</style>
     </div>
   );

@@ -25,29 +25,55 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor: force logout on 401/403 with disabled/suspended detail
+// Track whether a force-logout has already been triggered this session
+let _logoutTriggered = false;
+
+function forceLogout() {
+  if (_logoutTriggered) return; // Prevent multiple clears from racing 401s
+  _logoutTriggered = true;
+  localStorage.clear();
+  window.location.href = '/';
+}
+
+// Response interceptor: force logout ONLY on definitive auth failures
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // No response at all (network error, offline, app backgrounded) — never logout
+    if (!error.response) return Promise.reject(error);
+
     const status = error.response?.status;
     const detail = error.response?.data?.detail || '';
 
-    // Force logout on auth errors indicating disabled/suspended/password changed
+    // Force logout ONLY on account-level problems (disabled/suspended/password changed)
     if (
       (status === 401 || status === 403) &&
       typeof detail === 'string' &&
       (detail.includes('disabled') || detail.includes('suspended') ||
        detail.includes('deactivated') || detail.includes('Password was changed'))
     ) {
-      localStorage.clear();
-      window.location.href = '/';
+      forceLogout();
       return Promise.reject(error);
     }
 
-    // Force logout on generic invalid token (expired, tampered)
-    if (status === 401 && detail === 'Invalid token') {
-      localStorage.clear();
-      window.location.href = '/';
+    // Force logout ONLY when token is definitely expired/invalid AND it's from an auth endpoint
+    if (
+      status === 401 &&
+      typeof detail === 'string' &&
+      (detail === 'Invalid token' || detail === 'Token has expired' || detail === 'Not authenticated')
+    ) {
+      // Double-check: if the token_expires_at is still in the future, don't logout
+      // (could be a transient backend issue)
+      const expiresAt = localStorage.getItem('token_expires_at');
+      if (expiresAt) {
+        const expiry = new Date(expiresAt);
+        const now = new Date();
+        if (expiry > now) {
+          // Token should still be valid — don't logout on transient 401
+          return Promise.reject(error);
+        }
+      }
+      forceLogout();
       return Promise.reject(error);
     }
 

@@ -144,18 +144,19 @@ export default function PaymentReminders() {
         <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} className="mb-2">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg md:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
-            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="min-w-0">
+            <h1 className="text-lg md:text-2xl font-bold truncate" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
+            <p className="text-xs md:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
           </div>
           {members.length > 0 && (
             <Button
               onClick={handleBulkRemind}
               disabled={sending}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-600 hover:bg-green-700 shrink-0 self-start sm:self-auto"
+              size="sm"
             >
-              <Send className="h-4 w-4 mr-2" />
+              <Send className="h-4 w-4 mr-1" />
               Remind All ({members.length})
             </Button>
           )}
@@ -164,8 +165,8 @@ export default function PaymentReminders() {
 
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         {/* Filters */}
-        <Card className="p-4 mb-4">
-          <div className="grid grid-cols-3 gap-3">
+        <Card className="p-3 md:p-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <Label className="text-xs">Fee Type</Label>
               <select
@@ -234,20 +235,20 @@ export default function PaymentReminders() {
         </Card>
 
         {/* Summary */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="bg-red-50 rounded-lg px-4 py-2">
-            <p className="text-xs text-red-600">Pending Members</p>
-            <p className="text-lg font-bold text-red-700">{members.length}</p>
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4">
+          <div className="bg-red-50 rounded-lg px-3 py-2 min-w-0">
+            <p className="text-[10px] md:text-xs text-red-600 truncate">Pending</p>
+            <p className="text-base md:text-lg font-bold text-red-700">{members.length}</p>
           </div>
-          <div className="bg-amber-50 rounded-lg px-4 py-2">
-            <p className="text-xs text-amber-600">Total Pending</p>
-            <p className="text-lg font-bold text-amber-700">
+          <div className="bg-amber-50 rounded-lg px-3 py-2 min-w-0">
+            <p className="text-[10px] md:text-xs text-amber-600 truncate">Total</p>
+            <p className="text-sm md:text-lg font-bold text-amber-700 truncate">
               {formatCurrency(members.reduce((s, m) => s + m.total, 0))}
             </p>
           </div>
-          <div className="bg-blue-50 rounded-lg px-4 py-2">
-            <p className="text-xs text-blue-600">Fees Count</p>
-            <p className="text-lg font-bold text-blue-700">{pendingFees.length}</p>
+          <div className="bg-blue-50 rounded-lg px-3 py-2 min-w-0">
+            <p className="text-[10px] md:text-xs text-blue-600 truncate">Fees</p>
+            <p className="text-base md:text-lg font-bold text-blue-700">{pendingFees.length}</p>
           </div>
         </div>
 

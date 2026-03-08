@@ -24,7 +24,7 @@ def generate_qr_token(meeting_id: str, chapter_id: str, attendance_type: str = "
         "attendance_type": attendance_type,  # member, substitute, visitor
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
-    
+
     json_data = json.dumps(data).encode()
     encrypted = cipher.encrypt(json_data)
     token = base64.urlsafe_b64encode(encrypted).decode()
@@ -37,14 +37,14 @@ def verify_qr_token(token: str) -> dict:
         encrypted = base64.urlsafe_b64decode(token.encode())
         decrypted = cipher.decrypt(encrypted)
         data = json.loads(decrypted.decode())
-        
+
         # Check if token is not too old (valid for 24 hours for flexibility)
         token_time = datetime.fromisoformat(data["timestamp"])
         now = datetime.now(timezone.utc)
-        
+
         if (now - token_time).total_seconds() > 86400:  # 24 hours
             return None
-        
+
         return data
     except Exception as e:
         # Fallback: Try with alternative common keys for backward compatibility
@@ -52,7 +52,7 @@ def verify_qr_token(token: str) -> dict:
             "BNI_ATTENDANCE_LEGACY_KEY_001",
             "BNI_ATTENDANCE_DEFAULT_KEY_001"
         ]
-        
+
         for fallback_key in fallback_keys:
             try:
                 key = base64.urlsafe_b64encode(fallback_key.encode().ljust(32)[:32])
@@ -60,36 +60,32 @@ def verify_qr_token(token: str) -> dict:
                 encrypted = base64.urlsafe_b64decode(token.encode())
                 decrypted = fallback_cipher.decrypt(encrypted)
                 data = json.loads(decrypted.decode())
-                
+
                 # Check timestamp
                 token_time = datetime.fromisoformat(data["timestamp"])
                 now = datetime.now(timezone.utc)
-                
+
                 if (now - token_time).total_seconds() <= 86400:
                     return data
             except Exception:
                 continue
-        
+
         return None
 
 def create_qr_image(token: str, request_host: str = None) -> bytes:
     """Create QR code image from token
-    
-    Args:
-        token: QR token string
-        request_host: DEPRECATED - not used anymore.
+
+    Reads FRONTEND_URL at runtime (not import time) so Railway env changes
+    take effect immediately without restarting the service.
     """
-    # IMPORTANT: Hardcoded custom domain for QR codes
-    # Emergent overrides FRONTEND_URL during deployment with their own URL
-    # So we must hardcode the white-label/custom domain here
-    # This ensures QR codes always point to the correct production domain
-    frontend_url = "https://aasaanapp.com"
-    
+    # Read FRONTEND_URL fresh every call so env updates take effect at runtime
+    frontend_url = os.environ.get("FRONTEND_URL", "https://aasaan-app-com-v1.vercel.app")
+
     # Remove trailing slash if present
     frontend_url = frontend_url.rstrip('/')
-    
+
     qr_url = f"{frontend_url}/attendance?token={token}"
-    
+
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
@@ -98,11 +94,11 @@ def create_qr_image(token: str, request_host: str = None) -> bytes:
     )
     qr.add_data(qr_url)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
-    
+
     buffer = BytesIO()
     img.save(buffer, format="PNG")
     buffer.seek(0)
-    
+
     return buffer.getvalue()
