@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info, Zap } from 'lucide-react';
+import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info } from 'lucide-react';
 import jsQR from 'jsqr';
 import api from '../utils/api';
 
@@ -13,7 +13,7 @@ const SCAN_INTERVAL_MS = 80;
 const SCAN_CANVAS_WIDTH = 480;
 
 export default function QRAttendanceScanner() {
-  // pre-permission | loading | scanning | marking | success | error | denied | already | warning
+  // loading | scanning | marking | success | error | denied | already | warning
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
@@ -170,9 +170,6 @@ export default function QRAttendanceScanner() {
 
       streamRef.current = stream;
 
-      // Remember camera was granted (for iOS pre-permission skip)
-      try { sessionStorage.setItem('cam_granted', '1'); } catch {}
-
       const video = videoRef.current;
       if (!video) {
         stream.getTracks().forEach(t => t.stop());
@@ -265,16 +262,7 @@ export default function QRAttendanceScanner() {
   // ─── Mount / Unmount + visibility handling ───
   useEffect(() => {
     mountedRef.current = true;
-
-    // iOS pre-permission gate: show prompt before requesting camera
-    let camGranted = false;
-    try { camGranted = sessionStorage.getItem('cam_granted') === '1'; } catch {}
-
-    if (IS_IOS && !camGranted) {
-      setStatus('pre-permission');
-    } else {
-      startScanner();
-    }
+    startScanner();
 
     // Handle app returning from background — camera stream may be dead
     const handleVisibilityChange = () => {
@@ -387,32 +375,6 @@ export default function QRAttendanceScanner() {
               Having trouble? Hold phone steady and ensure good lighting
             </p>
           )}
-        </div>
-      )}
-
-      {/* iOS Pre-Permission Screen */}
-      {status === 'pre-permission' && (
-        <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: '#000' }}>
-          <div className="rounded-2xl p-6 mb-5" style={{ background: 'rgba(255,255,255,0.08)' }}>
-            <Camera className="h-12 w-12 text-white" />
-          </div>
-          <p className="text-xl font-bold text-white mb-2">Camera Access Needed</p>
-          <p className="text-sm text-white/60 text-center mb-8 max-w-xs">
-            Tap the button below, then tap <strong className="text-white/80">Allow</strong> when iOS asks for camera permission.
-          </p>
-          <button
-            onClick={() => startScanner()}
-            className="flex items-center gap-2 px-8 min-h-[52px] rounded-xl text-base font-semibold text-white active:scale-95 transition-transform"
-            style={{ background: '#CF2030' }}
-          >
-            <Zap className="h-5 w-5" /> Open Camera
-          </button>
-          <button
-            onClick={goBack}
-            className="mt-4 text-sm text-white/50 active:text-white/70 active:scale-95 transition-transform min-h-[44px]"
-          >
-            Go back
-          </button>
         </div>
       )}
 
