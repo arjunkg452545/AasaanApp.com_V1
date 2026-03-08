@@ -24,6 +24,20 @@ def _generate_chapter_code(name: str) -> str:
 router = APIRouter(prefix="/api", tags=["superadmin"])
 
 
+async def _verify_chapter_ownership(chapter_id: str, user: dict):
+    """Verify that the chapter belongs to this ED. Developer bypasses check."""
+    if user["role"] == "developer":
+        chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
+        if not chapter:
+            raise HTTPException(status_code=404, detail="Chapter not found")
+        return chapter
+    mobile = user.get("mobile", "")
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id, "created_by": mobile}, {"_id": 0})
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found or not owned by you")
+    return chapter
+
+
 @router.post("/superadmin/login", response_model=LoginResponse)
 async def superadmin_login(data: LoginRequest):
     admin = await db.superadmins.find_one({"mobile": data.mobile}, {"_id": 0})
@@ -101,7 +115,9 @@ async def create_chapter(chapter: ChapterCreateEnhanced, user=Depends(get_curren
 async def get_all_chapters(user=Depends(get_current_user)):
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    chapters = await db.chapters.find({}, {"_id": 0, "admin_password_hash": 0}).to_list(1000)
+    # Developer sees ALL chapters; ED sees only their own
+    query = {} if user["role"] == "developer" else {"created_by": user.get("mobile", "")}
+    chapters = await db.chapters.find(query, {"_id": 0, "admin_password_hash": 0}).to_list(1000)
     return chapters
 
 
@@ -109,6 +125,7 @@ async def get_all_chapters(user=Depends(get_current_user)):
 async def update_chapter_credentials(chapter_id: str, data: UpdateCredentials, user=Depends(get_current_user)):
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
+    await _verify_chapter_ownership(chapter_id, user)
 
     new_password_hash = hash_password(data.new_password)
     audit_log = {
@@ -132,9 +149,7 @@ async def deactivate_chapter(chapter_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
-    if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+    chapter = await _verify_chapter_ownership(chapter_id, user)
 
     new_status = "active" if (chapter.get("status") or "").lower() == "inactive" else "inactive"
     await db.chapters.update_one(
@@ -149,9 +164,8 @@ async def get_audit_logs(chapter_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    await _verify_chapter_ownership(chapter_id, user)
     chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0, "audit_logs": 1})
-    if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
 
     return {"audit_logs": chapter.get("audit_logs", [])}
 
@@ -289,10 +303,8 @@ async def change_chapter_leadership(chapter_id: str, data: ChangeLeadershipReque
 
     now = datetime.now(timezone.utc).isoformat()
 
-    # Verify chapter exists
-    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
-    if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+    # Verify chapter exists and belongs to this ED
+    chapter = await _verify_chapter_ownership(chapter_id, user)
 
     # Verify member exists and belongs to this chapter
     member = await db.members.find_one(
@@ -390,6 +402,7 @@ async def get_chapter_leadership(chapter_id: str, user=Depends(get_current_user)
     """Get current leadership for a chapter, including role assignment history."""
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
+    await _verify_chapter_ownership(chapter_id, user)
 
     leaders = await db.members.find(
         {"chapter_id": chapter_id, "chapter_role": {"$ne": "member"}, "membership_status": "active"},

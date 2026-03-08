@@ -41,15 +41,28 @@ async def get_pending_members(user=Depends(get_current_user)):
     return members
 
 
+async def _verify_member_ed_ownership(member_id: str, user: dict):
+    """Verify the member belongs to a chapter owned by this ED."""
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    if user["role"] != "developer":
+        mobile = user.get("mobile", "")
+        chapter = await db.chapters.find_one(
+            {"chapter_id": member.get("chapter_id"), "created_by": mobile}, {"_id": 0}
+        )
+        if not chapter:
+            raise HTTPException(status_code=404, detail="Member not found or not in your chapters")
+    return member
+
+
 @router.post("/superadmin/members/{member_id}/approve")
 async def approve_member(member_id: str, user=Depends(get_current_user)):
     """Approve a pending member."""
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+    member = await _verify_member_ed_ownership(member_id, user)
     if member.get("membership_status") != "pending":
         raise HTTPException(status_code=400, detail="Member is not in pending status")
 
@@ -82,9 +95,7 @@ async def reject_member(member_id: str, data: MemberApprovalAction, user=Depends
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+    member = await _verify_member_ed_ownership(member_id, user)
     if member.get("membership_status") != "pending":
         raise HTTPException(status_code=400, detail="Member is not in pending status")
 
@@ -120,9 +131,7 @@ async def transfer_member(member_id: str, data: MemberTransfer, user=Depends(get
     if user["role"] not in ("superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
-    if not member:
-        raise HTTPException(status_code=404, detail="Member not found")
+    member = await _verify_member_ed_ownership(member_id, user)
 
     target_ch = await db.chapters.find_one({"chapter_id": data.target_chapter_id}, {"_id": 0})
     if not target_ch:

@@ -97,8 +97,12 @@ async def get_qr_code(meeting_id: str, request: Request, user=Depends(get_curren
 async def get_attendance(meeting_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    # Only show approved attendance
+
+    # Verify meeting belongs to user's chapter
+    meeting = await db.meetings.find_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
     attendance = await db.attendance.find({
         "meeting_id": meeting_id,
         "approval_status": "approved"
@@ -242,30 +246,38 @@ async def get_pending_attendance(user=Depends(get_current_user)):
 async def approve_attendance(attendance_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    result = await db.attendance.update_one(
+
+    # Verify attendance belongs to a meeting in user's chapter
+    att = await db.attendance.find_one({"attendance_id": attendance_id}, {"_id": 0, "meeting_id": 1})
+    if not att:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+    meeting = await db.meetings.find_one({"meeting_id": att["meeting_id"], "chapter_id": user["chapter_id"]}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+
+    await db.attendance.update_one(
         {"attendance_id": attendance_id},
         {"$set": {"approval_status": "approved"}}
     )
-    
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Attendance not found")
-    
     return {"message": "Attendance approved successfully"}
 
 @router.post("/admin/attendance/{attendance_id}/reject")
 async def reject_attendance(attendance_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    result = await db.attendance.update_one(
+
+    # Verify attendance belongs to a meeting in user's chapter
+    att = await db.attendance.find_one({"attendance_id": attendance_id}, {"_id": 0, "meeting_id": 1})
+    if not att:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+    meeting = await db.meetings.find_one({"meeting_id": att["meeting_id"], "chapter_id": user["chapter_id"]}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Attendance not found")
+
+    await db.attendance.update_one(
         {"attendance_id": attendance_id},
         {"$set": {"approval_status": "rejected"}}
     )
-    
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Attendance not found")
-    
     return {"message": "Attendance rejected successfully"}
 
 @router.get("/admin/meetings/{meeting_id}/report/excel")
@@ -273,18 +285,18 @@ async def download_excel_report(meeting_id: str, user=Depends(get_current_user))
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
     
-    meeting = await db.meetings.find_one({"meeting_id": meeting_id}, {"_id": 0})
+    meeting = await db.meetings.find_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    
+
     chapter = await db.chapters.find_one({"chapter_id": user["chapter_id"]}, {"_id": 0, "name": 1})
     chapter_name = chapter.get("name", "") if chapter else ""
-    
+
     members = await db.members.find({"chapter_id": user["chapter_id"]}, {"_id": 0}).to_list(1000)
     attendance = await db.attendance.find({"meeting_id": meeting_id}, {"_id": 0}).to_list(1000)
-    
+
     excel_file = generate_excel_report(meeting, members, attendance, chapter_name)
-    
+
     return StreamingResponse(
         io.BytesIO(excel_file),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -295,8 +307,8 @@ async def download_excel_report(meeting_id: str, user=Depends(get_current_user))
 async def download_pdf_report(meeting_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
-    
-    meeting = await db.meetings.find_one({"meeting_id": meeting_id}, {"_id": 0})
+
+    meeting = await db.meetings.find_one({"meeting_id": meeting_id, "chapter_id": user["chapter_id"]}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
     

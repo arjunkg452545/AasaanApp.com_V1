@@ -140,7 +140,11 @@ async def get_member_profile(member_id: str, user=Depends(get_current_user)):
     if user["role"] not in ("admin", "superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    # For admin role, scope to their chapter; superadmin/developer can view any
+    member_query = {"member_id": member_id}
+    if user["role"] == "admin":
+        member_query["chapter_id"] = user.get("chapter_id")
+    member = await db.members.find_one(member_query, {"_id": 0})
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
@@ -199,7 +203,11 @@ async def change_member_status(member_id: str, data: MemberStatusChange, user=De
     if user["role"] not in ("admin", "superadmin", "developer"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    # For admin role, scope to their chapter; superadmin/developer can modify any
+    member_query = {"member_id": member_id}
+    if user["role"] == "admin":
+        member_query["chapter_id"] = user.get("chapter_id")
+    member = await db.members.find_one(member_query, {"_id": 0})
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 

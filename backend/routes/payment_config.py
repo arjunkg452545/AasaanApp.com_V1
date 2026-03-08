@@ -85,9 +85,10 @@ async def update_payment_config(data: PaymentConfigUpdate, user=Depends(require_
 async def get_chapter_fee_config(chapter_id: str, user=Depends(require_role("superadmin"))):
     """Get per-chapter fee config. Falls back to ED defaults if not set."""
     # Verify chapter belongs to this ED
-    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
+    mobile = user.get("mobile", "")
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id, "created_by": mobile}, {"_id": 0})
     if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+        raise HTTPException(status_code=404, detail="Chapter not found or not owned by you")
 
     config = await db.chapter_fee_config.find_one({"chapter_id": chapter_id}, {"_id": 0})
 
@@ -121,9 +122,10 @@ async def set_chapter_fee_config(
     user=Depends(require_role("superadmin")),
 ):
     """Set per-chapter fee overrides."""
-    chapter = await db.chapters.find_one({"chapter_id": chapter_id}, {"_id": 0})
+    mobile = user.get("mobile", "")
+    chapter = await db.chapters.find_one({"chapter_id": chapter_id, "created_by": mobile}, {"_id": 0})
     if not chapter:
-        raise HTTPException(status_code=404, detail="Chapter not found")
+        raise HTTPException(status_code=404, detail="Chapter not found or not owned by you")
 
     update_data = data.dict(exclude_unset=True)
     if "custom_fees" in update_data:

@@ -36,8 +36,9 @@ async def _get_superadmin_id(user):
 # ===== HELPER: get all chapter_ids for this ED =====
 async def _get_ed_chapter_ids(superadmin_id):
     """Get all chapter IDs belonging to this ED."""
+    # Query by both created_by and superadmin_id for backward compatibility
     chapters = await db.chapters.find(
-        {"superadmin_id": superadmin_id},
+        {"$or": [{"created_by": superadmin_id}, {"superadmin_id": superadmin_id}]},
         {"chapter_id": 1, "_id": 0}
     ).to_list(500)
     return [c["chapter_id"] for c in chapters]

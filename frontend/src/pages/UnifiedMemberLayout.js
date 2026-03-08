@@ -6,19 +6,19 @@ import { Badge } from '../components/ui/badge';
 import { toast } from 'sonner';
 import {
   Home, Wallet, ClipboardList, User, LogOut, Menu, X, Shield,
-  Users, FileText, Settings, MessageCircle, UserPlus, LayoutGrid, Bell,
+  Users, Settings, MessageCircle, UserPlus, LayoutGrid, Bell,
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import { toTitleCase } from '../utils/formatDate';
 import api from '../utils/api';
 
 const ROLE_PERMISSIONS = {
-  president:            { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true, notifications: true },
-  vice_president:       { members: true, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: true, notifications: true },
-  secretary:            { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
-  treasurer:            { members: false, meetings: false, fundHub: true, reports: true, visitors: false, reminders: true, settings: false, notifications: true },
-  secretary_treasurer:  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
-  lvh:                  { members: false, meetings: true, fundHub: true, reports: true, visitors: true, reminders: true, settings: false, notifications: true },
+  president:            { members: true, meetings: true, fundHub: true, visitors: true, reminders: true, settings: true, notifications: true },
+  vice_president:       { members: true, meetings: true, fundHub: true, visitors: true, reminders: true, settings: true, notifications: true },
+  secretary:            { members: false, meetings: true, fundHub: true, visitors: true, reminders: true, settings: false, notifications: true },
+  treasurer:            { members: false, meetings: false, fundHub: true, visitors: false, reminders: true, settings: false, notifications: true },
+  secretary_treasurer:  { members: false, meetings: true, fundHub: true, visitors: true, reminders: true, settings: false, notifications: true },
+  lvh:                  { members: false, meetings: true, fundHub: true, visitors: true, reminders: true, settings: false, notifications: true },
   member:               {},
 };
 
@@ -31,9 +31,8 @@ const personalNav = [
 
 const adminNavConfig = [
   { label: 'Members', path: '/app/members', icon: Users, perm: 'members' },
-  { label: 'Meetings', path: '/app/meetings', icon: ClipboardList, perm: 'meetings' },
+  { label: 'Meeting Hub', path: '/app/meetings', icon: ClipboardList, perm: 'meetings' },
   { label: 'Fund Hub', path: '/app/fund-hub', icon: Wallet, perm: 'fundHub' },
-  { label: 'Reports', path: '/app/reports', icon: FileText, perm: 'reports' },
   { label: 'Visitors', path: '/app/visitors', icon: UserPlus, perm: 'visitors' },
   { label: 'Reminders', path: '/app/reminders', icon: MessageCircle, perm: 'reminders' },
   { label: 'Notifications', path: '/app/send-notification', icon: Bell, perm: 'notifications' },
