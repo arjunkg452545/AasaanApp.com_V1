@@ -186,22 +186,13 @@ class ErrorBoundary extends React.Component {
 }
 
 // ─── Protected Route ───────────────────────────────────
+// SIMPLE: just check localStorage. NO API calls, NO token verification, NO async.
+// The api.js interceptor handles expired tokens when actual API calls fail.
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
-  const expiresAt = localStorage.getItem('token_expires_at');
 
   if (!token) return <Navigate to="/" replace />;
-
-  // Check if token has expired
-  if (expiresAt) {
-    const expiry = new Date(expiresAt);
-    if (expiry <= new Date()) {
-      localStorage.clear();
-      return <Navigate to="/" replace />;
-    }
-  }
-
   if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/" replace />;
   return children;
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { toast } from 'sonner';
@@ -7,6 +7,24 @@ import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
   const navigate = useNavigate();
+
+  // ─── AUTO-REDIRECT: if user is already logged in, skip login page ───
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    if (!token || !role) return; // Not logged in
+
+    // Redirect based on role
+    if (role === 'developer') {
+      navigate('/developer/dashboard', { replace: true });
+    } else if (role === 'superadmin') {
+      navigate('/superadmin/dashboard', { replace: true });
+    } else if (role === 'accountant') {
+      navigate('/accountant/dashboard', { replace: true });
+    } else if (role === 'member' || role === 'admin') {
+      navigate('/app/home', { replace: true });
+    }
+  }, [navigate]);
 
   // Flip state
   const [flipped, setFlipped] = useState(false);

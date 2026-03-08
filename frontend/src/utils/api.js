@@ -21,46 +21,50 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — ULTRA CONSERVATIVE logout logic
-// Rule: NEVER clear localStorage unless token_expires_at is DEFINITELY in the past
+// Response interceptor — NUCLEAR CONSERVATIVE logout logic
+// ONLY logout if BOTH conditions are true:
+// 1. Server says token is expired/invalid (401 + specific detail message)
+// 2. token_expires_at is in the past (or missing)
+// If token_expires_at is in the future → NEVER logout, period.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     // No response = network error / offline / app backgrounded → NEVER logout
     if (!error.response) return Promise.reject(error);
 
-    const status = error.response?.status;
-
     // Only care about 401s — all other errors pass through
-    if (status !== 401) return Promise.reject(error);
+    if (error.response.status !== 401) return Promise.reject(error);
 
     // FIRST CHECK: Is token_expires_at still in the future?
-    // If yes → this is a transient 401 → NEVER logout
-    const expiresAt = localStorage.getItem('token_expires_at');
-    if (expiresAt) {
+    const tokenExpiry = localStorage.getItem('token_expires_at');
+    if (tokenExpiry) {
       try {
-        const expiryDate = new Date(expiresAt);
-        if (expiryDate > new Date()) {
-          // Token should still be valid — transient failure, do NOT logout
+        const expiryTime = new Date(tokenExpiry).getTime();
+        const nowTime = Date.now();
+        if (expiryTime > nowTime) {
+          // Token not expired yet — this 401 is transient, DO NOT logout
+          console.log('[API] 401 but token still valid, not logging out');
           return Promise.reject(error);
         }
-      } catch { /* bad date format — fall through */ }
+      } catch (e) {
+        // Date parse failed — don't logout on parse error either
+        console.log('[API] 401 but token_expires_at parse failed, not logging out');
+        return Promise.reject(error);
+      }
     }
 
-    // Token is expired (or no expires_at stored) AND we got a 401
-    // Safe to clear — token is genuinely dead
-    const detail = error.response?.data?.detail;
-    const detailStr = typeof detail === 'string' ? detail : '';
+    // Token IS expired or no expiry stored — check if server confirms
+    const detail = error.response?.data?.detail || '';
+    const isTokenError = typeof detail === 'string' && (
+      detail.includes('expired') ||
+      detail.includes('Invalid token') ||
+      detail.includes('Not authenticated') ||
+      detail.includes('disabled') ||
+      detail.includes('suspended')
+    );
 
-    // Only logout on definitive auth failure messages
-    if (
-      detailStr === 'Invalid token' ||
-      detailStr === 'Token has expired' ||
-      detailStr === 'Not authenticated' ||
-      detailStr.includes('disabled') ||
-      detailStr.includes('suspended') ||
-      detailStr.includes('Password was changed')
-    ) {
+    if (isTokenError) {
+      console.log('[API] Token truly expired, logging out:', detail);
       localStorage.clear();
       window.location.href = '/';
     }
