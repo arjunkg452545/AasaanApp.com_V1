@@ -192,7 +192,7 @@ export default function UnifiedMemberLayout() {
           <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8" style={{ color: 'var(--nm-text-muted)' }}><LogOut className="h-4 w-4" /></Button>
         </div>
 
-        <main className="flex-1 pb-20 lg:pb-0">
+        <main className="flex-1 pb-20 lg:pb-0 overflow-x-hidden" style={{ maxWidth: '100vw' }}>
           <Outlet />
         </main>
 

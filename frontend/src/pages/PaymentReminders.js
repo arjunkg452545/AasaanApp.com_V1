@@ -109,46 +109,47 @@ export default function PaymentReminders() {
   const totalPending = members.reduce((s, m) => s + m.total, 0);
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
+    <div className="min-h-screen" style={{ background: 'var(--nm-bg)', maxWidth: '100vw', overflowX: 'hidden' }}>
       {/* Header */}
-      <div className="nm-header px-4 py-3">
+      <div className="nm-header px-4 py-3" style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
         <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} className="mb-2 min-h-[44px]">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
         <h1 className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
-        <p className="text-xs mb-3" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders</p>
         {members.length > 0 && (
           <Button onClick={handleBulkRemind} disabled={sending}
-            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 min-h-[44px]" size="sm">
+            className="w-full bg-green-600 hover:bg-green-700 min-h-[44px]" size="sm">
             <Send className="h-4 w-4 mr-1" /> Remind All ({members.length})
           </Button>
         )}
       </div>
 
-      <div className="px-4 py-4 max-w-4xl mx-auto space-y-3">
-        {/* Summary stats — always 3 columns, equal width */}
-        <div className="grid grid-cols-3 gap-2">
-          <Card className="p-2.5 text-center">
-            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Pending</p>
-            <p className="text-lg font-bold text-red-600">{members.length}</p>
+      <div className="px-4 py-4 space-y-3" style={{ maxWidth: '100%', boxSizing: 'border-box', overflowX: 'hidden' }}>
+        {/* Summary stats — 3 equal cols, overflow-hidden on each */}
+        <div className="grid grid-cols-3 gap-2 w-full" style={{ minWidth: 0 }}>
+          <Card className="p-2 text-center overflow-hidden" style={{ minWidth: 0 }}>
+            <p className="text-[10px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Pending</p>
+            <p className="text-base font-bold text-red-600">{members.length}</p>
           </Card>
-          <Card className="p-2.5 text-center">
-            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Total</p>
-            <p className="text-base font-bold text-amber-600 leading-tight">{formatCurrency(totalPending)}</p>
+          <Card className="p-2 text-center overflow-hidden" style={{ minWidth: 0 }}>
+            <p className="text-[10px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Total</p>
+            <p className="text-sm font-bold text-amber-600 truncate">{formatCurrency(totalPending)}</p>
           </Card>
-          <Card className="p-2.5 text-center">
-            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Fees</p>
-            <p className="text-lg font-bold text-blue-600">{pendingFees.length}</p>
+          <Card className="p-2 text-center overflow-hidden" style={{ minWidth: 0 }}>
+            <p className="text-[10px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Fees</p>
+            <p className="text-base font-bold text-blue-600">{pendingFees.length}</p>
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card className="p-3">
+        {/* Filters — stacked on mobile */}
+        <Card className="p-3 w-full overflow-hidden" style={{ minWidth: 0 }}>
           <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-3">
             <div>
               <Label className="text-xs">Fee Type</Label>
               <select value={feeType} onChange={e => setFeeType(e.target.value)}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]"
+                style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
                 <option value="">All Types</option>
                 <option value="kitty">Kitty</option>
                 <option value="meeting_fee">Meeting Fee</option>
@@ -159,10 +160,11 @@ export default function PaymentReminders() {
             <div>
               <Label className="text-xs">Month</Label>
               <select value={month} onChange={e => setMonth(Number(e.target.value))}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]"
+                style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
-                    {new Date(2000, i).toLocaleString('en', { month: 'long' })}
+                    {new Date(2000, i).toLocaleString('en', { month: 'short' })}
                   </option>
                 ))}
               </select>
@@ -170,7 +172,8 @@ export default function PaymentReminders() {
             <div>
               <Label className="text-xs">Year</Label>
               <select value={year} onChange={e => setYear(Number(e.target.value))}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]"
+                style={{ maxWidth: '100%', boxSizing: 'border-box' }}>
                 {[2024, 2025, 2026, 2027].map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
@@ -181,9 +184,9 @@ export default function PaymentReminders() {
 
         {/* Templates — horizontal scroll */}
         {templates.length > 0 && (
-          <Card className="p-3">
+          <Card className="p-3 w-full" style={{ minWidth: 0 }}>
             <p className="text-xs font-semibold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Message Templates</p>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
               {templates.map(t => (
                 <button key={t.template_id || t.fee_type}
                   onClick={() => { setEditTemplate(t); setEditTemplateText(t.message_template); setEditTemplateOpen(true); }}
@@ -210,9 +213,9 @@ export default function PaymentReminders() {
         ) : (
           <div className="space-y-2">
             {members.map(m => (
-              <Card key={m.member_id} className="p-3">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-0 flex-1">
+              <Card key={m.member_id} className="p-3 w-full overflow-hidden" style={{ minWidth: 0 }}>
+                <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
+                  <div style={{ minWidth: 0, flex: '1 1 0%' }}>
                     <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{m.member_name}</p>
                     <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
                       {m.fees.length} fee{m.fees.length > 1 ? 's' : ''} · <span className="font-semibold text-red-600">{formatCurrency(m.total)}</span>

@@ -3,7 +3,7 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { Toaster, toast } from "./components/ui/sonner";
-import { tryRefreshToken } from "./utils/api";
+// tryRefreshToken removed — causes transient 401s on PWA resume
 import { APP_VERSION } from "./version";
 
 // Login loads immediately (entry point)
@@ -272,7 +272,6 @@ function App() {
     const token = localStorage.getItem('token');
     const userName = localStorage.getItem('user_name') || localStorage.getItem('dev_name') || localStorage.getItem('accountant_name');
     if (token) {
-      tryRefreshToken();
       // Show welcome back toast only on fresh app load (not navigations)
       if (userName && window.location.pathname === '/') {
         toast.success(`Welcome back, ${userName}!`, { duration: 3000 });

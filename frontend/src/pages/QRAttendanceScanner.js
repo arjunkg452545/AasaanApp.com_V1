@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function QRAttendanceScanner() {
-  const [status, setStatus] = useState('loading'); // loading | scanning | success | error | denied
+  const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const scannerRef = useRef(null);
   const mountedRef = useRef(true);
@@ -14,9 +14,9 @@ export default function QRAttendanceScanner() {
     if (!inst) return;
     try {
       const s = inst.getState();
-      // 2 = SCANNING, 3 = PAUSED
       if (s === 2 || s === 3) await inst.stop();
     } catch { /* already stopped */ }
+    // NEVER call inst.clear() — it revokes camera permission
     scannerRef.current = null;
   }, []);
 
@@ -24,13 +24,12 @@ export default function QRAttendanceScanner() {
     safeStop();
     if (!mountedRef.current) return;
 
-    // Extract token — NEVER open the QR URL in browser
     let token = null;
     try {
       const url = new URL(decodedText);
       token = url.searchParams.get('token');
       if (!token || !url.pathname.includes('/attendance')) token = null;
-    } catch { /* not a URL — try raw token */ }
+    } catch { /* not a URL */ }
 
     if (!token && decodedText && !decodedText.includes(' ') && decodedText.length > 10) {
       token = decodedText;
@@ -50,25 +49,40 @@ export default function QRAttendanceScanner() {
     setStatus('loading');
     setErrorMsg('');
 
-    // Camera API check
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('denied');
       setErrorMsg('Camera not supported on this browser.');
       return;
     }
 
-    // Check permission state first (avoids re-prompting)
+    // Step 1: Warm up camera permission by calling getUserMedia directly.
+    // This uses the browser's cached permission (no re-prompt if already granted).
+    // Then we immediately release the stream before handing off to html5-qrcode.
+    let permissionOk = false;
     try {
-      if (navigator.permissions?.query) {
-        const perm = await navigator.permissions.query({ name: 'camera' });
-        if (perm.state === 'denied') {
-          setStatus('denied');
-          setErrorMsg('Camera permission blocked. Allow camera in your browser settings, then retry.');
-          return;
-        }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+      });
+      // Permission granted — stop the stream immediately
+      stream.getTracks().forEach(track => track.stop());
+      permissionOk = true;
+    } catch (err) {
+      const s = err?.name || err?.toString() || '';
+      if (s.includes('NotAllowedError') || s.includes('Permission')) {
+        setStatus('denied');
+        setErrorMsg('Camera permission denied. Allow camera in browser settings, then retry.');
+        return;
+      } else if (s.includes('NotFoundError')) {
+        setStatus('denied');
+        setErrorMsg('No camera found on this device.');
+        return;
       }
-    } catch { /* permissions API not available — continue */ }
+      // Other errors (e.g. OverconstrainedError) — try anyway
+    }
 
+    if (!mountedRef.current) return;
+
+    // Step 2: Start html5-qrcode scanner (it will re-use cached permission)
     try {
       const { Html5Qrcode } = await import('html5-qrcode');
       if (!mountedRef.current) return;
@@ -87,7 +101,7 @@ export default function QRAttendanceScanner() {
       );
       if (!mountedRef.current) { safeStop(); return; }
 
-      // Force video to fill entire screen
+      // Force the video to fill entire viewport
       const video = el.querySelector('video');
       if (video) {
         Object.assign(video.style, {
@@ -99,16 +113,13 @@ export default function QRAttendanceScanner() {
       setStatus('scanning');
     } catch (err) {
       if (!mountedRef.current) return;
-      const s = err?.toString() || '';
-      if (s.includes('NotAllowedError') || s.includes('Permission')) {
+      if (permissionOk) {
+        // Permission was fine but scanner failed — generic error
+        setStatus('error');
+        setErrorMsg('Could not start scanner. Please try again.');
+      } else {
         setStatus('denied');
         setErrorMsg('Camera permission denied. Allow camera in browser settings.');
-      } else if (s.includes('NotFoundError') || s.includes('not found')) {
-        setStatus('denied');
-        setErrorMsg('No camera found on this device.');
-      } else {
-        setStatus('error');
-        setErrorMsg('Could not start camera. Please try again.');
       }
     }
   }, [handleScanResult, safeStop]);
@@ -124,10 +135,10 @@ export default function QRAttendanceScanner() {
 
   return (
     <div className="fixed inset-0 z-50" style={{ background: '#000' }}>
-      {/* Camera container — sits behind overlays */}
+      {/* Camera container */}
       <div id="qr-reader" className="absolute inset-0" style={{ zIndex: 1 }} />
 
-      {/* Top gradient overlay — always on top of camera */}
+      {/* Top gradient overlay */}
       <div className="fixed top-0 left-0 right-0 z-10 px-4 pt-4 pb-10 flex items-center justify-between"
            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
         <button onClick={goBack} className="flex items-center gap-2 text-white/90 active:text-white min-h-[44px]">
@@ -139,7 +150,7 @@ export default function QRAttendanceScanner() {
         )}
       </div>
 
-      {/* Bottom gradient hint — only when scanning */}
+      {/* Bottom gradient hint */}
       {status === 'scanning' && (
         <div className="fixed bottom-0 left-0 right-0 z-10 px-6 pt-10 pb-8 text-center"
              style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
