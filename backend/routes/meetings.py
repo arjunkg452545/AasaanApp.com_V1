@@ -135,12 +135,19 @@ async def get_meeting_summary(meeting_id: str, user=Depends(get_current_user)):
     substitute_count = len(substitute_attendance)
     visitor_count = len(visitor_attendance)
     
-    # Check if meeting has ended
-    end_time = datetime.fromisoformat(meeting["end_time"])
-    if end_time.tzinfo is None:
-        end_time = end_time.replace(tzinfo=timezone.utc).astimezone(IST)
-    else:
-        end_time = end_time.astimezone(IST)
+    # Check if meeting has ended — times stored as HH:MM strings
+    def _parse_meeting_dt(date_str, time_str):
+        """Combine date 'YYYY-MM-DD' and time 'HH:MM' into IST datetime."""
+        try:
+            return IST.localize(datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M"))
+        except (ValueError, TypeError):
+            # Fallback: try ISO format (full datetime string)
+            dt = datetime.fromisoformat(time_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.astimezone(IST)
+
+    end_time = _parse_meeting_dt(meeting["date"], meeting["end_time"])
     now_ist = datetime.now(IST)
     meeting_ended = now_ist > end_time
     

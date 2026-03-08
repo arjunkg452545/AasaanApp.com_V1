@@ -26,6 +26,17 @@ IST = pytz.timezone('Asia/Kolkata')
 router = APIRouter(prefix="/api")
 
 
+def _parse_meeting_dt(date_str, time_str):
+    """Combine date 'YYYY-MM-DD' and time 'HH:MM' into IST datetime."""
+    try:
+        return IST.localize(datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M"))
+    except (ValueError, TypeError):
+        dt = datetime.fromisoformat(time_str)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(IST)
+
+
 # ===== TOKEN REFRESH =====
 
 @router.post("/member/refresh-token")
@@ -434,11 +445,11 @@ async def member_mark_attendance(body: QRAttendanceRequest, user=Depends(require
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
 
-    # Step 6: Check time window
+    # Step 6: Check time window — times stored as HH:MM strings
     now_ist = datetime.now(IST)
-    start_time = datetime.fromisoformat(meeting["start_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    end_time = datetime.fromisoformat(meeting["end_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    late_cutoff = datetime.fromisoformat(meeting["late_cutoff_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
+    start_time = _parse_meeting_dt(meeting["date"], meeting["start_time"])
+    end_time = _parse_meeting_dt(meeting["date"], meeting["end_time"])
+    late_cutoff = _parse_meeting_dt(meeting["date"], meeting["late_cutoff_time"])
 
     if now_ist < start_time:
         raise HTTPException(

@@ -197,36 +197,36 @@ export default function FundManagementHub() {
           {/* Three columns with Quick View buttons */}
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             {/* Kitty Section */}
-            <div className="bg-white/10 rounded-lg p-3 md:p-4">
+            <div className="bg-white/10 rounded-lg p-2 md:p-4 min-w-0">
               <p className="text-green-100 text-xs">Kitty</p>
-              <p className="text-lg md:text-2xl font-bold">{formatCurrency(stats.kitty)}</p>
-              <button 
+              <p className="text-sm md:text-2xl font-bold truncate">{formatCurrency(stats.kitty)}</p>
+              <button
                 onClick={() => openQuickView('kitty')}
-                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors"
+                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors min-h-[36px]"
               >
                 <Eye className="h-3 w-3" /> Quick View
               </button>
             </div>
-            
+
             {/* Meeting Fees Section */}
-            <div className="bg-white/10 rounded-lg p-3 md:p-4">
-              <p className="text-green-100 text-xs">Meeting Fees</p>
-              <p className="text-lg md:text-2xl font-bold">{formatCurrency(stats.meetingfee)}</p>
-              <button 
+            <div className="bg-white/10 rounded-lg p-2 md:p-4 min-w-0">
+              <p className="text-green-100 text-xs truncate">Meeting Fees</p>
+              <p className="text-sm md:text-2xl font-bold truncate">{formatCurrency(stats.meetingfee)}</p>
+              <button
                 onClick={() => openQuickView('meetingfee')}
-                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors"
+                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors min-h-[36px]"
               >
                 <Eye className="h-3 w-3" /> Quick View
               </button>
             </div>
-            
+
             {/* Events Section */}
-            <div className="bg-white/10 rounded-lg p-3 md:p-4">
+            <div className="bg-white/10 rounded-lg p-2 md:p-4 min-w-0">
               <p className="text-green-100 text-xs">Events</p>
-              <p className="text-lg md:text-2xl font-bold">{formatCurrency(stats.events)}</p>
-              <button 
+              <p className="text-sm md:text-2xl font-bold truncate">{formatCurrency(stats.events)}</p>
+              <button
                 onClick={() => openQuickView('events')}
-                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors"
+                className="mt-2 flex items-center gap-1 text-xs bg-white/20 hover:bg-white/30 px-2 py-1 rounded transition-colors min-h-[36px]"
               >
                 <Eye className="h-3 w-3" /> Quick View
               </button>

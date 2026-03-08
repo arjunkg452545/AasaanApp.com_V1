@@ -12,6 +12,17 @@ IST = pytz.timezone('Asia/Kolkata')
 router = APIRouter(prefix="/api", tags=["public"])
 
 
+def _parse_meeting_dt(date_str, time_str):
+    """Combine date 'YYYY-MM-DD' and time 'HH:MM' into IST datetime."""
+    try:
+        return IST.localize(datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M"))
+    except (ValueError, TypeError):
+        dt = datetime.fromisoformat(time_str)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(IST)
+
+
 # ===== APP VERSION (public, no auth) =====
 @router.get("/app/version")
 async def get_app_version():
@@ -44,12 +55,12 @@ async def verify_qr(token: str):
     meeting = await db.meetings.find_one({"meeting_id": payload["meeting_id"]}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
-    
-    # Check if meeting time window is valid
+
+    # Check if meeting time window is valid — times stored as HH:MM strings
     now_ist = datetime.now(IST)
-    start_time = datetime.fromisoformat(meeting["start_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    end_time = datetime.fromisoformat(meeting["end_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    
+    start_time = _parse_meeting_dt(meeting["date"], meeting["start_time"])
+    end_time = _parse_meeting_dt(meeting["date"], meeting["end_time"])
+
     # Meeting hasn't started yet
     if now_ist < start_time:
         raise HTTPException(
@@ -98,10 +109,9 @@ async def mark_attendance(attendance: AttendanceCreate):
     # Use IST timezone
     now_ist = datetime.now(IST)
     
-    meeting_date = datetime.fromisoformat(meeting["date"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    start_time = datetime.fromisoformat(meeting["start_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    late_cutoff = datetime.fromisoformat(meeting["late_cutoff_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
-    end_time = datetime.fromisoformat(meeting["end_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
+    start_time = _parse_meeting_dt(meeting["date"], meeting["start_time"])
+    late_cutoff = _parse_meeting_dt(meeting["date"], meeting["late_cutoff_time"])
+    end_time = _parse_meeting_dt(meeting["date"], meeting["end_time"])
     
     # Check if attendance window is valid - must be between start and end time
     if now_ist < start_time:

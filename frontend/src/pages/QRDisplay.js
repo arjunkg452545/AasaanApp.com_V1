@@ -95,7 +95,7 @@ export default function QRDisplay() {
       {/* Compact Header */}
       <div className="relative z-10 px-3 py-2 flex justify-between items-center">
         <Button data-testid="back-btn" variant="outline" size="sm"
-          onClick={() => navigate('/app/meetings')} className="text-xs px-2 py-1 h-auto">
+          onClick={() => navigate('/app/meetings')} className="text-xs px-2 py-1 min-h-[36px]">
           <ArrowLeft className="h-3 w-3 mr-1" /> Back
         </Button>
         <div className="flex items-center gap-1 px-2 py-1 rounded-full nm-flat">
