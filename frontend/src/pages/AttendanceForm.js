@@ -30,7 +30,10 @@ export default function AttendanceForm() {
   const [substituteMobile, setSubstituteMobile] = useState('');
   const [visitorName, setVisitorName] = useState('');
   const [visitorMobile, setVisitorMobile] = useState('');
+  const [visitorEmail, setVisitorEmail] = useState('');
   const [visitorCompany, setVisitorCompany] = useState('');
+  const [visitorBusinessCategory, setVisitorBusinessCategory] = useState('');
+  const [visitorBusinessCategoryOther, setVisitorBusinessCategoryOther] = useState('');
   const [invitedByMember, setInvitedByMember] = useState('');
 
   const navigate = useNavigate();
@@ -147,7 +150,11 @@ export default function AttendanceForm() {
         }
         attendanceData.visitor_name = visitorName;
         attendanceData.visitor_mobile = visitorMobile;
+        attendanceData.visitor_email = visitorEmail || undefined;
         attendanceData.visitor_company = visitorCompany;
+        attendanceData.visitor_business_category = visitorBusinessCategory === 'Other'
+          ? visitorBusinessCategoryOther
+          : visitorBusinessCategory || undefined;
         attendanceData.invited_by_member_id = member.unique_member_id;
       }
 
@@ -368,6 +375,17 @@ export default function AttendanceForm() {
                 />
               </div>
               <div>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Email <span className="text-xs font-normal" style={{ color: 'var(--nm-text-muted)' }}>(optional)</span></Label>
+                <Input
+                  data-testid="visitor-email-input"
+                  type="email"
+                  value={visitorEmail}
+                  onChange={(e) => setVisitorEmail(e.target.value)}
+                  placeholder="visitor@example.com"
+                  className="mt-2 min-h-[44px]"
+                />
+              </div>
+              <div>
                 <Label style={{ color: 'var(--nm-text-primary)' }}>Visitor Company</Label>
                 <Input
                   data-testid="visitor-company-input"
@@ -376,6 +394,52 @@ export default function AttendanceForm() {
                   required
                   className="mt-2 min-h-[44px]"
                 />
+              </div>
+              <div>
+                <Label style={{ color: 'var(--nm-text-primary)' }}>Business Category</Label>
+                <select
+                  data-testid="visitor-category-select"
+                  value={visitorBusinessCategory}
+                  onChange={(e) => {
+                    setVisitorBusinessCategory(e.target.value);
+                    if (e.target.value !== 'Other') setVisitorBusinessCategoryOther('');
+                    scrollToSubmitButton();
+                  }}
+                  required
+                  className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg nm-input focus:outline-none"
+                  style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)' }}
+                >
+                  <option value="">-- Select Category --</option>
+                  <option value="Accounting & Finance">Accounting & Finance</option>
+                  <option value="Architecture & Interior Design">Architecture & Interior Design</option>
+                  <option value="Automotive">Automotive</option>
+                  <option value="Banking & Insurance">Banking & Insurance</option>
+                  <option value="Construction & Real Estate">Construction & Real Estate</option>
+                  <option value="Consulting">Consulting</option>
+                  <option value="Education & Training">Education & Training</option>
+                  <option value="Food & Hospitality">Food & Hospitality</option>
+                  <option value="Healthcare & Wellness">Healthcare & Wellness</option>
+                  <option value="IT & Software">IT & Software</option>
+                  <option value="Legal Services">Legal Services</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Marketing & Advertising">Marketing & Advertising</option>
+                  <option value="Photography & Media">Photography & Media</option>
+                  <option value="Printing & Stationery">Printing & Stationery</option>
+                  <option value="Retail & E-commerce">Retail & E-commerce</option>
+                  <option value="Telecom & Networking">Telecom & Networking</option>
+                  <option value="Travel & Tourism">Travel & Tourism</option>
+                  <option value="Other">Other</option>
+                </select>
+                {visitorBusinessCategory === 'Other' && (
+                  <Input
+                    data-testid="visitor-category-other-input"
+                    value={visitorBusinessCategoryOther}
+                    onChange={(e) => setVisitorBusinessCategoryOther(e.target.value)}
+                    placeholder="Enter business category"
+                    required
+                    className="mt-2 min-h-[44px]"
+                  />
+                )}
               </div>
               <div>
                 <Label style={{ color: 'var(--nm-text-primary)' }}>Invited By (Member Name)</Label>

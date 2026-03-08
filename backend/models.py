@@ -135,7 +135,9 @@ class AttendanceCreate(BaseModel):
     substitute_mobile: Optional[str] = None
     visitor_name: Optional[str] = None
     visitor_mobile: Optional[str] = None
+    visitor_email: Optional[str] = None
     visitor_company: Optional[str] = None
+    visitor_business_category: Optional[str] = None
     invited_by_member_id: Optional[str] = None
     device_fingerprint: Optional[str] = None
     ip_address: Optional[str] = None
@@ -154,7 +156,9 @@ class AttendanceResponse(BaseModel):
     substitute_mobile: Optional[str] = None
     visitor_name: Optional[str] = None
     visitor_mobile: Optional[str] = None
+    visitor_email: Optional[str] = None
     visitor_company: Optional[str] = None
+    visitor_business_category: Optional[str] = None
     invited_by_member_id: Optional[str] = None
     invited_by_member_name: Optional[str] = None
     device_fingerprint: Optional[str] = None
