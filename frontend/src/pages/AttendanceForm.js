@@ -7,7 +7,7 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card } from '../components/ui/card';
 import { toast } from 'sonner';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Info } from 'lucide-react';
 
 // Use REACT_APP_API_URL (full URL with /api) or fall back to REACT_APP_BACKEND_URL + /api
 const API = process.env.REACT_APP_API_URL || (process.env.REACT_APP_BACKEND_URL ? `${process.env.REACT_APP_BACKEND_URL}/api` : '');
@@ -21,11 +21,10 @@ export default function AttendanceForm() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(false);
-  const [type, setType] = useState('member');
+  const [type, setType] = useState('substitute');
   const [deviceFingerprint, setDeviceFingerprint] = useState('');
   const [ipAddress, setIpAddress] = useState('');
 
-  const [selectedMember, setSelectedMember] = useState('');
   const [selectedForMember, setSelectedForMember] = useState('');
   const [substituteName, setSubstituteName] = useState('');
   const [substituteMobile, setSubstituteMobile] = useState('');
@@ -129,16 +128,7 @@ export default function AttendanceForm() {
         ip_address: ipAddress
       };
 
-      if (type === 'member') {
-        const member = members.find(m => m.member_id === selectedMember);
-        if (!member) {
-          toast.error('Please select a member');
-          setSubmitting(false);
-          return;
-        }
-        attendanceData.unique_member_id = member.unique_member_id;
-        attendanceData.primary_mobile = member.primary_mobile;
-      } else if (type === 'substitute') {
+      if (type === 'substitute') {
         const member = members.find(m => m.member_id === selectedForMember);
         if (!member) {
           toast.error('Please select member');
@@ -200,8 +190,7 @@ export default function AttendanceForm() {
         <div className="px-4 mt-6 space-y-4">
           <div className="nm-raised rounded-xl p-5">
             <div className="h-5 w-24 rounded animate-pulse" style={{ background: 'var(--nm-border)' }}></div>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              <div className="h-10 nm-inset rounded animate-pulse"></div>
+            <div className="grid grid-cols-2 gap-2 mt-3">
               <div className="h-10 nm-inset rounded animate-pulse"></div>
               <div className="h-10 nm-inset rounded animate-pulse"></div>
             </div>
@@ -221,12 +210,12 @@ export default function AttendanceForm() {
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--nm-bg)' }}>
         <div className="nm-raised rounded-3xl p-8 max-w-md w-full text-center">
           <div className="h-16 w-16 rounded-full nm-pressed flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(239, 68, 68, 0.1)' }}>
-            <span className="text-4xl">❌</span>
+            <span className="text-4xl">&#x274C;</span>
           </div>
           <h2 className="text-2xl font-bold mb-3" style={{ color: '#CF2030' }}>Invalid or Expired QR Code</h2>
           <p className="mb-4" style={{ color: 'var(--nm-text-secondary)' }}>Please scan a valid QR code from the meeting display.</p>
           <div className="nm-inset rounded-lg p-3" style={{ background: 'rgba(234, 179, 8, 0.08)' }}>
-            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>💡 Make sure you're scanning the latest QR code from the meeting screen</p>
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Make sure you're scanning the latest QR code from the meeting screen</p>
           </div>
         </div>
       </div>
@@ -244,13 +233,13 @@ export default function AttendanceForm() {
           <p className="mb-6" style={{ color: 'var(--nm-text-secondary)' }}>Your attendance has been recorded successfully.</p>
 
           <div className="nm-inset rounded-lg p-4 mb-4" style={{ background: 'rgba(59, 130, 246, 0.08)' }}>
-            <p className="text-sm font-semibold" style={{ color: 'var(--nm-accent)' }}>✓ Thank you for attending</p>
+            <p className="text-sm font-semibold" style={{ color: 'var(--nm-accent)' }}>Thank you for attending</p>
             <p className="text-xs mt-1" style={{ color: 'var(--nm-text-muted)' }}>You may close this page now</p>
           </div>
 
           <div className="nm-inset rounded-lg p-3" style={{ background: 'rgba(234, 179, 8, 0.08)' }}>
             <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
-              ⚠️ This QR code has been used. Scan a new QR code to mark attendance again.
+              This QR code has been used. Scan a new QR code to mark attendance again.
             </p>
           </div>
         </Card>
@@ -268,25 +257,24 @@ export default function AttendanceForm() {
             <h1 className="text-xl font-bold mb-0.5">Aasaan App</h1>
             <p className="text-white/90 text-sm">Meeting: {new Date(meetingInfo.date).toLocaleDateString()}</p>
             <div className="mt-1 bg-white/20 backdrop-blur-sm rounded px-2 py-0.5 inline-block">
-              <p className="text-xs font-semibold">✓ Verified</p>
+              <p className="text-xs font-semibold">Verified</p>
             </div>
           </div>
         </div>
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Info banner for members */}
+        <div className="flex items-start gap-3 rounded-xl p-4" style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+          <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+          <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>
+            <span className="font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Members:</span> Open your AasaanApp and tap <span className="font-semibold">"Scan QR for Attendance"</span> to mark attendance.
+          </p>
+        </div>
+
         <Card className="p-5">
           <h2 className="text-lg font-bold mb-3" style={{ color: 'var(--nm-text-primary)' }}>Select Type</h2>
-          <div className="grid grid-cols-3 gap-2">
-            <Button
-              data-testid="type-member-btn"
-              type="button"
-              variant={type === 'member' ? 'default' : 'outline'}
-              onClick={() => setType('member')}
-              className={type === 'member' ? 'bg-[#CF2030] hover:bg-[#A61926]' : ''}
-            >
-              Member
-            </Button>
+          <div className="grid grid-cols-2 gap-2">
             <Button
               data-testid="type-substitute-btn"
               type="button"
@@ -309,32 +297,6 @@ export default function AttendanceForm() {
         </Card>
 
         <form onSubmit={handleSubmit} className="space-y-4 pb-4">
-          {type === 'member' && (
-            <Card className="p-6 space-y-4">
-              <div>
-                <Label style={{ color: 'var(--nm-text-primary)' }}>Select Your Name</Label>
-                <select
-                  data-testid="member-select"
-                  value={selectedMember}
-                  onChange={(e) => {
-                    setSelectedMember(e.target.value);
-                    scrollToSubmitButton();
-                  }}
-                  required
-                  className="mt-2 w-full min-h-[44px] px-3 py-2 rounded-lg nm-input focus:outline-none"
-                  style={{ background: 'var(--nm-surface)', color: 'var(--nm-text-primary)' }}
-                >
-                  <option value="">-- Select Member --</option>
-                  {members.map((member) => (
-                    <option key={member.member_id} value={member.member_id}>
-                      {member.full_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </Card>
-          )}
-
           {type === 'substitute' && (
             <Card className="p-6 space-y-4">
               <div>

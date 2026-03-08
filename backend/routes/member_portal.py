@@ -6,16 +6,22 @@ Member Portal Routes
 - Payment info (UPI/bank details)
 - UPI deep link generation
 - Own profile, history
+- QR attendance marking (authenticated members)
 """
 from fastapi import APIRouter, HTTPException, Depends, Query, File, UploadFile, Form, Response
+from pydantic import BaseModel
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 import urllib.parse
+import pytz
 
 from database import db
 from deps import require_role
 from auth import create_access_token, verify_token, MEMBER_TOKEN_EXPIRE_DAYS
 from file_storage import file_storage
+from qr_generator import verify_qr_token
+
+IST = pytz.timezone('Asia/Kolkata')
 
 router = APIRouter(prefix="/api")
 
@@ -385,3 +391,108 @@ async def member_history(user=Depends(require_role("member", "admin"))):
         {"_id": 0}
     ).sort("payment_date", -1).to_list(100)
     return payments
+
+
+# ===== QR ATTENDANCE (authenticated member scan) =====
+
+class QRAttendanceRequest(BaseModel):
+    token: str
+
+@router.post("/member/mark-attendance")
+async def member_mark_attendance(body: QRAttendanceRequest, user=Depends(require_role("member", "admin"))):
+    """
+    Mark attendance for the authenticated member via QR token.
+    Called from in-app QR scanner — NOT the public attendance page.
+    Flow: Scan QR → extract token → call this endpoint → attendance marked.
+    """
+    # Step 1: Verify QR token
+    payload = verify_qr_token(body.token)
+    if not payload:
+        raise HTTPException(status_code=400, detail="Invalid or expired QR code")
+
+    meeting_id = payload.get("meeting_id")
+    qr_chapter_id = payload.get("chapter_id")
+
+    # Step 2: Get meeting from DB
+    meeting = await db.meetings.find_one({"meeting_id": meeting_id}, {"_id": 0})
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    # Step 3: Get member from auth token
+    member_id = user.get("member_id")
+    chapter_id = user.get("chapter_id")
+
+    if not member_id or not chapter_id:
+        raise HTTPException(status_code=400, detail="Member info not found in token")
+
+    # Step 4: Verify chapter match
+    if chapter_id != meeting.get("chapter_id"):
+        raise HTTPException(status_code=403, detail="This QR code is for a different chapter")
+
+    # Step 5: Get full member record
+    member = await db.members.find_one({"member_id": member_id}, {"_id": 0})
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    # Step 6: Check time window
+    now_ist = datetime.now(IST)
+    start_time = datetime.fromisoformat(meeting["start_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
+    end_time = datetime.fromisoformat(meeting["end_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
+    late_cutoff = datetime.fromisoformat(meeting["late_cutoff_time"]).replace(tzinfo=timezone.utc).astimezone(IST)
+
+    if now_ist < start_time:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Meeting hasn't started yet. Opens at {start_time.strftime('%I:%M %p')}"
+        )
+    if now_ist > end_time:
+        raise HTTPException(status_code=400, detail="Meeting has ended. Attendance window closed.")
+
+    # Step 7: Check duplicate
+    unique_member_id = member.get("unique_member_id", member_id)
+    existing = await db.attendance.find_one({
+        "meeting_id": meeting_id,
+        "$or": [
+            {"unique_member_id": unique_member_id},
+            {"primary_mobile": member.get("primary_mobile")}
+        ]
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Attendance already marked for this meeting")
+
+    # Step 8: Determine on-time vs late
+    late_type = "On time" if now_ist <= late_cutoff else "Late"
+
+    # Step 9: Save attendance record
+    attendance_data = {
+        "attendance_id": f"A{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')}",
+        "meeting_id": meeting_id,
+        "unique_member_id": unique_member_id,
+        "type": "member",
+        "status": "Present",
+        "timestamp": now_ist.isoformat(),
+        "late_type": late_type,
+        "member_name": member.get("full_name"),
+        "primary_mobile": member.get("primary_mobile"),
+        "substitute_name": None,
+        "substitute_mobile": None,
+        "visitor_name": None,
+        "visitor_mobile": None,
+        "visitor_company": None,
+        "invited_by_member_id": None,
+        "invited_by_member_name": None,
+        "device_fingerprint": "app-scanner",
+        "ip_address": "app",
+        "approval_status": "approved",
+    }
+
+    await db.attendance.insert_one(attendance_data)
+
+    return {
+        "status": "success",
+        "attendance_id": attendance_data["attendance_id"],
+        "meeting_id": meeting_id,
+        "member_name": member.get("full_name"),
+        "late_type": late_type,
+        "timestamp": attendance_data["timestamp"],
+    }

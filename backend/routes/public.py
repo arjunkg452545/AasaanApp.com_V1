@@ -84,6 +84,13 @@ async def get_chapter_members(chapter_id: str):
 
 @router.post("/attendance/mark", response_model=AttendanceResponse)
 async def mark_attendance(attendance: AttendanceCreate):
+    # Guard: Members must use the in-app scanner, not the public form
+    if attendance.type == "member":
+        raise HTTPException(
+            status_code=400,
+            detail="Member attendance must be marked through the AasaanApp. Please open your app and use Scan QR."
+        )
+
     meeting = await db.meetings.find_one({"meeting_id": attendance.meeting_id}, {"_id": 0})
     if not meeting:
         raise HTTPException(status_code=404, detail="Meeting not found")
