@@ -319,26 +319,44 @@ export default function QRAttendanceScanner() {
       {/* Hidden canvas for jsQR processing — never displayed */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Scanning overlay — vignette + crosshair corners */}
+      {/* Scanning overlay — Paytm-style full-screen scan effect */}
       {status === 'scanning' && (
-        <div className="fixed inset-0 z-[5] flex items-center justify-center pointer-events-none"
-             style={{ background: 'radial-gradient(circle at center, transparent 130px, rgba(0,0,0,0.5) 200px)' }}>
-          <div className="relative" style={{ width: '260px', height: '260px' }}>
-            {/* Top-left corner */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-[3px] border-l-[3px] border-white rounded-tl-xl" />
-            {/* Top-right corner */}
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-[3px] border-r-[3px] border-white rounded-tr-xl" />
-            {/* Bottom-left corner */}
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-[3px] border-l-[3px] border-white rounded-bl-xl" />
-            {/* Bottom-right corner */}
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-[3px] border-r-[3px] border-white rounded-br-xl" />
-            {/* Scanning line animation */}
-            <div className="absolute left-2 right-2 h-[2px]" style={{
-              background: 'linear-gradient(90deg, transparent, #CF2030, transparent)',
-              animation: 'scanLine 2s ease-in-out infinite',
-            }} />
+        <>
+          {/* Subtle edge vignette — makes corner lights pop */}
+          <div className="fixed inset-0 z-[5] pointer-events-none" style={{
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.25) 100%), linear-gradient(90deg, rgba(0,0,0,0.2) 0%, transparent 12%, transparent 88%, rgba(0,0,0,0.2) 100%)',
+          }} />
+
+          {/* Full-screen scan line */}
+          <div className="fixed left-4 right-4 h-[2px] z-[6] pointer-events-none" style={{
+            background: 'linear-gradient(90deg, transparent, #CF2030 30%, #CF2030 70%, transparent)',
+            animation: 'scanLine 2.5s ease-in-out infinite',
+          }} />
+
+          {/* Corner light pulses — top-left */}
+          <div className="fixed top-4 left-4 z-[6] pointer-events-none" style={{ animation: 'cornerPulse 2s ease-in-out infinite' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '80px', height: '3px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '3px', height: '80px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
           </div>
-        </div>
+
+          {/* Corner light pulses — top-right */}
+          <div className="fixed top-4 right-4 z-[6] pointer-events-none" style={{ animation: 'cornerPulse 2s ease-in-out infinite 0.5s' }}>
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '80px', height: '3px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+            <div style={{ position: 'absolute', top: 0, right: 0, width: '3px', height: '80px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+          </div>
+
+          {/* Corner light pulses — bottom-right */}
+          <div className="fixed bottom-4 right-4 z-[6] pointer-events-none" style={{ animation: 'cornerPulse 2s ease-in-out infinite 1s' }}>
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: '80px', height: '3px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+            <div style={{ position: 'absolute', bottom: 0, right: 0, width: '3px', height: '80px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+          </div>
+
+          {/* Corner light pulses — bottom-left */}
+          <div className="fixed bottom-4 left-4 z-[6] pointer-events-none" style={{ animation: 'cornerPulse 2s ease-in-out infinite 1.5s' }}>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, width: '80px', height: '3px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, width: '3px', height: '80px', background: '#CF2030', borderRadius: '2px', boxShadow: '0 0 15px #CF2030, 0 0 30px rgba(207,32,48,0.5)' }} />
+          </div>
+        </>
       )}
 
       {/* Top gradient overlay */}
@@ -534,8 +552,12 @@ export default function QRAttendanceScanner() {
       {/* Animation keyframes */}
       <style>{`
         @keyframes scanLine {
-          0%, 100% { top: 8px; opacity: 0.4; }
-          50% { top: calc(100% - 10px); opacity: 1; }
+          0%, 100% { top: 10%; opacity: 0.4; }
+          50% { top: 80%; opacity: 1; }
+        }
+        @keyframes cornerPulse {
+          0%, 100% { opacity: 0.3; filter: blur(0px); }
+          50% { opacity: 1; filter: blur(1px); }
         }
         @keyframes bounceOnce {
           0% { transform: scale(0.3); opacity: 0; }
