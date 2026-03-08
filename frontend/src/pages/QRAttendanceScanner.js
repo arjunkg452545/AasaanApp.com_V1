@@ -1,20 +1,29 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info } from 'lucide-react';
+import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info, Zap } from 'lucide-react';
 import jsQR from 'jsqr';
 import api from '../utils/api';
 
+// ─── Platform detection (outside component — evaluated once) ───
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_PWA = window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+const SCAN_INTERVAL_MS = 80;
+const SCAN_CANVAS_WIDTH = 480;
+
 export default function QRAttendanceScanner() {
-  // loading | scanning | marking | success | error | denied | already | warning
+  // pre-permission | loading | scanning | marking | success | error | denied | already | warning
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
   const [scanHint, setScanHint] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const animFrameRef = useRef(null);
+  const scanTimerRef = useRef(null);
   const mountedRef = useRef(true);
   const autoNavRef = useRef(null);
   const hintTimerRef = useRef(null);
@@ -22,16 +31,12 @@ export default function QRAttendanceScanner() {
 
   const navigate = useNavigate();
 
-  // Detect iOS for camera permission hint
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-  // ─── Stop camera stream and animation frame ───
+  // ─── Stop camera stream and scan interval ───
   const stopCamera = useCallback(() => {
-    // Cancel animation frame
-    if (animFrameRef.current) {
-      cancelAnimationFrame(animFrameRef.current);
-      animFrameRef.current = null;
+    // Clear scan interval
+    if (scanTimerRef.current) {
+      clearInterval(scanTimerRef.current);
+      scanTimerRef.current = null;
     }
     // Stop all media tracks
     if (streamRef.current) {
@@ -42,6 +47,7 @@ export default function QRAttendanceScanner() {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    setCameraReady(false);
   }, []);
 
   // ─── Handle decoded QR result ───
@@ -92,7 +98,7 @@ export default function QRAttendanceScanner() {
 
       autoNavRef.current = setTimeout(() => {
         if (mountedRef.current) navigate('/app/home', { replace: true });
-      }, 3000);
+      }, 2500);
     } catch (err) {
       if (!mountedRef.current) return;
 
@@ -124,37 +130,6 @@ export default function QRAttendanceScanner() {
     }
   }, [navigate, stopCamera]);
 
-  // ─── jsQR scanning loop via requestAnimationFrame ───
-  const scanLoop = useCallback(() => {
-    if (!mountedRef.current || processingRef.current) return;
-
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      animFrameRef.current = requestAnimationFrame(scanLoop);
-      return;
-    }
-
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert',
-    });
-
-    if (code && code.data) {
-      handleScanResult(code.data);
-      return; // Stop loop — we got a result
-    }
-
-    // Continue scanning
-    animFrameRef.current = requestAnimationFrame(scanLoop);
-  }, [handleScanResult]);
-
   // ─── Start camera and begin scanning ───
   const startScanner = useCallback(async () => {
     if (!mountedRef.current) return;
@@ -162,6 +137,7 @@ export default function QRAttendanceScanner() {
     setErrorMsg('');
     setResult(null);
     setScanHint(false);
+    setCameraReady(false);
     processingRef.current = false;
 
     if (autoNavRef.current) { clearTimeout(autoNavRef.current); autoNavRef.current = null; }
@@ -177,10 +153,13 @@ export default function QRAttendanceScanner() {
     }
 
     try {
-      // Request camera — NO width/height constraints for maximum compatibility
-      // Let browser pick optimal resolution (especially important for iOS)
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 15, max: 30 },
+        },
         audio: false,
       });
 
@@ -190,6 +169,10 @@ export default function QRAttendanceScanner() {
       }
 
       streamRef.current = stream;
+
+      // Remember camera was granted (for iOS pre-permission skip)
+      try { sessionStorage.setItem('cam_granted', '1'); } catch {}
+
       const video = videoRef.current;
       if (!video) {
         stream.getTracks().forEach(t => t.stop());
@@ -211,10 +194,36 @@ export default function QRAttendanceScanner() {
         if (!mountedRef.current) return;
         video.play().then(() => {
           if (!mountedRef.current) return;
+          setCameraReady(true);
           setStatus('scanning');
 
-          // Start jsQR scanning loop
-          animFrameRef.current = requestAnimationFrame(scanLoop);
+          // Start jsQR scanning loop via setInterval (not rAF — consistent ~12fps)
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+          scanTimerRef.current = setInterval(() => {
+            if (!mountedRef.current || processingRef.current) return;
+            if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+            // Downscale for performance
+            const scale = Math.min(SCAN_CANVAS_WIDTH / video.videoWidth, 1);
+            const w = Math.floor(video.videoWidth * scale);
+            const h = Math.floor(video.videoHeight * scale);
+            canvas.width = w;
+            canvas.height = h;
+
+            ctx.drawImage(video, 0, 0, w, h);
+            const imageData = ctx.getImageData(0, 0, w, h);
+
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'dontInvert',
+            });
+
+            if (code && code.data) {
+              handleScanResult(code.data);
+            }
+          }, SCAN_INTERVAL_MS);
 
           // Start 10-second hint timer
           hintTimerRef.current = setTimeout(() => {
@@ -233,7 +242,13 @@ export default function QRAttendanceScanner() {
 
       if (errStr.includes('NotAllowedError') || errStr.includes('Permission')) {
         setStatus('denied');
-        setErrorMsg('Camera permission denied. Please allow camera access in your browser settings, then tap Retry.');
+        if (IS_IOS && IS_PWA) {
+          setErrorMsg('Camera denied. Go to iPhone Settings \u2192 Safari \u2192 Camera \u2192 Allow, then reopen app.');
+        } else if (IS_IOS) {
+          setErrorMsg('Camera denied. Tap \u201CAa\u201D in Safari address bar \u2192 Website Settings \u2192 Camera \u2192 Allow.');
+        } else {
+          setErrorMsg('Camera permission denied. Allow camera in browser settings and retry.');
+        }
       } else if (errStr.includes('NotFoundError') || errStr.includes('no camera')) {
         setStatus('denied');
         setErrorMsg('No camera found on this device.');
@@ -245,27 +260,31 @@ export default function QRAttendanceScanner() {
         setErrorMsg('Could not start camera. Please close other apps using the camera and try again.');
       }
     }
-  }, [scanLoop, stopCamera]);
+  }, [handleScanResult, stopCamera]);
 
-  // ─── Mount / Unmount + iOS visibility handling ───
+  // ─── Mount / Unmount + visibility handling ───
   useEffect(() => {
     mountedRef.current = true;
-    startScanner();
 
-    // Handle iOS PWA returning from background — camera stream may be dead
+    // iOS pre-permission gate: show prompt before requesting camera
+    let camGranted = false;
+    try { camGranted = sessionStorage.getItem('cam_granted') === '1'; } catch {}
+
+    if (IS_IOS && !camGranted) {
+      setStatus('pre-permission');
+    } else {
+      startScanner();
+    }
+
+    // Handle app returning from background — camera stream may be dead
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && mountedRef.current) {
-        // Check if stream is still active
+      if (document.visibilityState === 'hidden') {
+        // Save battery when backgrounded
+        stopCamera();
+      } else if (document.visibilityState === 'visible' && mountedRef.current) {
         const stream = streamRef.current;
-        if (stream) {
-          const tracks = stream.getTracks();
-          const allEnded = tracks.every(t => t.readyState === 'ended');
-          if (allEnded) {
-            // Stream died in background — restart
-            startScanner();
-          }
-        } else if (!processingRef.current) {
-          // No stream — restart if we were supposed to be scanning
+        const streamDead = !stream || stream.getTracks().every(t => t.readyState === 'ended');
+        if (streamDead && !processingRef.current) {
           startScanner();
         }
       }
@@ -290,29 +309,32 @@ export default function QRAttendanceScanner() {
       <video
         ref={videoRef}
         playsInline
+        webkit-playsinline="true"
         muted
         autoPlay
         className="absolute inset-0 w-full h-full"
-        style={{ objectFit: 'cover', zIndex: 1 }}
+        style={{ objectFit: 'cover', zIndex: 1, opacity: cameraReady ? 1 : 0, transition: 'opacity 0.15s ease' }}
       />
 
       {/* Hidden canvas for jsQR processing — never displayed */}
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Scanning overlay — crosshair corners */}
+      {/* Scanning overlay — vignette + crosshair corners */}
       {status === 'scanning' && (
-        <div className="fixed inset-0 z-[5] flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-[5] flex items-center justify-center pointer-events-none"
+             style={{ background: 'radial-gradient(circle at center, transparent 130px, rgba(0,0,0,0.5) 200px)' }}>
           <div className="relative" style={{ width: '260px', height: '260px' }}>
             {/* Top-left corner */}
-            <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] border-white rounded-tl-lg" />
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-[3px] border-l-[3px] border-white rounded-tl-xl" />
             {/* Top-right corner */}
-            <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] border-white rounded-tr-lg" />
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-[3px] border-r-[3px] border-white rounded-tr-xl" />
             {/* Bottom-left corner */}
-            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] border-white rounded-bl-lg" />
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-[3px] border-l-[3px] border-white rounded-bl-xl" />
             {/* Bottom-right corner */}
-            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] border-white rounded-br-lg" />
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-[3px] border-r-[3px] border-white rounded-br-xl" />
             {/* Scanning line animation */}
-            <div className="absolute left-2 right-2 h-[2px] bg-[#CF2030] animate-scan-line" style={{
+            <div className="absolute left-2 right-2 h-[2px]" style={{
+              background: 'linear-gradient(90deg, transparent, #CF2030, transparent)',
               animation: 'scanLine 2s ease-in-out infinite',
             }} />
           </div>
@@ -322,12 +344,18 @@ export default function QRAttendanceScanner() {
       {/* Top gradient overlay */}
       <div className="fixed top-0 left-0 right-0 z-10 px-4 pt-4 pb-10 flex items-center justify-between"
            style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
-        <button onClick={goBack} className="flex items-center gap-2 text-white/90 active:text-white min-h-[44px]">
+        <button onClick={goBack} className="flex items-center gap-2 text-white/90 active:text-white active:scale-95 transition-transform min-h-[44px]">
           <ArrowLeft className="h-5 w-5" />
           <span className="text-sm font-medium">Back</span>
         </button>
         {status === 'scanning' && (
-          <span className="text-sm font-medium text-white/80">Scan QR for Attendance</span>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-400" />
+            </span>
+            <span className="text-sm font-medium text-white/80">Scanning</span>
+          </div>
         )}
       </div>
 
@@ -344,6 +372,32 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
+      {/* iOS Pre-Permission Screen */}
+      {status === 'pre-permission' && (
+        <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: '#000' }}>
+          <div className="rounded-2xl p-6 mb-5" style={{ background: 'rgba(255,255,255,0.08)' }}>
+            <Camera className="h-12 w-12 text-white" />
+          </div>
+          <p className="text-xl font-bold text-white mb-2">Camera Access Needed</p>
+          <p className="text-sm text-white/60 text-center mb-8 max-w-xs">
+            Tap the button below, then tap <strong className="text-white/80">Allow</strong> when iOS asks for camera permission.
+          </p>
+          <button
+            onClick={() => startScanner()}
+            className="flex items-center gap-2 px-8 min-h-[52px] rounded-xl text-base font-semibold text-white active:scale-95 transition-transform"
+            style={{ background: '#CF2030' }}
+          >
+            <Zap className="h-5 w-5" /> Open Camera
+          </button>
+          <button
+            onClick={goBack}
+            className="mt-4 text-sm text-white/50 active:text-white/70 active:scale-95 transition-transform min-h-[44px]"
+          >
+            Go back
+          </button>
+        </div>
+      )}
+
       {/* Loading */}
       {status === 'loading' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center" style={{ background: '#000' }}>
@@ -351,7 +405,7 @@ export default function QRAttendanceScanner() {
             <Camera className="h-8 w-8 text-white animate-pulse" />
           </div>
           <p className="text-sm text-white/60">Starting camera...</p>
-          {isIOS && (
+          {IS_IOS && (
             <p className="text-xs text-amber-300/70 mt-3 px-8 text-center">
               On iPhone: Tap "Allow" when prompted for camera access
             </p>
@@ -373,7 +427,7 @@ export default function QRAttendanceScanner() {
       {/* SUCCESS */}
       {status === 'success' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: 'rgba(0,0,0,0.9)' }}>
-          <div className="rounded-full p-6 mb-5" style={{ background: 'rgba(34,197,94,0.15)' }}>
+          <div className="rounded-full p-6 mb-5 animate-bounce-once" style={{ background: 'rgba(34,197,94,0.15)' }}>
             <CheckCircle2 className="h-16 w-16 text-green-400" />
           </div>
           <p className="text-2xl font-bold text-white mb-2">Attendance Marked!</p>
@@ -397,10 +451,10 @@ export default function QRAttendanceScanner() {
               </div>
             </div>
           )}
-          <button onClick={goBack} className="flex items-center gap-2 px-8 min-h-[48px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
+          <button onClick={goBack} className="flex items-center gap-2 px-8 min-h-[48px] rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
             <Home className="h-4 w-4" /> Back to Dashboard
           </button>
-          <p className="text-xs text-white/30 mt-3">Auto-redirecting in 3 seconds...</p>
+          <p className="text-xs text-white/30 mt-3">Auto-redirecting...</p>
         </div>
       )}
 
@@ -414,7 +468,7 @@ export default function QRAttendanceScanner() {
           <p className="text-sm text-white/60 text-center mb-6 max-w-xs">
             Your attendance for this meeting is already recorded.
           </p>
-          <button onClick={goBack} className="flex items-center gap-2 px-8 min-h-[48px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
+          <button onClick={goBack} className="flex items-center gap-2 px-8 min-h-[48px] rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
             <Home className="h-4 w-4" /> Back to Dashboard
           </button>
         </div>
@@ -429,10 +483,10 @@ export default function QRAttendanceScanner() {
           <p className="text-xl font-bold text-white mb-2">Too Early!</p>
           <p className="text-sm text-white/60 text-center mb-6 max-w-xs">{errorMsg}</p>
           <div className="flex gap-3">
-            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
+            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
               <RefreshCw className="h-4 w-4" /> Try Again
             </button>
-            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20">
+            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20 active:scale-95 transition-transform">
               Go Back
             </button>
           </div>
@@ -448,10 +502,10 @@ export default function QRAttendanceScanner() {
           <p className="text-lg font-bold text-white mb-2">Failed</p>
           <p className="text-sm text-white/50 text-center mb-6 max-w-xs">{errorMsg}</p>
           <div className="flex gap-3">
-            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
+            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
               <RefreshCw className="h-4 w-4" /> Try Again
             </button>
-            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20">
+            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20 active:scale-95 transition-transform">
               Go Back
             </button>
           </div>
@@ -467,21 +521,30 @@ export default function QRAttendanceScanner() {
           <p className="text-lg font-bold text-white mb-2">Camera Unavailable</p>
           <p className="text-sm text-white/50 text-center mb-6 max-w-xs">{errorMsg}</p>
           <div className="flex gap-3">
-            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
+            <button onClick={retry} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white active:scale-95 transition-transform" style={{ background: '#CF2030' }}>
               <RefreshCw className="h-4 w-4" /> Retry
             </button>
-            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20">
+            <button onClick={goBack} className="flex items-center gap-2 px-6 min-h-[44px] rounded-xl text-sm font-semibold text-white/80 border border-white/20 active:scale-95 transition-transform">
               Go Back
             </button>
           </div>
         </div>
       )}
 
-      {/* Scanning line animation keyframes */}
+      {/* Animation keyframes */}
       <style>{`
         @keyframes scanLine {
           0%, 100% { top: 8px; opacity: 0.4; }
           50% { top: calc(100% - 10px); opacity: 1; }
+        }
+        @keyframes bounceOnce {
+          0% { transform: scale(0.3); opacity: 0; }
+          50% { transform: scale(1.1); }
+          70% { transform: scale(0.95); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-once {
+          animation: bounceOnce 0.6s ease-out;
         }
       `}</style>
     </div>

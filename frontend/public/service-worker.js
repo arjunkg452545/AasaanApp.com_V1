@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = 'aasaanapp-v6';
+const CACHE_NAME = 'aasaanapp-v7';
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
@@ -58,42 +58,35 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // API calls → network-first
+  // API calls → network-only (never cache API responses)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
         .catch(() => {
-          return caches.match(request).then((cached) => {
-            return cached || new Response(JSON.stringify({ error: 'offline' }), {
-              status: 503,
-              headers: { 'Content-Type': 'application/json' },
-            });
+          return new Response(JSON.stringify({ error: 'offline' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' },
           });
         })
     );
     return;
   }
 
-  // Static assets (JS, CSS, images, fonts) → cache-first
+  // Static assets (JS, CSS, images, fonts) → stale-while-revalidate
   const isStatic = /\.(js|css|png|jpg|jpeg|svg|gif|ico|woff2?|ttf|eot)(\?.*)?$/.test(url.pathname);
   if (isStatic) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        if (cached) return cached;
-        return fetch(request).then((response) => {
+        // Fetch in background to update cache regardless
+        const networkFetch = fetch(request).then((response) => {
           if (response.status === 200 && response.type === 'basic') {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }
           return response;
         });
+        // Return cached immediately, fall back to network
+        return cached || networkFetch;
       }).catch(() => caches.match(request))
     );
     return;
