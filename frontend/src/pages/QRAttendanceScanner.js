@@ -3,15 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info } from 'lucide-react';
 import api from '../utils/api';
 
+// iOS detection (iPad, iPhone, iPod)
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 export default function QRAttendanceScanner() {
   // loading | scanning | marking | success | error | denied | already | warning
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
+  const [scanHint, setScanHint] = useState(false); // Show "hold steady" hint after timeout
   const scannerRef = useRef(null);
   const mountedRef = useRef(true);
   const autoNavRef = useRef(null);
-  const processingRef = useRef(false); // Prevent double-processing
+  const hintTimerRef = useRef(null);
+  const processingRef = useRef(false);
   const navigate = useNavigate();
 
   const safeStop = useCallback(async () => {
@@ -21,14 +26,17 @@ export default function QRAttendanceScanner() {
       const s = inst.getState();
       if (s === 2 || s === 3) await inst.stop();
     } catch { /* already stopped */ }
-    // NEVER call inst.clear() — it revokes camera permission
+    // NEVER call inst.clear() — on iOS it causes permission to be forgotten
     scannerRef.current = null;
   }, []);
 
   const handleScanResult = useCallback(async (decodedText) => {
-    // Prevent double-fire (html5-qrcode can fire multiple times)
     if (processingRef.current) return;
     processingRef.current = true;
+
+    // Clear hint timer
+    if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
+    setScanHint(false);
 
     // Vibration feedback on scan
     if (navigator.vibrate) navigator.vibrate(200);
@@ -63,13 +71,11 @@ export default function QRAttendanceScanner() {
       const response = await api.post('/member/mark-attendance', { token });
       if (!mountedRef.current) return;
 
-      // Success vibration
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
       setResult(response.data);
       setStatus('success');
 
-      // Auto-navigate to dashboard after 3 seconds
       autoNavRef.current = setTimeout(() => {
         if (mountedRef.current) navigate('/app/home', { replace: true });
       }, 3000);
@@ -77,33 +83,25 @@ export default function QRAttendanceScanner() {
       if (!mountedRef.current) return;
 
       const detail = err.response?.data?.detail || '';
-      const statusCode = err.response?.status;
       const detailLower = typeof detail === 'string' ? detail.toLowerCase() : '';
 
-      // Categorize errors into specific overlay types
       if (detailLower.includes('already') || detailLower.includes('duplicate')) {
-        // Already marked — blue info
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         setStatus('already');
         setErrorMsg(detail);
       } else if (detailLower.includes('hasn\'t started') || detailLower.includes('not yet open') || detailLower.includes('not started')) {
-        // Meeting not started yet — yellow warning
         setStatus('warning');
         setErrorMsg(detail);
       } else if (detailLower.includes('ended') || detailLower.includes('closed') || detailLower.includes('expired')) {
-        // Meeting ended / window closed
         setStatus('error');
         setErrorMsg(detail || 'Meeting has ended. Attendance window is closed.');
       } else if (detailLower.includes('different chapter') || detailLower.includes('not your chapter')) {
-        // Wrong chapter
         setStatus('error');
         setErrorMsg('This QR code is for a different chapter. Please scan your chapter\'s QR code.');
-      } else if (!err.response && !statusCode) {
-        // Network error
+      } else if (!err.response) {
         setStatus('error');
         setErrorMsg('Network error. Check your internet connection and try again.');
       } else {
-        // Generic error
         setStatus('error');
         setErrorMsg(detail || 'Failed to mark attendance. Please try again.');
       }
@@ -117,9 +115,11 @@ export default function QRAttendanceScanner() {
     setStatus('loading');
     setErrorMsg('');
     setResult(null);
+    setScanHint(false);
     processingRef.current = false;
 
     if (autoNavRef.current) { clearTimeout(autoNavRef.current); autoNavRef.current = null; }
+    if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('denied');
@@ -127,30 +127,9 @@ export default function QRAttendanceScanner() {
       return;
     }
 
-    // Step 1: Warm up camera permission (works on iOS Safari)
-    let permissionOk = false;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      stream.getTracks().forEach(track => track.stop());
-      permissionOk = true;
-    } catch (err) {
-      const s = err?.name || err?.toString() || '';
-      if (s.includes('NotAllowedError') || s.includes('Permission')) {
-        setStatus('denied');
-        setErrorMsg('Camera permission denied. Please allow camera access in your browser settings, then tap Retry.');
-        return;
-      } else if (s.includes('NotFoundError')) {
-        setStatus('denied');
-        setErrorMsg('No camera found on this device.');
-        return;
-      }
-    }
+    // NO getUserMedia warmup — on iOS this causes a DOUBLE permission prompt.
+    // Let html5-qrcode handle camera permission directly via its own start().
 
-    if (!mountedRef.current) return;
-
-    // Step 2: Start html5-qrcode with MAX SPEED settings
     try {
       const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
       if (!mountedRef.current) return;
@@ -158,26 +137,27 @@ export default function QRAttendanceScanner() {
       const el = document.getElementById('qr-reader');
       if (!el) { setStatus('error'); setErrorMsg('Scanner element not found.'); return; }
 
-      // Create scanner with QR_CODE only — skip all other barcode formats
+      // Create scanner — QR_CODE only for speed
       const qr = new Html5Qrcode('qr-reader', {
         formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
         verbose: false,
       });
       scannerRef.current = qr;
 
-      // Camera config: highest resolution back camera
+      // Camera config: iOS gets default resolution, Android gets high resolution
       const cameraConfig = {
         facingMode: 'environment',
+        ...(isIOS ? {} : { width: { ideal: 1920 }, height: { ideal: 1080 } }),
       };
 
       // Scanner config: MAX SPEED
       const scanConfig = {
-        fps: 30,                // Max frame rate (was 10)
-        qrbox: undefined,      // Scan ENTIRE camera view — no center-box restriction
+        fps: 30,
+        qrbox: undefined,       // Scan ENTIRE camera view
         aspectRatio: 1.0,
         disableFlip: false,
         experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true,  // Native BarcodeDetector API (much faster on modern phones)
+          useBarCodeDetectorIfSupported: true,
         },
       };
 
@@ -185,28 +165,45 @@ export default function QRAttendanceScanner() {
         cameraConfig,
         scanConfig,
         (text) => handleScanResult(text),
-        () => {} // ignore scan failures (normal — most frames won't have QR)
+        () => {}
       );
       if (!mountedRef.current) { safeStop(); return; }
 
-      // Force the video to fill entire viewport
-      const video = el.querySelector('video');
-      if (video) {
-        Object.assign(video.style, {
-          width: '100vw', height: '100vh', objectFit: 'cover',
-          position: 'fixed', top: '0', left: '0', zIndex: '1',
-        });
-      }
+      // Post-start: fix video element for full-screen + iOS compatibility
+      setTimeout(() => {
+        const video = document.querySelector('#qr-reader video');
+        if (video) {
+          // iOS REQUIRES playsinline for inline video playback
+          video.setAttribute('playsinline', 'true');
+          video.setAttribute('webkit-playsinline', 'true');
+          video.setAttribute('muted', 'true');
+          Object.assign(video.style, {
+            width: '100vw', height: '100vh', objectFit: 'cover',
+            position: 'fixed', top: '0', left: '0', zIndex: '1',
+          });
+        }
+      }, 100);
 
       setStatus('scanning');
+
+      // Start 10-second hint timer
+      hintTimerRef.current = setTimeout(() => {
+        if (mountedRef.current) setScanHint(true);
+      }, 10000);
+
     } catch (err) {
       if (!mountedRef.current) return;
-      if (permissionOk) {
-        setStatus('error');
-        setErrorMsg('Could not start scanner. Please try again.');
-      } else {
+      const errStr = err?.name || err?.message || err?.toString() || '';
+
+      if (errStr.includes('NotAllowedError') || errStr.includes('Permission')) {
         setStatus('denied');
-        setErrorMsg('Camera permission denied. Allow camera in browser settings.');
+        setErrorMsg('Camera permission denied. Please allow camera access in your browser settings, then tap Retry.');
+      } else if (errStr.includes('NotFoundError') || errStr.includes('no camera')) {
+        setStatus('denied');
+        setErrorMsg('No camera found on this device.');
+      } else {
+        setStatus('error');
+        setErrorMsg('Could not start camera. Please close other apps using the camera and try again.');
       }
     }
   }, [handleScanResult, safeStop]);
@@ -214,10 +211,33 @@ export default function QRAttendanceScanner() {
   useEffect(() => {
     mountedRef.current = true;
     startScanner();
+
+    // Handle iOS PWA returning from background — camera stream may be dead
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && mountedRef.current) {
+        // Only restart if we were scanning (not on success/error screens)
+        const currentScanner = scannerRef.current;
+        if (currentScanner) {
+          try {
+            const s = currentScanner.getState();
+            // State 2 = scanning, 3 = paused. If not in a valid state, restart
+            if (s !== 2) {
+              startScanner();
+            }
+          } catch {
+            startScanner();
+          }
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       mountedRef.current = false;
       safeStop();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (autoNavRef.current) { clearTimeout(autoNavRef.current); autoNavRef.current = null; }
+      if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
     };
   }, [startScanner, safeStop]);
 
@@ -226,7 +246,7 @@ export default function QRAttendanceScanner() {
 
   return (
     <div className="fixed inset-0 z-50" style={{ background: '#000' }}>
-      {/* Camera container */}
+      {/* Camera container — static ID, never changes */}
       <div id="qr-reader" className="absolute inset-0" style={{ zIndex: 1 }} />
 
       {/* Top gradient overlay */}
@@ -246,6 +266,11 @@ export default function QRAttendanceScanner() {
         <div className="fixed bottom-0 left-0 right-0 z-10 px-6 pt-10 pb-8 text-center"
              style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 100%)' }}>
           <p className="text-sm text-white/70">Point camera at QR code</p>
+          {scanHint && (
+            <p className="text-xs text-amber-300/80 mt-2 animate-pulse">
+              Having trouble? Hold phone steady and ensure good lighting
+            </p>
+          )}
         </div>
       )}
 
@@ -259,7 +284,7 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
-      {/* Marking attendance (API call in progress) */}
+      {/* Marking attendance */}
       {status === 'marking' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
           <div className="rounded-full p-5 mb-4" style={{ background: 'rgba(59,130,246,0.15)' }}>
@@ -270,14 +295,13 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
-      {/* SUCCESS — attendance marked */}
+      {/* SUCCESS */}
       {status === 'success' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: 'rgba(0,0,0,0.9)' }}>
           <div className="rounded-full p-6 mb-5" style={{ background: 'rgba(34,197,94,0.15)' }}>
             <CheckCircle2 className="h-16 w-16 text-green-400" />
           </div>
           <p className="text-2xl font-bold text-white mb-2">Attendance Marked!</p>
-
           {result && (
             <div className="w-full max-w-xs space-y-3 mb-6">
               {result.member_name && (
@@ -298,7 +322,6 @@ export default function QRAttendanceScanner() {
               </div>
             </div>
           )}
-
           <button onClick={goBack} className="flex items-center gap-2 px-8 min-h-[48px] rounded-xl text-sm font-semibold text-white" style={{ background: '#CF2030' }}>
             <Home className="h-4 w-4" /> Back to Dashboard
           </button>
@@ -306,7 +329,7 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
-      {/* ALREADY MARKED — blue info overlay */}
+      {/* ALREADY MARKED — blue info */}
       {status === 'already' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: 'rgba(0,0,0,0.9)' }}>
           <div className="rounded-full p-5 mb-4" style={{ background: 'rgba(59,130,246,0.15)' }}>
@@ -322,7 +345,7 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
-      {/* WARNING — meeting not started yet (yellow) */}
+      {/* WARNING — meeting not started (yellow) */}
       {status === 'warning' && (
         <div className="fixed inset-0 z-20 flex flex-col items-center justify-center px-8" style={{ background: 'rgba(0,0,0,0.9)' }}>
           <div className="rounded-full p-5 mb-4" style={{ background: 'rgba(245,158,11,0.15)' }}>
@@ -388,6 +411,7 @@ export default function QRAttendanceScanner() {
         #qr-reader__status_span { display: none !important; }
         #qr-reader__header_message { display: none !important; }
         #qr-reader { overflow: hidden !important; }
+        #qr-reader video { object-fit: cover !important; }
       `}</style>
     </div>
   );
