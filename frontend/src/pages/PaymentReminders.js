@@ -10,8 +10,8 @@ import {
 } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import {
-  ArrowLeft, Loader2, MessageCircle, Send, Users,
-  ChevronDown, ChevronUp, Phone, Edit3, CheckCircle2,
+  ArrowLeft, Loader2, MessageCircle, Send,
+  Edit3, CheckCircle2,
 } from 'lucide-react';
 
 function formatCurrency(amount) {
@@ -26,38 +26,28 @@ export default function PaymentReminders() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
-  // Filters
   const [feeType, setFeeType] = useState('');
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
 
-  // Template
   const [templates, setTemplates] = useState([]);
   const [editTemplateOpen, setEditTemplateOpen] = useState(false);
   const [editTemplate, setEditTemplate] = useState(null);
   const [editTemplateText, setEditTemplateText] = useState('');
 
-  // Generated links
   const [reminderLinks, setReminderLinks] = useState([]);
   const [showLinks, setShowLinks] = useState(false);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadData();
-  }, []); // eslint-disable-line
-
-  useEffect(() => {
-    loadPendingMembers();
-  }, [feeType, month, year]); // eslint-disable-line
+  useEffect(() => { loadData(); }, []); // eslint-disable-line
+  useEffect(() => { loadPendingMembers(); }, [feeType, month, year]); // eslint-disable-line
 
   const loadData = async () => {
     try {
       const tmplRes = await api.get('/admin/reminders/templates');
       setTemplates(tmplRes.data);
-    } catch {
-      // Templates may not exist yet
-    }
+    } catch { /* Templates may not exist yet */ }
   };
 
   const loadPendingMembers = async () => {
@@ -71,109 +61,94 @@ export default function PaymentReminders() {
       const res = await api.get(`/admin/fees${params}`);
       const fees = res.data;
 
-      // Group by member
       const memberMap = {};
       for (const f of fees) {
         if (!memberMap[f.member_id]) {
-          memberMap[f.member_id] = {
-            member_id: f.member_id,
-            member_name: f.member_name,
-            fees: [],
-            total: 0,
-          };
+          memberMap[f.member_id] = { member_id: f.member_id, member_name: f.member_name, fees: [], total: 0 };
         }
         memberMap[f.member_id].fees.push(f);
         memberMap[f.member_id].total += f.amount || 0;
       }
 
-      const memberList = Object.values(memberMap).sort((a, b) => b.total - a.total);
-      setMembers(memberList);
+      setMembers(Object.values(memberMap).sort((a, b) => b.total - a.total));
       setPendingFees(fees);
-    } catch {
-      toast.error('Failed to load pending fees');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to load pending fees'); }
+    finally { setLoading(false); }
   };
 
   const handleSendReminder = async (memberIds) => {
     setSending(true);
     try {
       const res = await api.post('/admin/reminders/send', {
-        member_ids: memberIds,
-        fee_type: feeType || undefined,
-        month: month || undefined,
-        year: year || undefined,
+        member_ids: memberIds, fee_type: feeType || undefined,
+        month: month || undefined, year: year || undefined,
       });
       setReminderLinks(res.data.links);
       setShowLinks(true);
       toast.success(`Generated ${res.data.count} reminder links`);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to generate reminders');
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
-  const handleBulkRemind = () => {
-    const allMemberIds = members.map(m => m.member_id);
-    handleSendReminder(allMemberIds);
-  };
+  const handleBulkRemind = () => handleSendReminder(members.map(m => m.member_id));
 
   const handleSaveTemplate = async () => {
     if (!editTemplate) return;
     try {
       await api.post('/admin/reminders/templates', {
-        template_id: editTemplate.template_id,
-        name: editTemplate.name,
-        fee_type: editTemplate.fee_type,
-        message_template: editTemplateText,
+        template_id: editTemplate.template_id, name: editTemplate.name,
+        fee_type: editTemplate.fee_type, message_template: editTemplateText,
       });
       toast.success('Template saved');
       setEditTemplateOpen(false);
       loadData();
-    } catch {
-      toast.error('Failed to save template');
-    }
+    } catch { toast.error('Failed to save template'); }
   };
+
+  const totalPending = members.reduce((s, m) => s + m.total, 0);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--nm-bg)' }}>
       {/* Header */}
-      <div className="nm-header px-4 md:px-8 py-3 md:py-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} className="mb-2">
+      <div className="nm-header px-4 py-3">
+        <Button variant="ghost" size="sm" onClick={() => navigate('/app/fund-hub')} className="mb-2 min-h-[44px]">
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
         </Button>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="min-w-0">
-            <h1 className="text-lg md:text-2xl font-bold truncate" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
-            <p className="text-xs md:text-sm" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
-          </div>
-          {members.length > 0 && (
-            <Button
-              onClick={handleBulkRemind}
-              disabled={sending}
-              className="bg-green-600 hover:bg-green-700 shrink-0 self-start sm:self-auto"
-              size="sm"
-            >
-              <Send className="h-4 w-4 mr-1" />
-              Remind All ({members.length})
-            </Button>
-          )}
-        </div>
+        <h1 className="text-lg font-bold" style={{ color: 'var(--nm-text-primary)' }}>Payment Reminders</h1>
+        <p className="text-xs mb-3" style={{ color: 'var(--nm-text-secondary)' }}>Send WhatsApp reminders for pending payments</p>
+        {members.length > 0 && (
+          <Button onClick={handleBulkRemind} disabled={sending}
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 min-h-[44px]" size="sm">
+            <Send className="h-4 w-4 mr-1" /> Remind All ({members.length})
+          </Button>
+        )}
       </div>
 
-      <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      <div className="px-4 py-4 max-w-4xl mx-auto space-y-3">
+        {/* Summary stats — always 3 columns, equal width */}
+        <div className="grid grid-cols-3 gap-2">
+          <Card className="p-2.5 text-center">
+            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Pending</p>
+            <p className="text-lg font-bold text-red-600">{members.length}</p>
+          </Card>
+          <Card className="p-2.5 text-center">
+            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Total</p>
+            <p className="text-base font-bold text-amber-600 leading-tight">{formatCurrency(totalPending)}</p>
+          </Card>
+          <Card className="p-2.5 text-center">
+            <p className="text-[11px] font-medium" style={{ color: 'var(--nm-text-muted)' }}>Fees</p>
+            <p className="text-lg font-bold text-blue-600">{pendingFees.length}</p>
+          </Card>
+        </div>
+
         {/* Filters */}
-        <Card className="p-3 md:p-4 mb-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Card className="p-3">
+          <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-3 sm:gap-3">
             <div>
               <Label className="text-xs">Fee Type</Label>
-              <select
-                value={feeType}
-                onChange={e => setFeeType(e.target.value)}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
-              >
+              <select value={feeType} onChange={e => setFeeType(e.target.value)}
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
                 <option value="">All Types</option>
                 <option value="kitty">Kitty</option>
                 <option value="meeting_fee">Meeting Fee</option>
@@ -183,11 +158,8 @@ export default function PaymentReminders() {
             </div>
             <div>
               <Label className="text-xs">Month</Label>
-              <select
-                value={month}
-                onChange={e => setMonth(Number(e.target.value))}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
-              >
+              <select value={month} onChange={e => setMonth(Number(e.target.value))}
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
                 {Array.from({ length: 12 }, (_, i) => (
                   <option key={i + 1} value={i + 1}>
                     {new Date(2000, i).toLocaleString('en', { month: 'long' })}
@@ -197,11 +169,8 @@ export default function PaymentReminders() {
             </div>
             <div>
               <Label className="text-xs">Year</Label>
-              <select
-                value={year}
-                onChange={e => setYear(Number(e.target.value))}
-                className="nm-input mt-1 w-full rounded-md px-3 py-2 text-sm"
-              >
+              <select value={year} onChange={e => setYear(Number(e.target.value))}
+                className="nm-input mt-1 w-full rounded-md px-3 py-2.5 text-sm min-h-[44px]">
                 {[2024, 2025, 2026, 2027].map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
@@ -210,47 +179,23 @@ export default function PaymentReminders() {
           </div>
         </Card>
 
-        {/* Templates */}
-        <Card className="p-4 mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--nm-text-primary)' }}>Message Templates</h3>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {templates.map(t => (
-              <button
-                key={t.template_id || t.fee_type}
-                onClick={() => {
-                  setEditTemplate(t);
-                  setEditTemplateText(t.message_template);
-                  setEditTemplateOpen(true);
-                }}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm whitespace-nowrap transition-colors"
-                style={{ borderColor: 'var(--nm-border)' }}
-              >
-                <Edit3 className="h-3.5 w-3.5" style={{ color: 'var(--nm-text-muted)' }} />
-                {t.name}
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* Summary */}
-        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4">
-          <div className="bg-red-50 rounded-lg px-3 py-2 min-w-0">
-            <p className="text-[10px] md:text-xs text-red-600 truncate">Pending</p>
-            <p className="text-base md:text-lg font-bold text-red-700">{members.length}</p>
-          </div>
-          <div className="bg-amber-50 rounded-lg px-3 py-2 min-w-0">
-            <p className="text-[10px] md:text-xs text-amber-600 truncate">Total</p>
-            <p className="text-sm md:text-lg font-bold text-amber-700 truncate">
-              {formatCurrency(members.reduce((s, m) => s + m.total, 0))}
-            </p>
-          </div>
-          <div className="bg-blue-50 rounded-lg px-3 py-2 min-w-0">
-            <p className="text-[10px] md:text-xs text-blue-600 truncate">Fees</p>
-            <p className="text-base md:text-lg font-bold text-blue-700">{pendingFees.length}</p>
-          </div>
-        </div>
+        {/* Templates — horizontal scroll */}
+        {templates.length > 0 && (
+          <Card className="p-3">
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--nm-text-primary)' }}>Message Templates</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {templates.map(t => (
+                <button key={t.template_id || t.fee_type}
+                  onClick={() => { setEditTemplate(t); setEditTemplateText(t.message_template); setEditTemplateOpen(true); }}
+                  className="flex items-center gap-1.5 px-3 min-h-[44px] rounded-lg border text-sm whitespace-nowrap shrink-0"
+                  style={{ borderColor: 'var(--nm-border)', color: 'var(--nm-text-secondary)' }}>
+                  <Edit3 className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--nm-text-muted)' }} />
+                  {t.name}
+                </button>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {/* Members List */}
         {loading ? (
@@ -259,33 +204,24 @@ export default function PaymentReminders() {
           </div>
         ) : members.length === 0 ? (
           <Card className="p-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-emerald-300 mx-auto mb-3" />
-            <p style={{ color: 'var(--nm-text-secondary)' }}>No pending payments for this period</p>
+            <CheckCircle2 className="h-10 w-10 text-emerald-300 mx-auto mb-2" />
+            <p className="text-sm" style={{ color: 'var(--nm-text-secondary)' }}>No pending payments for this period</p>
           </Card>
         ) : (
           <div className="space-y-2">
             {members.map(m => (
-              <Card key={m.member_id} className="p-3 md:p-4">
-                <div className="flex items-center justify-between">
+              <Card key={m.member_id} className="p-3">
+                <div className="flex items-center gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{m.member_name}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{m.member_name}</p>
                     <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>
-                      {m.fees.length} fee{m.fees.length > 1 ? 's' : ''} pending
+                      {m.fees.length} fee{m.fees.length > 1 ? 's' : ''} · <span className="font-semibold text-red-600">{formatCurrency(m.total)}</span>
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-red-600">{formatCurrency(m.total)}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-green-300 text-green-600 hover:bg-green-50"
-                      onClick={() => handleSendReminder([m.member_id])}
-                      disabled={sending}
-                    >
-                      <MessageCircle className="h-3.5 w-3.5 mr-1" />
-                      Remind
-                    </Button>
-                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleSendReminder([m.member_id])}
+                    disabled={sending} className="border-green-300 text-green-700 hover:bg-green-50 shrink-0 min-h-[44px]">
+                    <MessageCircle className="h-4 w-4 mr-1" /> Remind
+                  </Button>
                 </div>
               </Card>
             ))}
@@ -295,66 +231,51 @@ export default function PaymentReminders() {
 
       {/* Template Edit Dialog */}
       <Dialog open={editTemplateOpen} onOpenChange={setEditTemplateOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Template: {editTemplate?.name}</DialogTitle>
+            <DialogTitle className="text-base">Edit: {editTemplate?.name}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <p className="text-xs mb-2" style={{ color: 'var(--nm-text-secondary)' }}>
-                Available placeholders: {'{name}'}, {'{chapter}'}, {'{amount}'}, {'{month}'}, {'{year}'}, {'{upi_id}'}, {'{description}'}
-              </p>
-              <Textarea
-                value={editTemplateText}
-                onChange={e => setEditTemplateText(e.target.value)}
-                rows={6}
-                className="font-mono text-sm"
-              />
-            </div>
-            <Button onClick={handleSaveTemplate} className="w-full">
-              Save Template
-            </Button>
+          <div className="space-y-3">
+            <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>
+              Placeholders: {'{name}'}, {'{chapter}'}, {'{amount}'}, {'{month}'}, {'{year}'}, {'{upi_id}'}, {'{description}'}
+            </p>
+            <Textarea value={editTemplateText} onChange={e => setEditTemplateText(e.target.value)}
+              rows={5} className="font-mono text-sm" />
+            <Button onClick={handleSaveTemplate} className="w-full min-h-[44px]">Save Template</Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Generated Links Dialog */}
       <Dialog open={showLinks} onOpenChange={setShowLinks}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[calc(100vw-32px)] sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-green-600" />
-              WhatsApp Reminder Links
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <MessageCircle className="h-5 w-5 text-green-600" /> WhatsApp Links
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto space-y-2">
             {reminderLinks.map((link, i) => (
-              <div key={i} className="p-3 border rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: 'var(--nm-text-primary)' }}>{link.member_name}</p>
-                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{link.mobile} | {formatCurrency(link.amount)}</p>
+              <div key={i} className="p-3 border rounded-lg" style={{ borderColor: 'var(--nm-border)' }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--nm-text-primary)' }}>{link.member_name}</p>
+                    <p className="text-xs" style={{ color: 'var(--nm-text-muted)' }}>{link.mobile} · {formatCurrency(link.amount)}</p>
                   </div>
-                  <a
-                    href={link.wa_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                  >
-                    <Send className="h-3.5 w-3.5" />
-                    Send
+                  <a href={link.wa_link} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1 px-3 min-h-[44px] bg-green-600 text-white rounded-lg text-sm font-medium shrink-0">
+                    <Send className="h-3.5 w-3.5" /> Send
                   </a>
                 </div>
                 <details className="text-xs">
-                  <summary className="cursor-pointer" style={{ color: 'var(--nm-text-muted)' }}>Preview message</summary>
-                  <pre className="mt-1 p-2 rounded whitespace-pre-wrap text-[11px]" style={{ background: 'var(--nm-bg)', color: 'var(--nm-text-secondary)' }}>
-                    {link.message}
-                  </pre>
+                  <summary className="cursor-pointer" style={{ color: 'var(--nm-text-muted)' }}>Preview</summary>
+                  <pre className="mt-1 p-2 rounded whitespace-pre-wrap text-[11px]"
+                    style={{ background: 'var(--nm-bg)', color: 'var(--nm-text-secondary)' }}>{link.message}</pre>
                 </details>
               </div>
             ))}
             {reminderLinks.length === 0 && (
-              <p className="text-center py-4" style={{ color: 'var(--nm-text-muted)' }}>No links generated</p>
+              <p className="text-center py-4 text-sm" style={{ color: 'var(--nm-text-muted)' }}>No links generated</p>
             )}
           </div>
         </DialogContent>

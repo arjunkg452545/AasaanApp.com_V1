@@ -363,7 +363,7 @@ export default function MembersManagement() {
 
       <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
         {/* Stats Bar */}
-        <div className="grid grid-cols-5 gap-2 md:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
           {STAT_CARDS.map((s) => {
             const Icon = s.icon;
             const isActive = statusFilter === s.filter;

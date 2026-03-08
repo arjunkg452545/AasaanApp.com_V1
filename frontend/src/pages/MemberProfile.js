@@ -179,7 +179,7 @@ export default function MemberProfile() {
 
         {/* Tabs */}
         <Tabs defaultValue="overview">
-          <TabsList className="w-full grid grid-cols-4">
+          <TabsList className="w-full grid grid-cols-2 sm:grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -255,17 +255,17 @@ export default function MemberProfile() {
 
           {/* Attendance Tab */}
           <TabsContent value="attendance" className="space-y-4 mt-4">
-            <div className="grid grid-cols-3 gap-3">
-              <Card className="p-4 text-center">
-                <p className="text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{att.total_attended}</p>
+            <div className="grid grid-cols-3 gap-2">
+              <Card className="p-2.5 text-center">
+                <p className="text-lg sm:text-2xl font-bold" style={{ color: 'var(--nm-text-primary)' }}>{att.total_attended}</p>
                 <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Meetings Attended</p>
               </Card>
-              <Card className="p-4 text-center">
-                <p className="text-2xl font-bold text-emerald-600">{att.present_count}</p>
+              <Card className="p-2.5 text-center">
+                <p className="text-lg sm:text-2xl font-bold text-emerald-600">{att.present_count}</p>
                 <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>On Time</p>
               </Card>
-              <Card className="p-4 text-center">
-                <p className="text-2xl font-bold text-amber-600">{att.late_count}</p>
+              <Card className="p-2.5 text-center">
+                <p className="text-lg sm:text-2xl font-bold text-amber-600">{att.late_count}</p>
                 <p className="text-xs" style={{ color: 'var(--nm-text-secondary)' }}>Late</p>
               </Card>
             </div>
