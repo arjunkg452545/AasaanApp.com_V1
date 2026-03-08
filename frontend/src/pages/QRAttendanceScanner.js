@@ -1,35 +1,46 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, XCircle, CheckCircle2, AlertTriangle, RefreshCw, Clock, Home, Info } from 'lucide-react';
+import jsQR from 'jsqr';
 import api from '../utils/api';
-
-// iOS detection (iPad, iPhone, iPod)
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 export default function QRAttendanceScanner() {
   // loading | scanning | marking | success | error | denied | already | warning
   const [status, setStatus] = useState('loading');
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState(null);
-  const [scanHint, setScanHint] = useState(false); // Show "hold steady" hint after timeout
-  const scannerRef = useRef(null);
+  const [scanHint, setScanHint] = useState(false);
+
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  const streamRef = useRef(null);
+  const animFrameRef = useRef(null);
   const mountedRef = useRef(true);
   const autoNavRef = useRef(null);
   const hintTimerRef = useRef(null);
   const processingRef = useRef(false);
+
   const navigate = useNavigate();
 
-  const safeStop = useCallback(async () => {
-    const inst = scannerRef.current;
-    if (!inst) return;
-    try {
-      const s = inst.getState();
-      if (s === 2 || s === 3) await inst.stop();
-    } catch { /* already stopped */ }
-    // NEVER call inst.clear() — on iOS it causes permission to be forgotten
-    scannerRef.current = null;
+  // ─── Stop camera stream and animation frame ───
+  const stopCamera = useCallback(() => {
+    // Cancel animation frame
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    // Stop all media tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    // Clear video srcObject
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
   }, []);
 
+  // ─── Handle decoded QR result ───
   const handleScanResult = useCallback(async (decodedText) => {
     if (processingRef.current) return;
     processingRef.current = true;
@@ -38,11 +49,11 @@ export default function QRAttendanceScanner() {
     if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
     setScanHint(false);
 
-    // Vibration feedback on scan
+    // Vibration feedback
     if (navigator.vibrate) navigator.vibrate(200);
 
-    // Stop scanner immediately
-    safeStop();
+    // Stop camera immediately
+    stopCamera();
     if (!mountedRef.current) return;
 
     // Extract token from URL
@@ -72,7 +83,6 @@ export default function QRAttendanceScanner() {
       if (!mountedRef.current) return;
 
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
       setResult(response.data);
       setStatus('success');
 
@@ -108,8 +118,40 @@ export default function QRAttendanceScanner() {
 
       processingRef.current = false;
     }
-  }, [navigate, safeStop]);
+  }, [navigate, stopCamera]);
 
+  // ─── jsQR scanning loop via requestAnimationFrame ───
+  const scanLoop = useCallback(() => {
+    if (!mountedRef.current || processingRef.current) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+      animFrameRef.current = requestAnimationFrame(scanLoop);
+      return;
+    }
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'dontInvert',
+    });
+
+    if (code && code.data) {
+      handleScanResult(code.data);
+      return; // Stop loop — we got a result
+    }
+
+    // Continue scanning
+    animFrameRef.current = requestAnimationFrame(scanLoop);
+  }, [handleScanResult]);
+
+  // ─── Start camera and begin scanning ───
   const startScanner = useCallback(async () => {
     if (!mountedRef.current) return;
     setStatus('loading');
@@ -121,75 +163,65 @@ export default function QRAttendanceScanner() {
     if (autoNavRef.current) { clearTimeout(autoNavRef.current); autoNavRef.current = null; }
     if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
 
+    // Stop any existing camera first
+    stopCamera();
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus('denied');
       setErrorMsg('Camera not supported on this browser.');
       return;
     }
 
-    // NO getUserMedia warmup — on iOS this causes a DOUBLE permission prompt.
-    // Let html5-qrcode handle camera permission directly via its own start().
-
     try {
-      const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode');
-      if (!mountedRef.current) return;
-
-      const el = document.getElementById('qr-reader');
-      if (!el) { setStatus('error'); setErrorMsg('Scanner element not found.'); return; }
-
-      // Create scanner — QR_CODE only for speed
-      const qr = new Html5Qrcode('qr-reader', {
-        formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
-        verbose: false,
+      // Request camera — NO width/height constraints for maximum compatibility
+      // Let browser pick optimal resolution (especially important for iOS)
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false,
       });
-      scannerRef.current = qr;
 
-      // Camera config: iOS gets default resolution, Android gets high resolution
-      const cameraConfig = {
-        facingMode: 'environment',
-        ...(isIOS ? {} : { width: { ideal: 1920 }, height: { ideal: 1080 } }),
+      if (!mountedRef.current) {
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+
+      streamRef.current = stream;
+      const video = videoRef.current;
+      if (!video) {
+        stream.getTracks().forEach(t => t.stop());
+        setStatus('error');
+        setErrorMsg('Scanner element not found.');
+        return;
+      }
+
+      // Critical iOS attributes — MUST be set BEFORE srcObject
+      video.setAttribute('playsinline', 'true');
+      video.setAttribute('webkit-playsinline', 'true');
+      video.setAttribute('muted', 'true');
+      video.muted = true;
+
+      video.srcObject = stream;
+
+      // Wait for video to be ready, then start scanning
+      video.onloadedmetadata = () => {
+        if (!mountedRef.current) return;
+        video.play().then(() => {
+          if (!mountedRef.current) return;
+          setStatus('scanning');
+
+          // Start jsQR scanning loop
+          animFrameRef.current = requestAnimationFrame(scanLoop);
+
+          // Start 10-second hint timer
+          hintTimerRef.current = setTimeout(() => {
+            if (mountedRef.current) setScanHint(true);
+          }, 10000);
+        }).catch(() => {
+          if (!mountedRef.current) return;
+          setStatus('error');
+          setErrorMsg('Could not start video playback. Please try again.');
+        });
       };
-
-      // Scanner config: MAX SPEED
-      const scanConfig = {
-        fps: 30,
-        qrbox: undefined,       // Scan ENTIRE camera view
-        aspectRatio: 1.0,
-        disableFlip: false,
-        experimentalFeatures: {
-          useBarCodeDetectorIfSupported: true,
-        },
-      };
-
-      await qr.start(
-        cameraConfig,
-        scanConfig,
-        (text) => handleScanResult(text),
-        () => {}
-      );
-      if (!mountedRef.current) { safeStop(); return; }
-
-      // Post-start: fix video element for full-screen + iOS compatibility
-      setTimeout(() => {
-        const video = document.querySelector('#qr-reader video');
-        if (video) {
-          // iOS REQUIRES playsinline for inline video playback
-          video.setAttribute('playsinline', 'true');
-          video.setAttribute('webkit-playsinline', 'true');
-          video.setAttribute('muted', 'true');
-          Object.assign(video.style, {
-            width: '100vw', height: '100vh', objectFit: 'cover',
-            position: 'fixed', top: '0', left: '0', zIndex: '1',
-          });
-        }
-      }, 100);
-
-      setStatus('scanning');
-
-      // Start 10-second hint timer
-      hintTimerRef.current = setTimeout(() => {
-        if (mountedRef.current) setScanHint(true);
-      }, 10000);
 
     } catch (err) {
       if (!mountedRef.current) return;
@@ -201,13 +233,17 @@ export default function QRAttendanceScanner() {
       } else if (errStr.includes('NotFoundError') || errStr.includes('no camera')) {
         setStatus('denied');
         setErrorMsg('No camera found on this device.');
+      } else if (errStr.includes('NotReadableError') || errStr.includes('in use')) {
+        setStatus('error');
+        setErrorMsg('Camera is in use by another app. Close other camera apps and try again.');
       } else {
         setStatus('error');
         setErrorMsg('Could not start camera. Please close other apps using the camera and try again.');
       }
     }
-  }, [handleScanResult, safeStop]);
+  }, [scanLoop, stopCamera]);
 
+  // ─── Mount / Unmount + iOS visibility handling ───
   useEffect(() => {
     mountedRef.current = true;
     startScanner();
@@ -215,18 +251,18 @@ export default function QRAttendanceScanner() {
     // Handle iOS PWA returning from background — camera stream may be dead
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && mountedRef.current) {
-        // Only restart if we were scanning (not on success/error screens)
-        const currentScanner = scannerRef.current;
-        if (currentScanner) {
-          try {
-            const s = currentScanner.getState();
-            // State 2 = scanning, 3 = paused. If not in a valid state, restart
-            if (s !== 2) {
-              startScanner();
-            }
-          } catch {
+        // Check if stream is still active
+        const stream = streamRef.current;
+        if (stream) {
+          const tracks = stream.getTracks();
+          const allEnded = tracks.every(t => t.readyState === 'ended');
+          if (allEnded) {
+            // Stream died in background — restart
             startScanner();
           }
+        } else if (!processingRef.current) {
+          // No stream — restart if we were supposed to be scanning
+          startScanner();
         }
       }
     };
@@ -234,20 +270,50 @@ export default function QRAttendanceScanner() {
 
     return () => {
       mountedRef.current = false;
-      safeStop();
+      stopCamera();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (autoNavRef.current) { clearTimeout(autoNavRef.current); autoNavRef.current = null; }
       if (hintTimerRef.current) { clearTimeout(hintTimerRef.current); hintTimerRef.current = null; }
     };
-  }, [startScanner, safeStop]);
+  }, [startScanner, stopCamera]);
 
   const retry = () => startScanner();
   const goBack = () => navigate('/app/home');
 
   return (
     <div className="fixed inset-0 z-50" style={{ background: '#000' }}>
-      {/* Camera container — static ID, never changes */}
-      <div id="qr-reader" className="absolute inset-0" style={{ zIndex: 1 }} />
+      {/* Camera video — full screen, covers entire viewport */}
+      <video
+        ref={videoRef}
+        playsInline
+        muted
+        autoPlay
+        className="absolute inset-0 w-full h-full"
+        style={{ objectFit: 'cover', zIndex: 1 }}
+      />
+
+      {/* Hidden canvas for jsQR processing — never displayed */}
+      <canvas ref={canvasRef} className="hidden" />
+
+      {/* Scanning overlay — crosshair corners */}
+      {status === 'scanning' && (
+        <div className="fixed inset-0 z-[5] flex items-center justify-center pointer-events-none">
+          <div className="relative" style={{ width: '260px', height: '260px' }}>
+            {/* Top-left corner */}
+            <div className="absolute top-0 left-0 w-10 h-10 border-t-[3px] border-l-[3px] border-white rounded-tl-lg" />
+            {/* Top-right corner */}
+            <div className="absolute top-0 right-0 w-10 h-10 border-t-[3px] border-r-[3px] border-white rounded-tr-lg" />
+            {/* Bottom-left corner */}
+            <div className="absolute bottom-0 left-0 w-10 h-10 border-b-[3px] border-l-[3px] border-white rounded-bl-lg" />
+            {/* Bottom-right corner */}
+            <div className="absolute bottom-0 right-0 w-10 h-10 border-b-[3px] border-r-[3px] border-white rounded-br-lg" />
+            {/* Scanning line animation */}
+            <div className="absolute left-2 right-2 h-[2px] bg-[#CF2030] animate-scan-line" style={{
+              animation: 'scanLine 2s ease-in-out infinite',
+            }} />
+          </div>
+        </div>
+      )}
 
       {/* Top gradient overlay */}
       <div className="fixed top-0 left-0 right-0 z-10 px-4 pt-4 pb-10 flex items-center justify-between"
@@ -402,16 +468,12 @@ export default function QRAttendanceScanner() {
         </div>
       )}
 
-      {/* Hide all html5-qrcode default chrome */}
+      {/* Scanning line animation keyframes */}
       <style>{`
-        #qr-shaded-region { display: none !important; }
-        #qr-reader > div:not(:first-child) { display: none !important; }
-        #qr-reader img { display: none !important; }
-        #qr-reader__dashboard_section { display: none !important; }
-        #qr-reader__status_span { display: none !important; }
-        #qr-reader__header_message { display: none !important; }
-        #qr-reader { overflow: hidden !important; }
-        #qr-reader video { object-fit: cover !important; }
+        @keyframes scanLine {
+          0%, 100% { top: 8px; opacity: 0.4; }
+          50% { top: calc(100% - 10px); opacity: 1; }
+        }
       `}</style>
     </div>
   );
