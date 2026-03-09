@@ -97,17 +97,6 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup():
-    # Initialize super admin if not exists
-    existing = await db.superadmins.find_one({"mobile": "919893452545"})
-    if not existing:
-        await db.superadmins.insert_one({
-            "mobile": "919893452545",
-            "password_hash": hash_password("superadmin123@"),
-            "must_reset": False,
-            "created_at": datetime.now(timezone.utc).isoformat()
-        })
-        logger.info("Super admin created")
-
     # Migration: fix developer record with wrong field name (developer_id → dev_id)
     import uuid
     bad_dev = await db.developers.find_one({"email": "arjun@saiinfratel.in", "dev_id": {"$exists": False}})
