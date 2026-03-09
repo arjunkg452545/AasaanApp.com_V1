@@ -37,7 +37,7 @@ function formatCurrency(amount) {
   }).format(amount || 0);
 }
 
-export default function MemberPayments() {
+function MemberPayments() {
   const [fees, setFees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('');
@@ -129,3 +129,5 @@ export default function MemberPayments() {
     </div>
   );
 }
+
+export default React.memo(MemberPayments);

@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { ArrowLeft, Wallet, Calendar, PartyPopper, FileText, Users, Check, X, Eye, ChevronLeft, ChevronRight, Settings, IndianRupee, ShieldCheck, Banknote, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function FundManagementHub() {
+function FundManagementHub() {
   const [stats, setStats] = useState({ kitty: 0, meetingfee: 0, events: 0, total: 0, month: '', year: '' });
   const [chapterName, setChapterName] = useState('');
   const [showSummary, setShowSummary] = useState(null); // 'kitty', 'meetingfee', 'events'
@@ -559,3 +559,5 @@ export default function FundManagementHub() {
     </div>
   );
 }
+
+export default React.memo(FundManagementHub);

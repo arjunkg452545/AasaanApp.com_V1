@@ -41,7 +41,7 @@ function formatRole(role) {
   return role.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
-export default function UnifiedHome() {
+function UnifiedHome() {
   const [memberData, setMemberData] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
   const [error, setError] = useState(null);
@@ -253,3 +253,5 @@ export default function UnifiedHome() {
     </div>
   );
 }
+
+export default React.memo(UnifiedHome);

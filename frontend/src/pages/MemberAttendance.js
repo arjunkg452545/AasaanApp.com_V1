@@ -23,7 +23,7 @@ function statusBadge(status) {
   return { cls: 'bg-gray-100 text-gray-700', label: status || 'Unknown' };
 }
 
-export default function MemberAttendance() {
+function MemberAttendance() {
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,3 +110,5 @@ export default function MemberAttendance() {
     </div>
   );
 }
+
+export default React.memo(MemberAttendance);

@@ -9,7 +9,7 @@ if (!API) {
   console.error('[API] Neither REACT_APP_API_URL nor REACT_APP_BACKEND_URL is set!');
 }
 
-const api = axios.create({ baseURL: API });
+const api = axios.create({ baseURL: API, timeout: 15000 });
 
 // Request interceptor: attach Bearer token + cache-bust header
 api.interceptors.request.use((config) => {

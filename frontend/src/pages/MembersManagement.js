@@ -41,7 +41,7 @@ const STAT_CARDS = [
   { key: 'suspended', label: 'Suspended', icon: Shield, color: 'text-red-600', bg: 'bg-red-100', filter: 'suspended' },
 ];
 
-export default function MembersManagement() {
+function MembersManagement() {
   const [members, setMembers] = useState([]);
   const [stats, setStats] = useState({ total: 0, active: 0, pending: 0, inactive: 0, suspended: 0, expiring_soon: 0 });
   const [loading, setLoading] = useState(true);
@@ -669,3 +669,5 @@ export default function MembersManagement() {
     </div>
   );
 }
+
+export default React.memo(MembersManagement);

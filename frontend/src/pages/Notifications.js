@@ -22,7 +22,7 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-export default function Notifications() {
+function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState(null);
@@ -126,3 +126,5 @@ export default function Notifications() {
     </div>
   );
 }
+
+export default React.memo(Notifications);

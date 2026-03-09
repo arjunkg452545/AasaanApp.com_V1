@@ -11,7 +11,7 @@ import {
   Lock, Save, Eye, EyeOff,
 } from 'lucide-react';
 
-export default function MemberMyProfile() {
+function MemberMyProfile() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -178,6 +178,8 @@ export default function MemberMyProfile() {
     </div>
   );
 }
+
+export default React.memo(MemberMyProfile);
 
 function InfoRow({ icon: Icon, label, value }) {
   return (

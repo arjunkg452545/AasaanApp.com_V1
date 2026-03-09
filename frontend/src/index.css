@@ -631,3 +631,8 @@ html.transitioning *::after {
     padding-bottom: max(env(safe-area-inset-bottom), 8px);
   }
 }
+
+/* Performance: GPU acceleration for animations */
+.animate-spin, .animate-pulse {
+  will-change: transform, opacity;
+}

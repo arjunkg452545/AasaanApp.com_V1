@@ -35,6 +35,9 @@
         <link rel="apple-touch-startup-image" href="/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
         <link rel="apple-touch-startup-image" href="/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
 
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="preconnect" href="https://aasaanappcomv1-production.up.railway.app" crossorigin />
+
         <title>AasaanApp</title>
 
         <!-- Splash screen style while JS loads -->
@@ -62,7 +65,7 @@
 
         <!-- Splash screen shown while React boots -->
         <div id="splash-screen">
-            <img src="/icons/icon-192x192.png" alt="AasaanApp" />
+            <img src="/icons/icon-192x192.png" alt="AasaanApp" loading="eager" decoding="async" />
             <p>AasaanApp</p>
             <div class="loader"></div>
         </div>
