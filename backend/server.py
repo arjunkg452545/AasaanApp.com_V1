@@ -113,11 +113,13 @@ async def startup():
     if not existing_dev:
         import uuid
         await db.developers.insert_one({
-            "developer_id": str(uuid.uuid4()),
+            "dev_id": str(uuid.uuid4()),
             "email": "arjun@saiinfratel.in",
             "name": "Arjun - SIPL",
             "mobile": "9893452545",
             "password_hash": hash_password("Arjun452545@"),
+            "role": "developer",
+            "company": "SIPL",
             "created_at": datetime.now(timezone.utc).isoformat(),
         })
         logger.info("Developer arjun@saiinfratel.in seeded")
