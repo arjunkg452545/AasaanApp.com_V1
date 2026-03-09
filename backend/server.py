@@ -56,6 +56,7 @@ from routes.audit_log import router as audit_log_router
 from routes.otp import router as otp_router
 from routes.notifications import router as notifications_router
 from routes.messaging_config import router as messaging_config_router
+from routes.password_reset import router as password_reset_router
 
 for r in [
     superadmin_router, superadmin_members_router,
@@ -70,6 +71,7 @@ for r in [
     visitors_router, accountant_reports_router, superadmin_reports_router, audit_log_router,
     otp_router,
     notifications_router, messaging_config_router,
+    password_reset_router,
 ]:
     app.include_router(r)
 
@@ -101,9 +103,24 @@ async def startup():
         await db.superadmins.insert_one({
             "mobile": "919893452545",
             "password_hash": hash_password("superadmin123@"),
+            "must_reset": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         })
         logger.info("Super admin created")
+
+    # Seed developer: arjun@saiinfratel.in
+    existing_dev = await db.developers.find_one({"email": "arjun@saiinfratel.in"})
+    if not existing_dev:
+        import uuid
+        await db.developers.insert_one({
+            "developer_id": str(uuid.uuid4()),
+            "email": "arjun@saiinfratel.in",
+            "name": "Arjun - SIPL",
+            "mobile": "9893452545",
+            "password_hash": hash_password("Arjun452545@"),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+        logger.info("Developer arjun@saiinfratel.in seeded")
 
     # Seed default subscription settings
     if not await db.subscription_settings.find_one({"setting_id": "default"}):
@@ -257,6 +274,20 @@ async def startup():
             "release_notes": "OTP-Ready Structure, Persistent Login, Auto-generated Member IDs",
         })
         logger.info("App version config seeded")
+
+    # Migration: Add must_reset field to existing credentials
+    for coll_name in ["member_credentials", "superadmins", "accountant_credentials"]:
+        coll = db[coll_name]
+        mr = await coll.update_many(
+            {"must_reset": {"$exists": False}},
+            {"$set": {"must_reset": False}}
+        )
+        if mr.modified_count > 0:
+            logger.info(f"Migrated {mr.modified_count} docs in {coll_name} with must_reset=False")
+
+    # Password reset OTP indexes
+    await db.password_reset_otps.create_index("mobile", unique=True)
+    await db.password_reset_otps.create_index("expires_at")
 
     # OTP indexes
     await db.otp_logs.create_index([("mobile", 1), ("sent_at", -1)])

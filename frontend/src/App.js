@@ -84,6 +84,10 @@ const AuditLog = lazy(() => import("./pages/AuditLog"));
 // Developer OTP Config
 const DeveloperOTPConfig = lazy(() => import("./pages/DeveloperOTPConfig"));
 
+// Auth pages
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ForceResetPassword = lazy(() => import("./pages/ForceResetPassword"));
+
 // ─── Semver comparison ────────────────────────────────
 function semverCompare(a, b) {
   const pa = a.split('.').map(Number);
@@ -282,6 +286,8 @@ function App() {
         <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/force-reset-password" element={<ForceResetPassword />} />
 
           {/* Developer Routes (unchanged) */}
           <Route path="/developer" element={<ProtectedRoute allowedRoles={["developer"]}><DeveloperLayout /></ProtectedRoute>}>

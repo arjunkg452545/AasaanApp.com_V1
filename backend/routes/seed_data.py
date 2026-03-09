@@ -27,8 +27,8 @@ async def _seed_superadmin(password_hash, now_iso, created, user):
         "superadmin_id": superadmin_id, "name": "Arjun Gupta (Test ED)",
         "email": "ed@test.com", "mobile": ed_mobile,
         "password_hash": password_hash, "region": "Chhattisgarh",
-        "state": "CG", "is_active": True, "created_at": now_iso,
-        "created_by": user.get("email")
+        "state": "CG", "is_active": True, "must_reset": False,
+        "created_at": now_iso, "created_by": user.get("email")
     })
     created["superadmin"] = "created"
     return superadmin_id
@@ -143,7 +143,7 @@ async def _seed_members(chapter_id, password_hash, now_iso, created):
             await db.member_credentials.insert_one({
                 "credential_id": str(uuid4()), "member_id": m_id,
                 "mobile": spec["mobile"], "password_hash": password_hash,
-                "is_active": True, "created_at": now_iso,
+                "must_reset": False, "is_active": True, "created_at": now_iso,
                 "updated_at": now_iso, "updated_by": "system"
             })
             created["member_credentials"].append({"mobile": spec["mobile"], "status": "created"})
@@ -162,7 +162,7 @@ async def _seed_accountant_and_config(superadmin_id, password_hash, now_iso, cre
             "accountant_id": str(uuid4()), "superadmin_id": superadmin_id,
             "name": "Vikram Accountant", "mobile": acct_mobile,
             "email": "accountant@test.com", "password_hash": password_hash,
-            "is_active": True, "created_at": now_iso, "updated_at": now_iso,
+            "must_reset": False, "is_active": True, "created_at": now_iso, "updated_at": now_iso,
         })
         created["accountant"] = "created"
 

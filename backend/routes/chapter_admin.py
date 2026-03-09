@@ -135,6 +135,25 @@ async def add_member(member: MemberCreate, user=Depends(get_current_user)):
 
     try:
         await db.members.insert_one(member_data)
+
+        # Auto-create login credentials: BNI@{last4digits}
+        mobile = member.primary_mobile
+        last4 = mobile[-4:] if len(mobile) >= 4 else mobile
+        default_password = f"BNI@{last4}"
+        existing_cred = await db.member_credentials.find_one({"mobile": mobile})
+        if not existing_cred:
+            await db.member_credentials.insert_one({
+                "credential_id": str(uuid4()),
+                "member_id": member_data["member_id"],
+                "mobile": mobile,
+                "password_hash": hash_password(default_password),
+                "must_reset": True,
+                "is_active": True,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": user.get("mobile", user.get("email", "system")),
+            })
+
         return MemberResponse(**member_data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add member: {str(e)}")
@@ -185,6 +204,24 @@ async def bulk_add_members(members: List[MemberCreate], user=Depends(get_current
             await db.members.insert_one(member_data)
             inserted += 1
             batch_mobiles.add(member.primary_mobile)
+
+            # Auto-create login credentials: BNI@{last4digits}
+            mobile = member.primary_mobile
+            last4 = mobile[-4:] if len(mobile) >= 4 else mobile
+            default_password = f"BNI@{last4}"
+            existing_cred = await db.member_credentials.find_one({"mobile": mobile})
+            if not existing_cred:
+                await db.member_credentials.insert_one({
+                    "credential_id": str(uuid4()),
+                    "member_id": member_data["member_id"],
+                    "mobile": mobile,
+                    "password_hash": hash_password(default_password),
+                    "must_reset": True,
+                    "is_active": True,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_by": "system",
+                })
         except Exception as e:
             errors.append(f"Row {idx+1}: Database error: {str(e)}")
 
@@ -298,6 +335,24 @@ async def upload_members_excel(file: UploadFile = File(...), user=Depends(get_cu
         try:
             await db.members.insert_one(member_data)
             inserted_count += 1
+
+            # Auto-create login credentials: BNI@{last4digits}
+            mobile = member_data["primary_mobile"]
+            last4 = mobile[-4:] if len(mobile) >= 4 else mobile
+            default_password = f"BNI@{last4}"
+            existing_cred = await db.member_credentials.find_one({"mobile": mobile})
+            if not existing_cred:
+                await db.member_credentials.insert_one({
+                    "credential_id": str(uuid4()),
+                    "member_id": member_data["member_id"],
+                    "mobile": mobile,
+                    "password_hash": hash_password(default_password),
+                    "must_reset": True,
+                    "is_active": True,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_by": "system",
+                })
         except Exception as e:
             errors.append(f"Insert error for row {idx+2}: {str(e)}")
 

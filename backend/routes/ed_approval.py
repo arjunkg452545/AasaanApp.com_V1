@@ -113,6 +113,7 @@ async def create_accountant(data: AccountantCreate, user=Depends(require_role("s
         "mobile": data.mobile,
         "email": data.email or "",
         "password_hash": hash_password(data.password),
+        "must_reset": True,
         "is_active": True,
         "created_at": now,
         "updated_at": now,

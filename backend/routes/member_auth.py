@@ -16,6 +16,7 @@ from models_payment import (
     MemberLoginResponse,
     MemberSetPasswordRequest,
     MemberChangePasswordRequest,
+    ForceResetPasswordRequest,
 )
 
 router = APIRouter(prefix="/api")
@@ -96,6 +97,7 @@ async def member_login(data: MemberLoginRequest, response: Response):
         chapter_name=chapter_name,
         chapter_role=chapter_role,
         expires_at=expires_at,
+        must_reset=creds.get("must_reset", False),
     )
 
 
@@ -165,3 +167,32 @@ async def change_member_password(
     )
 
     return {"message": "Password changed successfully. Please log in again."}
+
+
+# ===== MEMBER: FORCE RESET PASSWORD (first login) =====
+@router.post("/member/force-reset-password")
+async def force_reset_member_password(
+    data: ForceResetPasswordRequest,
+    user=Depends(require_role("member", "admin")),
+):
+    """Member resets password on first login (must_reset flow)."""
+    if len(data.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    member_id = user.get("member_id")
+    now = datetime.now(timezone.utc).isoformat()
+
+    result = await db.member_credentials.update_one(
+        {"member_id": member_id},
+        {"$set": {
+            "password_hash": hash_password(data.new_password),
+            "must_reset": False,
+            "password_changed_at": now,
+            "updated_at": now,
+        }}
+    )
+
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Credentials not found")
+
+    return {"message": "Password reset successfully"}

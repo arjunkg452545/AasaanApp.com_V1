@@ -66,6 +66,7 @@ async def create_superadmin(data: SuperAdminCreate, user=Depends(require_role("d
         "region": data.region,
         "state": data.state,
         "is_active": True,
+        "must_reset": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": user.get("email")
     }

@@ -25,6 +25,7 @@ class MemberLoginResponse(BaseModel):
     chapter_name: str = ""
     chapter_role: Optional[str] = None
     expires_at: Optional[str] = None
+    must_reset: bool = False
 
 
 class MemberSetPasswordRequest(BaseModel):
@@ -33,6 +34,25 @@ class MemberSetPasswordRequest(BaseModel):
 
 class MemberChangePasswordRequest(BaseModel):
     current_password: str
+    new_password: str
+
+
+class ForceResetPasswordRequest(BaseModel):
+    new_password: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    mobile: str
+
+
+class VerifyOTPRequest(BaseModel):
+    mobile: str
+    otp: str
+
+
+class ResetPasswordRequest(BaseModel):
+    mobile: str
+    reset_token: str
     new_password: str
 
 
