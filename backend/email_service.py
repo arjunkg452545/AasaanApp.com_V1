@@ -2,6 +2,7 @@
 Email OTP Service for AasaanApp — Hostinger SMTP.
 Used for forgot-password flow: sends OTP to member's registered email.
 """
+import os
 import smtplib
 import logging
 from email.mime.text import MIMEText
@@ -9,15 +10,19 @@ from email.mime.multipart import MIMEMultipart
 
 logger = logging.getLogger(__name__)
 
-SMTP_HOST = "smtp.hostinger.com"
-SMTP_PORT = 465
-SMTP_USER = "app@aasaanapp.com"
-SMTP_PASS = "AasaanApp@2026!"
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.hostinger.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+SMTP_USER = os.getenv("SMTP_EMAIL", "")
+SMTP_PASS = os.getenv("SMTP_PASSWORD", "")
 FROM_NAME = "AasaanApp"
 
 
 def send_otp_email(to_email: str, otp: str, member_name: str = "Member") -> bool:
     """Send OTP email via Hostinger SMTP_SSL. Returns True on success."""
+    if not SMTP_USER or not SMTP_PASS:
+        logger.error("SMTP_EMAIL or SMTP_PASSWORD env vars not set — cannot send email")
+        return False
+
     subject = f"AasaanApp - Password Reset OTP: {otp}"
     html_body = f"""
     <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:12px;">

@@ -108,10 +108,16 @@ async def startup():
         })
         logger.info("Super admin created")
 
+    # Migration: fix developer record with wrong field name (developer_id → dev_id)
+    import uuid
+    bad_dev = await db.developers.find_one({"email": "arjun@saiinfratel.in", "dev_id": {"$exists": False}})
+    if bad_dev:
+        await db.developers.delete_one({"email": "arjun@saiinfratel.in"})
+        logger.info("Deleted developer arjun@saiinfratel.in with wrong field names")
+
     # Seed developer: arjun@saiinfratel.in
     existing_dev = await db.developers.find_one({"email": "arjun@saiinfratel.in"})
     if not existing_dev:
-        import uuid
         await db.developers.insert_one({
             "dev_id": str(uuid.uuid4()),
             "email": "arjun@saiinfratel.in",
