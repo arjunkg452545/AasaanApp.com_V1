@@ -357,9 +357,9 @@ class SuperAdminResponse(BaseModel):
     chapter_count: int = 0
 
 class DeveloperSeedRequest(BaseModel):
-    email: str = "admin@aasaanapp.com"
-    password: str = "AasaanAdmin2026!"
-    name: str = "AasaanApp Developer"
+    email: str = "arjun@saiinfratel.in"
+    password: str = "Arjun452545@"
+    name: str = "Arjun - SIPL"
 
 # ===== SUBSCRIPTION / RECHARGE MODELS =====
 

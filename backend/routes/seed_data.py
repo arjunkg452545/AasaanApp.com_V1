@@ -388,7 +388,7 @@ async def _seed_roles_visitors_audit(chapter_id, member_records, password_hash, 
     audit_entries = [
         {"action": "member_created", "role": "admin", "user": "9999900002", "detail": "Created member TEST001"},
         {"action": "payment_verified", "role": "superadmin", "user": "9999900001", "detail": "Verified kitty payment"},
-        {"action": "chapter_created", "role": "developer", "user": "admin@aasaanapp.com", "detail": "Created BNI Sunrise"},
+        {"action": "chapter_created", "role": "developer", "user": "arjun@saiinfratel.in", "detail": "Created BNI Sunrise"},
     ]
     existing_logs = await db.audit_logs.count_documents({"chapter_id": chapter_id})
     if existing_logs == 0:
@@ -429,7 +429,7 @@ async def seed_test_data(user=Depends(require_role("developer"))):
         "message": "Test data seeding complete",
         "created_summary": created,
         "login_credentials": {
-            "developer": {"note": "Use your existing developer account", "endpoint": "/api/developer/login", "email": "admin@aasaanapp.com", "password": "AasaanAdmin2026!"},
+            "developer": {"note": "Use your existing developer account", "endpoint": "/api/developer/login", "email": "arjun@saiinfratel.in"},
             "superadmin_ed": {"endpoint": "/api/auth/admin-login", "mobile": "9999900001", "password": "Test@1234", "role": "superadmin", "name": "Arjun Gupta (Test ED)"},
             "members": [
                 {"endpoint": "/api/member/login", "mobile": spec["mobile"], "password": "Test@1234",
