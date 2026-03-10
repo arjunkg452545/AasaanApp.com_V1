@@ -404,6 +404,17 @@ export default function Login() {
                 >
                   {adminLoading ? 'Signing in...' : 'Admin Sign In'}
                 </button>
+
+                <div className="text-center mt-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm"
+                    style={{ color: 'var(--nm-accent)', background: 'none', border: 'none', cursor: 'pointer' }}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
               </form>
             </div>
           </div>
